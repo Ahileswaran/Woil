@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/profileFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.woil.ui.HomeFragment"
+        android:label="Home" />
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.woil.ui.ChatFragment"
+        android:label="Chat" />
+    <fragment
+        android:id="@+id/walletFragment"
+        android:name="com.example.woil.ui.WalletFragment"
+        android:label="Wallet" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.woil.ui.ProfileFragment"
+        android:label="Profile" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.woil.ui.SettingsFragment"
+        android:label="Settings" />
+
+</navigation>

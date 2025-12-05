@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Notification icon -->
+    <item
+        android:id="@+id/action_notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="@string/action_notifications"
+        app:showAsAction="ifRoom" />
+
+    <!-- Messages / chat -->
+    <item
+        android:id="@+id/action_chat"
+        android:icon="@drawable/ic_chat"
+        android:title="@string/action_chat"
+        app:showAsAction="ifRoom" />
+
+    <!-- Overflow: profile / settings -->
+    <item
+        android:id="@+id/action_more"
+        android:icon="@drawable/ic_more_vert"
+        android:title="@string/action_more"
+        app:showAsAction="never" />
+</menu>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Woil</string>
+    <string name="action_notifications">Notifications</string>
+    <string name="action_chat">Chat</string>
+    <string name="action_more">More</string>
+    <string name="home_fab" />
+
+</resources>

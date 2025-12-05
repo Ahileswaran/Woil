@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Circular shape appearance for small components -->
+    <style name="ShapeAppearance.MaterialComponents.SmallComponent.Circle" parent="ShapeAppearance.MaterialComponents">
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>

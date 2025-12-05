@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "157816393710",
+    "project_id": "woil-3772e",
+    "storage_bucket": "woil-3772e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:157816393710:android:8f1138a53be73a04fe48ff",
+        "android_client_info": {
+          "package_name": "com.example.woil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_DeqZDasOZNO-65U2OqlPAGRJIQjaSbw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
