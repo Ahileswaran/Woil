@@ -40,14 +40,21 @@ dependencies {
 
     implementation libs.appcompat
     implementation libs.material
-    //implementation libs.navigation.runtime
-//    implementation libs.navigation.ui
-//    implementation libs.firebase.firestore
- //   implementation libs.navigation.fragment
-//    implementation libs.androidx.navigation.ui
-//    testImplementation libs.junit
-  //  androidTestImplementation libs.ext.junit
-  //  androidTestImplementation libs.espresso.core
+
+    // Firebase BOM for version management
+    implementation platform('com.google.firebase:firebase-bom:33.4.0')  // Use latest stable; check Firebase docs for updates
+
+    // Auth (for email/password or phone)
+    implementation 'com.google.firebase:firebase-auth'
+
+    // If using Firestore for user profiles (as per SRS schema)
+    implementation 'com.google.firebase:firebase-firestore'
+
+    // Other optional for Woil (e.g., Storage for NIC images, FCM for notifications)
+    implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-messaging'
+
+
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.0'
     implementation 'androidx.cardview:cardview:1.0.0'
