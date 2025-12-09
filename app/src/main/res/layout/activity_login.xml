@@ -11,19 +11,19 @@
         android:id="@+id/ivLogo"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@drawable/woil_home"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    android:layout_marginTop="64dp" />
+        android:src="@mipmap/ic_launcher"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="64dp" />
 
     <!-- Tagline -->
     <TextView
         android:id="@+id/tvTagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Workers' Opportunity and Inclusive Labour"
-        android:textSize="16sp"
+        android:text="Workers'"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
         app:layout_constraintTop_toBottomOf="@id/ivLogo"
@@ -32,46 +32,37 @@
         android:layout_marginTop="16dp" />
 
     <!-- Username Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilUsername"
+    <EditText
+        android:id="@+id/etUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Username"
-        app:helperText="Enter your username"
-        app:helperTextTextColor="@android:color/darker_gray"
+        android:inputType="text"
         app:layout_constraintTop_toBottomOf="@id/tvTagline"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="48dp">
+        android:layout_marginTop="48dp" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etUsername"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textEmailAddress" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Password Input with Eye Icon -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilPassword"
+    <!-- Password Input -->
+    <EditText
+        android:id="@+id/etPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Password"
-        app:passwordToggleEnabled="true"
-        app:endIconMode="password_toggle"
-        app:helperText="Enter your password"
-        app:helperTextTextColor="@android:color/darker_gray"
-        app:layout_constraintTop_toBottomOf="@id/tilUsername"
+        android:inputType="textPassword"
+        app:layout_constraintTop_toBottomOf="@id/etUsername"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="16dp" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword" />
-
-    </com.google.android.material.textfield.TextInputLayout>
+    <!-- Phone Input -->
+    <EditText
+        android:id="@+id/etPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Phone Number"
+        android:inputType="phone"
+        app:layout_constraintTop_toBottomOf="@id/etPassword"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp" />
 
     <!-- Login Button -->
     <Button
@@ -81,7 +72,7 @@
         android:text="Login"
         android:backgroundTint="@color/teal_700"
         android:textColor="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@id/tilPassword"
+        app:layout_constraintTop_toBottomOf="@id/etPhone"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="32dp" />
 

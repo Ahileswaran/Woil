@@ -11,19 +11,19 @@
         android:id="@+id/ivLogo"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@drawable/woil_home"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    android:layout_marginTop="64dp" />
+        android:src="@mipmap/ic_launcher"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="64dp" />
 
     <!-- Tagline -->
     <TextView
         android:id="@+id/tvTagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Workers' Opportunity and Inclusive Labour"
-        android:textSize="16sp"
+        android:text="Workers'"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
         app:layout_constraintTop_toBottomOf="@id/ivLogo"
@@ -32,68 +32,96 @@
         android:layout_marginTop="16dp" />
 
     <!-- Username Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilUsername"
+    <EditText
+        android:id="@+id/etUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Username"
-        app:helperText="Enter your username (email)"
-        app:helperTextTextColor="@android:color/darker_gray"
+        android:inputType="text"
         app:layout_constraintTop_toBottomOf="@id/tvTagline"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="48dp">
+        android:layout_marginTop="48dp" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etUsername"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textEmailAddress" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Password Input with Eye Icon -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilPassword"
+    <!-- Phone Input -->
+    <EditText
+        android:id="@+id/etPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Password"
-        app:passwordToggleEnabled="true"
-        app:endIconMode="password_toggle"
-        app:helperText="Enter your password"
-        app:helperTextTextColor="@android:color/darker_gray"
-        app:layout_constraintTop_toBottomOf="@id/tilUsername"
+        android:hint="Phone Number"
+        android:inputType="phone"
+        app:layout_constraintTop_toBottomOf="@id/etUsername"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <!-- Email Input -->
+    <EditText
+        android:id="@+id/etEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email (optional)"
+        android:inputType="textEmailAddress"
+        app:layout_constraintTop_toBottomOf="@id/etPhone"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <!-- Role Selection -->
+    <RadioGroup
+        android:id="@+id/rgRole"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/etEmail"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="16dp">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
+        <RadioButton
+            android:id="@+id/rbWorker"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="textPassword" />
+            android:text="Worker" />
 
-    </com.google.android.material.textfield.TextInputLayout>
+        <RadioButton
+            android:id="@+id/rbClient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Client" />
 
-    <!-- Confirm Password Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilConfirmPassword"
+    </RadioGroup>
+
+    <!-- NIC Input -->
+    <EditText
+        android:id="@+id/etNic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Confirm Password"
-        app:passwordToggleEnabled="true"
-        app:endIconMode="password_toggle"
-        app:helperText="Re-enter your password"
-        app:helperTextTextColor="@android:color/darker_gray"
-        app:layout_constraintTop_toBottomOf="@id/tilPassword"
+        android:hint="NIC Number"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/rgRole"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <!-- OTP Method Selection -->
+    <RadioGroup
+        android:id="@+id/rgOtpMethod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/etNic"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="16dp">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etConfirmPassword"
-            android:layout_width="match_parent"
+        <RadioButton
+            android:id="@+id/rbPhoneOtp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="textPassword" />
+            android:text="Phone" />
 
-    </com.google.android.material.textfield.TextInputLayout>
+        <RadioButton
+            android:id="@+id/rbEmailOtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Email" />
+
+    </RadioGroup>
 
     <!-- Sign Up Button -->
     <Button
@@ -103,7 +131,7 @@
         android:text="Sign Up"
         android:backgroundTint="@color/teal_700"
         android:textColor="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@id/tilConfirmPassword"
+        app:layout_constraintTop_toBottomOf="@id/rgOtpMethod"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="32dp" />
 
