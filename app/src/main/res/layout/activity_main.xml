@@ -82,7 +82,7 @@
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:layout_gravity="bottom"
-        android:background="@drawable/bottom_nav_bg"
+        android:background="@color/nav_bar_black"
         android:paddingTop="8dp"
         android:paddingBottom="12dp"
         app:menu="@menu/bottom_nav_menu"
@@ -92,6 +92,9 @@
         app:itemBackground="@drawable/bottom_nav_item_bg"
 
         app:itemRippleColor="@color/transparent"
-        app:labelVisibilityMode="unlabeled" />
+        app:labelVisibilityMode="labeled"
+        app:itemIconSize="24dp"
+        />
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
