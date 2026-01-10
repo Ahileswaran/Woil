@@ -4,5 +4,7 @@
     <string name="action_chat">Chat</string>
     <string name="action_more">More</string>
     <string name="home_fab" />
+    <string name="profile_image_desc">Profile image</string>
+
 
 </resources>

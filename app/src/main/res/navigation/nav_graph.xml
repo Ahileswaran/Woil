@@ -14,7 +14,7 @@
         android:label="Chat" />
     <fragment
         android:id="@+id/walletFragment"
-        android:name="com.example.woil.ui.WalletFragment"
+        android:name="com.example.woil.ui.WageFragment"
         android:label="Wallet" />
     <fragment
         android:id="@+id/profileFragment"
