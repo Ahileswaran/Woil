@@ -1,5 +1,6 @@
 package com.example.woil;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,11 +9,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.woil.ui.MainActivity; // Remove if not needed
-
 import java.util.List;
 
 public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.VH> {
+    private static final String TAG = "TimelineAdapter";
     private final List<TimelineModel> timelineList;
 
     public TimelineAdapter(List<TimelineModel> timelineList) {
@@ -22,16 +22,27 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.VH> {
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_timeline, parent, false);
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_timeline, parent, false);
         return new VH(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         TimelineModel model = timelineList.get(position);
-        holder.tvTitle.setText(model.title);
-        holder.tvStatus.setText(model.status);
-        holder.tvTime.setText(model.time);
+
+        // Defensive: check nulls and avoid NPE
+        if (holder.tvName != null) holder.tvName.setText(safe(model.title));
+        else Log.w(TAG, "tvName is null for position " + position);
+
+        if (holder.tvLocation != null) holder.tvLocation.setText(safe(model.location));
+        else Log.w(TAG, "tvLocation is null for position " + position);
+
+        if (holder.tvDesc != null) holder.tvDesc.setText(safe(model.description));
+        else Log.w(TAG, "tvDesc is null for position " + position);
+
+        if (holder.tvTime != null) holder.tvTime.setText(safe(model.time));
+        else Log.w(TAG, "tvTime is null for position " + position);
     }
 
     @Override
@@ -39,14 +50,29 @@ public class TimelineAdapter extends RecyclerView.Adapter<TimelineAdapter.VH> {
         return timelineList != null ? timelineList.size() : 0;
     }
 
+    private String safe(String s) {
+        return s == null ? "" : s;
+    }
+
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvStatus, tvTime;
+        final TextView tvName;
+        final TextView tvLocation;
+        final TextView tvDesc;
+        final TextView tvTime;
 
         VH(@NonNull View v) {
             super(v);
-//tvTitle = v.findViewById(R.id.tvTitle);
-           // tvStatus = v.findViewById(R.id.tvStatus);
+            // IMPORTANT: use itemView/findViewById on the inflated view
+            tvName = v.findViewById(R.id.tvName);
+            tvLocation = v.findViewById(R.id.tvLocation);
+            tvDesc = v.findViewById(R.id.tvDesc);
             tvTime = v.findViewById(R.id.tvTime);
+
+            // optional debug log to surface missing ids quickly
+            if (tvName == null) Log.w(TAG, "tvName view not found in item_timeline.xml");
+            if (tvLocation == null) Log.w(TAG, "tvLocation view not found in item_timeline.xml");
+            if (tvDesc == null) Log.w(TAG, "tvDesc view not found in item_timeline.xml");
+            if (tvTime == null) Log.w(TAG, "tvTime view not found in item_timeline.xml");
         }
     }
 }
