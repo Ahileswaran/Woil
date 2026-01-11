@@ -12,11 +12,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Top orange curvy header background -->
-        <View
+        <!-- Header with overlay button -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:background="@drawable/orange_rounded_vertical" />
+            android:layout_height="120dp">
+
+            <!-- Top orange curvy header background -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/orange_rounded_vertical" />
+
+            <!-- Arrow Button  -->
+            <ImageButton
+                android:id="@+id/btn_back_arrow"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="12dp"
+                android:layout_gravity="start|top"
+                android:background="?attr/selectableItemBackgroundBorderless"
+
+                android:padding="8dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@android:color/white"/>
+
+        </FrameLayout>
 
         <!-- Profile row -->
         <com.google.android.material.card.MaterialCardView
@@ -43,12 +65,14 @@
                     android:layout_marginStart="12dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Kavitha Dissanayake"
                         android:textStyle="bold"
                         android:textSize="18sp"/>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -57,9 +81,6 @@
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <!-- Rows: Hourly rate, extras, distance etc.  -->
-        <!-- implement rows using horizontal LinearLayout or ConstraintLayout -->
 
         <!-- Total wage section -->
         <TextView
@@ -70,7 +91,7 @@
             android:textSize="32sp"
             android:textStyle="bold" />
 
-        <!-- Two action buttons -->
+        <!-- Action buttons -->
         <LinearLayout
             android:layout_marginTop="16dp"
             android:orientation="horizontal"
@@ -85,10 +106,13 @@
                 android:layout_height="48dp"
                 android:text="Send offer" />
 
-            <View android:layout_width="12dp" android:layout_height="1dp"/>
+            <View
+                android:layout_width="12dp"
+                android:layout_height="1dp"/>
 
+            <!-- Optional second button (if you still want it here) -->
             <Button
-                android:id="@+id/btn_set_custom"
+                android:id="@+id/btn_set_custom_bottom"
                 android:layout_weight="1"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
