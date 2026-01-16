@@ -6,7 +6,12 @@ import android.view.View;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -23,11 +28,30 @@ public class MainActivity extends AppCompatActivity {
     private String currentTag = "home";
     private int currentMenuItemId = R.id.navigation_home;
 
+    // Insets controller for immersive mode
+    private WindowInsetsControllerCompat insetsController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Inflate layout
         setContentView(R.layout.activity_main);
 
+        // Make content lay out into system windows (status/navigation)
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        // Create controller for hiding system bars
+        insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+
+        // Ensure status & nav bar start transparent (also set in styles if desired)
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, android.R.color.transparent));
+        getWindow().setNavigationBarColor(ContextCompat.getColor(this, android.R.color.transparent));
+
+        // Request immersive sticky
+        enableImmersiveMode();
+
+        // --- existing initialization ---
         bottomNav = findViewById(R.id.bottom_navigation);
 
         // Restore selected tab if activity recreated
@@ -66,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
                     openFragment(new ProfileFragment(), false, "profile");
                     return true;
                 } else if (id == R.id.nav_guard) {
-                    // example: treat as a regular tab
-                    openFragment(new HomeFragment(), false, "guard"); // replace with real fragment
+                    // example: treat as a regular tab (replace with real fragment if available)
+                    openFragment(new HomeFragment(), false, "guard");
                     return true;
                 }
 
@@ -96,9 +120,9 @@ public class MainActivity extends AppCompatActivity {
      * Replace content with fragment. If addToBackStack is true, the fragment will be added
      * to the back stack (useful for deeper screens where you want "back" behavior).
      *
-     * @param fragment Fragment instance to display
+     * @param fragment       Fragment instance to display
      * @param addToBackStack if true add to back stack (and hide bottom nav)
-     * @param tag unique tag for fragment
+     * @param tag            unique tag for fragment
      */
     private void openFragment(Fragment fragment, boolean addToBackStack, @NonNull String tag) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -148,10 +172,40 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Public helper for fragments to request navigation via MainActivity's openFragment logic
+    public void navigateToFragment(Fragment fragment, boolean addToBackStack, @NonNull String tag) {
+        openFragment(fragment, addToBackStack, tag);
+    }
+
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("currentTag", currentTag);
         outState.putInt("currentMenuItemId", currentMenuItemId);
+    }
+
+    /**
+     * IMMERSIVE MODE HELPERS
+     */
+    private void enableImmersiveMode() {
+        if (insetsController == null) {
+            insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        }
+
+        // Hide both status and navigation bars
+        insetsController.hide(WindowInsetsCompat.Type.systemBars());
+
+        // Re-show temporarily with a swipe, then auto-hide again
+        insetsController.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+    }
+
+    // Re-apply when window focus is regained (useful after dialogs / notifications)
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            enableImmersiveMode();
+        }
     }
 }

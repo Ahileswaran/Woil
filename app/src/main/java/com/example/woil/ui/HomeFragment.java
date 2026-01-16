@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -25,14 +26,16 @@ import java.util.List;
 
 public class HomeFragment extends Fragment {
 
-    // adjust if SettingsFragment is in different package
-    // import is unnecessary if in same package; else add import com.example.woil.ui.SettingsFragment;
+    public HomeFragment() {
+        // Required empty constructor
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         RecyclerView rvCategories = view.findViewById(R.id.rvCategories);
@@ -56,7 +59,9 @@ public class HomeFragment extends Fragment {
         TimelineAdapter tAdapter = new TimelineAdapter(timelineList);
         rvTimeline.setAdapter(tAdapter);
 
-        // ---- Gesture detector for left swipe ----
+        // ---- Gesture detector for right-edge -> left swipe ----
+        final View rootView = view; // capture root view for width checks
+
         final GestureDetector gestureDetector = new GestureDetector(requireContext(),
                 new GestureDetector.SimpleOnGestureListener() {
                     private static final int SWIPE_THRESHOLD = 100;
@@ -68,10 +73,14 @@ public class HomeFragment extends Fragment {
                         float diffX = e2.getX() - e1.getX();
                         float diffY = e2.getY() - e1.getY();
 
-                        // horizontal fling
+                        // only consider mostly-horizontal flings
                         if (Math.abs(diffX) > Math.abs(diffY)) {
-                            if (diffX < -SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                                // left swipe detected
+                            // ensure fling started near the right edge to avoid interfering with normal list scrolls
+                            int width = rootView.getWidth();
+                            // if width isn't ready, still allow normal check (guard)
+                            boolean startedNearRight = (width == 0) || (e1.getX() > width * 0.6f);
+
+                            if (startedNearRight && diffX < -SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                                 openSettingsFragmentWithAnimation();
                                 return true;
                             }
@@ -81,32 +90,43 @@ public class HomeFragment extends Fragment {
                 });
 
         // Attach listener to root view. Return FALSE so child views (RecyclerView) still receive touch events.
-        view.setOnTouchListener((v, event) -> {
+        rootView.setOnTouchListener((v, event) -> {
             gestureDetector.onTouchEvent(event);
-            return false; // important: allow children to continue to receive events
+            return false; // allow children to continue receiving events (important for RecyclerView)
         });
 
         return view;
     }
 
-    // helper method (declared at class level, not inside onCreateView)
+    // ---- helper method (class-level) ----
     private void openSettingsFragmentWithAnimation() {
+        // Create the settings fragment
         SettingsFragment settingsFragment = new SettingsFragment();
 
+        // Option A: use MainActivity navigation helper so bottom nav & backstack behavior is consistent
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).navigateToFragment(settingsFragment, true, "settings");
+            return;
+        }
+
+        // Fallback: if Activity isn't MainActivity, do direct fragment transaction.
+        // NOTE: Use your nav host id (nav_host_fragment) so it replaces the correct container.
         FragmentTransaction ft = requireActivity().getSupportFragmentManager().beginTransaction();
 
-        // Optional: provide these animation resources in res/anim/
-        // If you don't have them, remove setCustomAnimations(...) or create the anim files.
-        ft.setCustomAnimations(
-                R.anim.enter_from_right, // enter
-                R.anim.exit_to_left,     // exit
-                R.anim.enter_from_left,  // popEnter
-                R.anim.exit_to_right     // popExit
-        );
+        // Optional: animations (ensure these anim resources exist; otherwise remove this block)
+        try {
+            ft.setCustomAnimations(
+                    R.anim.enter_from_right,
+                    R.anim.exit_to_left,
+                    R.anim.enter_from_left,
+                    R.anim.exit_to_right
+            );
+        } catch (Resources.NotFoundException ignored) {
+            // If animations missing, continue without animations.
+        }
 
-        // NOTE: Replace R.id.fragment_container with the actual container ID in your Activity layout
-        ft.replace(R.id.fragment_container, settingsFragment);
-        ft.addToBackStack(null);
+        ft.replace(R.id.nav_host_fragment, settingsFragment);
+        ft.addToBackStack("settings");
         ft.commit();
     }
 }
