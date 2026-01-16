@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="3dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!-- Header Card -->
@@ -25,9 +25,9 @@
 
             <View
                 android:id="@+id/orange_panel"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="120dp"
-                android:background="@drawable/orange_rounded_vertical"/>
+                android:background="@drawable/orange_rounded_vertical" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
