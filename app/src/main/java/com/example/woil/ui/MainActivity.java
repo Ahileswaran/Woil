@@ -1,14 +1,15 @@
 package com.example.woil.ui;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -21,6 +22,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
 
     private BottomNavigationView bottomNav;
 
@@ -28,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private String currentTag = "home";
     private int currentMenuItemId = R.id.navigation_home;
 
-    // Insets controller for immersive mode
+    // Insets controller for system bars control
     private WindowInsetsControllerCompat insetsController;
 
     @Override
@@ -38,18 +40,34 @@ public class MainActivity extends AppCompatActivity {
         // Inflate layout
         setContentView(R.layout.activity_main);
 
-        // Make content lay out into system windows (status/navigation)
+        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-        // Create controller for hiding system bars
+        // Create controller for system bars
         insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
 
-        // Ensure status & nav bar start transparent (also set in styles if desired)
-        getWindow().setStatusBarColor(ContextCompat.getColor(this, android.R.color.transparent));
-        getWindow().setNavigationBarColor(ContextCompat.getColor(this, android.R.color.transparent));
+        // Make status & navigation bar backgrounds transparent
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-        // Request immersive sticky
-        enableImmersiveMode();
+        // Show system bars (we don't want immersive/hide)
+        try {
+            insetsController.show(WindowInsetsCompat.Type.systemBars());
+        } catch (Throwable t) {
+            Log.w(TAG, "Could not call insetsController.show(...): " + t);
+        }
+
+        // Use dark icons (true) or light icons (false) depending on your header color
+        try {
+            insetsController.setAppearanceLightStatusBars(true);
+            insetsController.setAppearanceLightNavigationBars(true);
+        } catch (Throwable t) {
+            // ignore if not available on this platform/compat version
+            Log.w(TAG, "setAppearanceLight... not supported: " + t);
+        }
+
+        // Apply safe padding (robust method)
+        applyWindowInsetsPadding();
 
         // --- existing initialization ---
         bottomNav = findViewById(R.id.bottom_navigation);
@@ -58,46 +76,48 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             currentTag = savedInstanceState.getString("currentTag", "home");
             currentMenuItemId = savedInstanceState.getInt("currentMenuItemId", R.id.navigation_home);
-            bottomNav.setSelectedItemId(currentMenuItemId);
+            if (bottomNav != null) bottomNav.setSelectedItemId(currentMenuItemId);
         } else {
             // initial fragment
             openFragment(new HomeFragment(), false, "home");
-            bottomNav.setSelectedItemId(R.id.navigation_home);
+            if (bottomNav != null) bottomNav.setSelectedItemId(R.id.navigation_home);
         }
 
         // Modern listener for material bottom navigation
-        bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int id = item.getItemId();
+        if (bottomNav != null) {
+            bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    int id = item.getItemId();
 
-                // avoid re-creating the same tab fragment
-                if (id == currentMenuItemId) {
-                    return true;
+                    // avoid re-creating the same tab fragment
+                    if (id == currentMenuItemId) {
+                        return true;
+                    }
+
+                    if (id == R.id.navigation_home) {
+                        openFragment(new HomeFragment(), false, "home");
+                        return true;
+                    } else if (id == R.id.navigation_wallet) {
+                        openFragment(new WageFragment(), true, "wage");
+                        return true;
+                    } else if (id == R.id.nav_messages) {
+                        openFragment(new ChatFragment(), false, "chat");
+                        return true;
+                    } else if (id == R.id.navigation_profile) {
+                        openFragment(new ProfileFragment(), false, "profile");
+                        return true;
+                    } else if (id == R.id.nav_guard) {
+                        openFragment(new HomeFragment(), false, "guard");
+                        return true;
+                    }
+
+                    return false;
                 }
-
-                if (id == R.id.navigation_home) {
-                    openFragment(new HomeFragment(), false, "home");
-                    return true;
-                } else if (id == R.id.navigation_wallet) {
-                    // deeper screen (hide bottom nav) -> add to back stack
-                    openFragment(new WageFragment(), true, "wage");
-                    return true;
-                } else if (id == R.id.nav_messages) {
-                    openFragment(new ChatFragment(), false, "chat");
-                    return true;
-                } else if (id == R.id.navigation_profile) {
-                    openFragment(new ProfileFragment(), false, "profile");
-                    return true;
-                } else if (id == R.id.nav_guard) {
-                    // example: treat as a regular tab (replace with real fragment if available)
-                    openFragment(new HomeFragment(), false, "guard");
-                    return true;
-                }
-
-                return false;
-            }
-        });
+            });
+        } else {
+            Log.w(TAG, "bottom_navigation view not found in layout (id: R.id.bottom_navigation)");
+        }
 
         // Back handling using OnBackPressedDispatcher
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -105,11 +125,9 @@ public class MainActivity extends AppCompatActivity {
             public void handleOnBackPressed() {
                 FragmentManager fm = getSupportFragmentManager();
                 if (fm.getBackStackEntryCount() > 0) {
-                    // Pop backstack immediately and update bottom nav visibility
                     fm.popBackStackImmediate();
                     updateBottomNavVisibilityAfterPop();
                 } else {
-                    // No fragment in back stack -> behave like default (exit)
                     finish();
                 }
             }
@@ -117,12 +135,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Robust inset application: uses legacy getters which exist across compat versions.
+     * This avoids runtime class/method differences that were causing crashes.
+     */
+    private void applyWindowInsetsPadding() {
+        final View root = findViewById(R.id.root_layout);
+        final View mainContent = findViewById(R.id.main_content);
+
+        if (root == null || mainContent == null) {
+            Log.w(TAG, "root_layout or main_content not found — skipping insets application");
+            return;
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            int topInset;
+            int bottomInset;
+
+            // Prefer modern API if available — but don't crash if it's not
+            try {
+                // some support versions will accept the Type constant here
+                topInset = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            } catch (Throwable t) {
+                // Fallback to legacy values (always present)
+                topInset = insets.getSystemWindowInsetTop();
+                bottomInset = insets.getSystemWindowInsetBottom();
+            }
+
+            // Optional: extra spacing (8dp)
+            int extra = dpToPx(8);
+
+            mainContent.setPadding(
+                    mainContent.getPaddingLeft(),
+                    topInset + extra,
+                    mainContent.getPaddingRight(),
+                    bottomInset + extra
+            );
+
+            // Return the insets so children can react as well
+            return insets;
+        });
+
+        // Request insets right away
+        root.requestApplyInsets();
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+
+    /**
      * Replace content with fragment. If addToBackStack is true, the fragment will be added
      * to the back stack (useful for deeper screens where you want "back" behavior).
-     *
-     * @param fragment       Fragment instance to display
-     * @param addToBackStack if true add to back stack (and hide bottom nav)
-     * @param tag            unique tag for fragment
      */
     private void openFragment(Fragment fragment, boolean addToBackStack, @NonNull String tag) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -130,38 +195,36 @@ public class MainActivity extends AppCompatActivity {
 
         if (addToBackStack) {
             ft.addToBackStack(tag);
-            bottomNav.setVisibility(View.GONE);
+            if (bottomNav != null) bottomNav.setVisibility(View.GONE);
         } else {
-            // when switching tabs, clear any existing back stack so back acts predictably
             clearBackStack();
-            bottomNav.setVisibility(View.VISIBLE);
+            if (bottomNav != null) bottomNav.setVisibility(View.VISIBLE);
         }
 
         ft.commit();
 
         currentTag = tag;
-        // update menu item id mapping (for saved state / re-selection)
         if ("home".equals(tag)) currentMenuItemId = R.id.navigation_home;
         else if ("wage".equals(tag)) currentMenuItemId = R.id.navigation_wallet;
         else if ("chat".equals(tag)) currentMenuItemId = R.id.nav_messages;
         else if ("profile".equals(tag)) currentMenuItemId = R.id.navigation_profile;
-        else currentMenuItemId = bottomNav.getSelectedItemId();
+        else if (bottomNav != null) currentMenuItemId = bottomNav.getSelectedItemId();
     }
 
     private void updateBottomNavVisibilityAfterPop() {
-        // After popping the back stack, check top fragment and show bottomNav if appropriate
         Fragment top = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
         if (top instanceof WageFragment) {
-            bottomNav.setVisibility(View.GONE);
-            // update menu selection to none or wage depending on desired UX
-            bottomNav.setSelectedItemId(R.id.navigation_wallet);
+            if (bottomNav != null) {
+                bottomNav.setVisibility(View.GONE);
+                bottomNav.setSelectedItemId(R.id.navigation_wallet);
+            }
         } else {
-            bottomNav.setVisibility(View.VISIBLE);
-            // set selected item to match the shown fragment's tag (if you track tags)
-            // For simplicity, attempt to map by class
-            if (top instanceof HomeFragment) bottomNav.setSelectedItemId(R.id.navigation_home);
-            else if (top instanceof ChatFragment) bottomNav.setSelectedItemId(R.id.nav_messages);
-            else if (top instanceof ProfileFragment) bottomNav.setSelectedItemId(R.id.navigation_profile);
+            if (bottomNav != null) {
+                bottomNav.setVisibility(View.VISIBLE);
+                if (top instanceof HomeFragment) bottomNav.setSelectedItemId(R.id.navigation_home);
+                else if (top instanceof ChatFragment) bottomNav.setSelectedItemId(R.id.nav_messages);
+                else if (top instanceof ProfileFragment) bottomNav.setSelectedItemId(R.id.navigation_profile);
+            }
         }
     }
 
@@ -182,30 +245,5 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putString("currentTag", currentTag);
         outState.putInt("currentMenuItemId", currentMenuItemId);
-    }
-
-    /**
-     * IMMERSIVE MODE HELPERS
-     */
-    private void enableImmersiveMode() {
-        if (insetsController == null) {
-            insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-        }
-
-        // Hide both status and navigation bars
-        insetsController.hide(WindowInsetsCompat.Type.systemBars());
-
-        // Re-show temporarily with a swipe, then auto-hide again
-        insetsController.setSystemBarsBehavior(
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-    }
-
-    // Re-apply when window focus is regained (useful after dialogs / notifications)
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            enableImmersiveMode();
-        }
     }
 }
