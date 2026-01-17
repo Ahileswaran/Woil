@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- simplified "A" and text-size slider mark -->
+    <!-- big "A" -->
+    <path
+        android:fillColor="#6B6B6B"
+        android:pathData="M4,20h2l1.5,-4h8L18,20h2l-7,-16L4,20zM9.2,12L12,5.5 14.8,12H9.2z"/>
+    <!-- slider (line with dot) -->
+    <path
+        android:fillColor="#6B6B6B"
+        android:pathData="M3,22h18v-1H3v1zM7,19a1,1 0 1,0 0,2 1,1 0 0,0 0,-2z"/>
+</vector>

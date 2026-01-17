@@ -1,167 +1,153 @@
 package com.example.woil.ui;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RatingBar;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.example.woil.R;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
-
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.text.DecimalFormat;
 
 public class ProfileFragment extends Fragment {
 
-    private TextView tvDisplayName, tvFullName, tvRatingCount, tvRoles, tvVerificationStatus,
-            tvDob, tvGender, tvLocation, tvAddress, tvAvailability, tvJoined;
-    private RatingBar ratingBar;
-    private ChipGroup chipGroupSkills;
-    private RecyclerView rvSkillShowcase;
+    private ImageView ivProfile;
+    private TextView tvHandle, tvRoleLocation, tvRatingLabel, tvJobsCompleted, tvMemberSince;
+    private TextView tvFullName, tvPhone, tvEmail, tvLocation;
+    private Button btnEditProfile;
+    private Button btnClient, btnWorker;
 
-    // Assuming a simple adapter for skill showcase; need to create SkillShowcaseAdapter
-    // For example, if map has fields like "title", "description"
+    // Accessibility UI
+    private SwitchMaterial switchDigital, switchVoice, switchSimplified;
+    private SeekBar sbTextSize;
+    private TextView tvTextSizeValue;
+
+    public ProfileFragment() { /* required empty constructor */ }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_profile, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_profile, container, false);
+    }
 
-        tvDisplayName = view.findViewById(R.id.tvDisplayName);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        // profile header
+        ivProfile = view.findViewById(R.id.ivProfile);
+        tvHandle = view.findViewById(R.id.tvHandle);
+        tvRoleLocation = view.findViewById(R.id.tvRoleLocation);
+        tvRatingLabel = view.findViewById(R.id.tvRatingLabel);
+        tvJobsCompleted = view.findViewById(R.id.tvJobsCompleted);
+        tvMemberSince = view.findViewById(R.id.tvMemberSince);
+
         tvFullName = view.findViewById(R.id.tvFullName);
-        ratingBar = view.findViewById(R.id.ratingBar);
-        tvRatingCount = view.findViewById(R.id.tvRatingCount);
-        tvRoles = view.findViewById(R.id.tvRoles);
-        tvVerificationStatus = view.findViewById(R.id.tvVerificationStatus);
-        tvDob = view.findViewById(R.id.tvDob);
-        tvGender = view.findViewById(R.id.tvGender);
+        tvPhone = view.findViewById(R.id.tvPhone);
+        tvEmail = view.findViewById(R.id.tvEmail);
         tvLocation = view.findViewById(R.id.tvLocation);
-        tvAddress = view.findViewById(R.id.tvAddress);
-        chipGroupSkills = view.findViewById(R.id.chipGroupSkills);
-        tvAvailability = view.findViewById(R.id.tvAvailability);
-        rvSkillShowcase = view.findViewById(R.id.rvSkillShowcase);
-        tvJoined = view.findViewById(R.id.tvJoined);
 
-        rvSkillShowcase.setLayoutManager(new LinearLayoutManager(getContext()));
+        btnEditProfile = view.findViewById(R.id.btnEditProfile);
+        btnClient = view.findViewById(R.id.btnClient);
+        btnWorker = view.findViewById(R.id.btnWorker);
 
-        fetchProfileData();
+        // accessibility
+        switchDigital = view.findViewById(R.id.switchDigital);
+        switchVoice = view.findViewById(R.id.switchVoice);
+        switchSimplified = view.findViewById(R.id.switchSimplified);
+        sbTextSize = view.findViewById(R.id.sbTextSize);
+        tvTextSizeValue = view.findViewById(R.id.tvTextSizeValue);
 
-        return view;
+        // Populate dummy data (replace with Firebase values)
+        tvHandle.setText("@Kavitha Dissanayake");
+        tvRoleLocation.setText("Worker · Colombo 5");
+        tvRatingLabel.setText("★ 4.6");
+        tvJobsCompleted.setText("24");
+        tvMemberSince.setText("2021");
+
+        tvFullName.setText("Kavitha Dissanayake");
+        tvPhone.setText("+91-8129999999");
+        tvEmail.setText("kavitha.d@gmail.com");
+        tvLocation.setText("Colombo 5");
+
+        // Toggle default: Worker selected
+        setToggleState(true);
+
+        btnClient.setOnClickListener(v -> {
+            setToggleState(false);
+            Toast.makeText(requireContext(), "Client mode selected (dummy)", Toast.LENGTH_SHORT).show();
+        });
+
+        btnWorker.setOnClickListener(v -> {
+            setToggleState(true);
+            Toast.makeText(requireContext(), "Worker mode selected (dummy)", Toast.LENGTH_SHORT).show();
+        });
+
+        btnEditProfile.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Edit profile clicked (dummy)", Toast.LENGTH_SHORT).show();
+        });
+
+        // Accessibility defaults
+        switchDigital.setChecked(true);   // you can set based on user data
+        switchVoice.setChecked(false);
+        switchSimplified.setChecked(false);
+
+        switchDigital.setOnCheckedChangeListener((buttonView, isChecked) ->
+                Toast.makeText(requireContext(),
+                        "Digital proficiency switch: " + (isChecked ? "ON" : "OFF"),
+                        Toast.LENGTH_SHORT).show());
+
+        switchVoice.setOnCheckedChangeListener((buttonView, isChecked) ->
+                Toast.makeText(requireContext(),
+                        "Voice guidance: " + (isChecked ? "ON" : "OFF"),
+                        Toast.LENGTH_SHORT).show());
+
+        switchSimplified.setOnCheckedChangeListener((buttonView, isChecked) ->
+                Toast.makeText(requireContext(),
+                        "Simplified layout: " + (isChecked ? "ON" : "OFF"),
+                        Toast.LENGTH_SHORT).show());
+
+        // SeekBar: map [0..100] -> [0.8..1.8], default 1.3 -> progress 50
+        sbTextSize.setMax(100);
+        sbTextSize.setProgress(50);
+        updateTextSizeLabel(50);
+
+        sbTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                updateTextSizeLabel(progress);
+                // here you could broadcast the new size to the UI or save to preferences
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
     }
 
-    private void fetchProfileData() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        if (userId == null) {
-            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        db.collection("users").document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        updateUI(documentSnapshot);
-                    } else {
-                        Toast.makeText(getContext(), "Profile not found", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error fetching profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+    private void updateTextSizeLabel(int progress) {
+        double val = 0.8 + (progress / 100.0); // 0.8 .. 1.8
+        DecimalFormat df = new DecimalFormat("0.0");
+        tvTextSizeValue.setText(df.format(val) + "x");
     }
 
-    @SuppressLint("SetTextI18n")
-    private void updateUI(DocumentSnapshot doc) {
-        String displayName = doc.getString("displayName");
-        String firstName = doc.getString("firstName");
-        String lastName = doc.getString("lastName");
-        Timestamp dob = doc.getTimestamp("dob");
-        String gender = doc.getString("gender");
-        GeoPoint location = doc.getGeoPoint("location");
-        String locationText = doc.getString("locationText");
-        String address = doc.getString("address");
-        Boolean isWorker = doc.getBoolean("isWorker");
-        Boolean isClient = doc.getBoolean("isClient");
-        List<String> skills = (List<String>) doc.get("skills");
-        List<Map<String, Object>> skillShowcase = (List<Map<String, Object>>) doc.get("skillShowcase");
-        Double rating = doc.getDouble("rating");
-        Long ratingCount = doc.getLong("ratingCount");
-        String nicVerified = doc.getString("nicVerified");
-        // nicImagePath - skipping display as sensitive
-        Map<String, Object> availability = (Map<String, Object>) doc.get("availability");
-        // fcmToken - not displaying
-        Timestamp createdAt = doc.getTimestamp("createdAt");
-        // updatedAt - not displaying
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault());
-
-        tvDisplayName.setText(displayName != null ? displayName : "N/A");
-        tvFullName.setText((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : ""));
-
-        if (rating != null) {
-            ratingBar.setRating(rating.floatValue());
+    private void setToggleState(boolean workerSelected) {
+        // simple visual toggle: highlight worker or client (adjust to your colors)
+        if (workerSelected) {
+            btnWorker.setBackgroundTintList(requireContext().getResources().getColorStateList(R.color.purple_500));
+            btnWorker.setTextColor(requireContext().getResources().getColor(android.R.color.white));
+            btnClient.setBackgroundTintList(requireContext().getResources().getColorStateList(android.R.color.transparent));
+            btnClient.setTextColor(requireContext().getResources().getColor(R.color.black));
+        } else {
+            btnClient.setBackgroundTintList(requireContext().getResources().getColorStateList(R.color.purple_500));
+            btnClient.setTextColor(requireContext().getResources().getColor(android.R.color.white));
+            btnWorker.setBackgroundTintList(requireContext().getResources().getColorStateList(android.R.color.transparent));
+            btnWorker.setTextColor(requireContext().getResources().getColor(R.color.black));
         }
-        tvRatingCount.setText("(" + (ratingCount != null ? ratingCount : 0) + " reviews)");
-
-        String roles = "Roles: ";
-        if (Boolean.TRUE.equals(isWorker)) roles += "Worker ";
-        if (Boolean.TRUE.equals(isClient)) roles += "Client";
-        tvRoles.setText(roles.trim());
-
-        tvVerificationStatus.setText("Verification: " + (nicVerified != null ? nicVerified : "N/A"));
-
-        tvDob.setText("Date of Birth: " + (dob != null ? dateFormat.format(dob.toDate()) : "N/A"));
-        tvGender.setText("Gender: " + (gender != null ? gender : "N/A"));
-        tvLocation.setText("Location: " + (locationText != null ? locationText : (location != null ? location.getLatitude() + ", " + location.getLongitude() : "N/A")));
-        tvAddress.setText("Address: " + (address != null ? address : "N/A"));
-
-        chipGroupSkills.removeAllViews();
-        if (skills != null) {
-            for (String skill : skills) {
-                Chip chip = new Chip(requireContext());
-                chip.setText(skill);
-                chipGroupSkills.addView(chip);
-            }
-        }
-
-        StringBuilder availBuilder = new StringBuilder();
-        if (availability != null) {
-            for (Map.Entry<String, Object> entry : availability.entrySet()) {
-                String day = entry.getKey();
-                List<String> times = (List<String>) entry.getValue();
-                if (times != null && times.size() >= 2) {
-                    availBuilder.append(day).append(": ").append(times.get(0)).append(" - ").append(times.get(1)).append("\n");
-                }
-            }
-        }
-        tvAvailability.setText(availBuilder.length() > 0 ? availBuilder.toString().trim() : "No availability set");
-
-        // For skillShowcase, need a SkillShowcaseModel and Adapter
-        // Example: List<SkillShowcaseModel> showcaseList = new ArrayList<>();
-        // for (Map<String, Object> map : skillShowcase) {
-        //     showcaseList.add(new SkillShowcaseModel(map.get("title").toString(), ...));
-        // }
-        // rvSkillShowcase.setAdapter(new SkillShowcaseAdapter(showcaseList));
-
-        tvJoined.setText("Joined: " + (createdAt != null ? dateFormat.format(createdAt.toDate()) : "N/A"));
     }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- key icon (vpn_key style) -->
+    <path
+        android:fillColor="#6B6B6B"
+        android:pathData="M7,14c0.55,0 1,-0.45 1,-1s-0.45,-1 -1,-1 -1,0.45 -1,1 0.45,1 1,1zM21,6c0,-2.21 -1.79,-4 -4,-4s-4,1.79 -4,4c0,0.74 0.2,1.44 0.55,2.03L3,18v2h2v2h2v-2h2v-2l10.55,-10.97C20.8,7.44 21,6.74 21,6z"/>
+</vector>

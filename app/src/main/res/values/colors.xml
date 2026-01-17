@@ -7,9 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
 
-    <color name="secondaryVariant">#FFCC66</color>
-    <color name="nav_bar_black">#0B0B0B</color>   <!-- background of the bar -->
-    <color name="white">#FFFFFF</color>
-    <color name="nav_orange">#FF6A00</color>      <!-- change to your preferred orange -->
+    <color name="secondaryVariant">#FFFFCC66</color>
+    <color name="nav_bar_black">#FF0B0B0B</color>   <!-- background of the bar -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="nav_orange">#FFFF6A00</color>      <!-- change to your preferred orange -->
     <color name="transparent">#00000000</color>
+
+    <!-- light divider/background used in the layout -->
+    <color name="light_gray">#FFEEEEEE</color>
 </resources>
