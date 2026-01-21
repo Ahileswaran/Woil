@@ -1,87 +1,268 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_profile"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@android:color/white">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Complete Profile"
-            android:textSize="22sp"
-            android:layout_marginBottom="12dp"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <EditText
-            android:id="@+id/etDisplayName"
+        <LinearLayout
+            android:id="@+id/ll_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Display name"/>
+            android:orientation="vertical"
+            android:padding="12dp">
 
-        <EditText
-            android:id="@+id/etFirstName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="First name"
-            android:layout_marginTop="8dp"/>
+            <!-- Top header -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="170dp"
+                android:layout_marginBottom="10dp">
 
-        <EditText
-            android:id="@+id/etLastName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Last name"
-            android:layout_marginTop="8dp"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:background="@drawable/orange_rounded_vertical" />
 
-        <EditText
-            android:id="@+id/etLocationText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Location (e.g., Colombo 5)"
-            android:layout_marginTop="8dp"/>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="130dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:layout_gravity="bottom"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="3dp">
 
-        <EditText
-            android:id="@+id/etNicImageUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="NIC image URL (placeholder)"
-            android:layout_marginTop="8dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Proficiency level"
-            android:layout_marginTop="12dp"/>
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/woil"
+                            android:contentDescription="Woil logo"/>
 
-        <RadioGroup
-            android:id="@+id/rgProficiency"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <RadioButton android:id="@+id/rbLow"
-                android:layout_width="wrap_content"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Set up your profile"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="6dp"/>
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </FrameLayout>
+
+            <!-- Form card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="LOW"
-                android:checked="true"/>
-            <RadioButton android:id="@+id/rbMedium"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MEDIUM"/>
-            <RadioButton android:id="@+id/rbHigh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="HIGH"/>
-        </RadioGroup>
+                android:layout_margin="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:padding="14dp">
 
-        <Button
-            android:id="@+id/btnSaveProfile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Profile"
-            android:layout_marginTop="16dp"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-    </LinearLayout>
-</ScrollView>
+                    <!-- First Name -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="First Name"
+                        android:textSize="13sp"/>
+                    <EditText
+                        android:id="@+id/etFirstName"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Enter First Name eg: Kumaran"
+                        android:padding="10dp"
+                        android:background="@android:color/darker_gray"
+                        android:textColor="@android:color/black"
+                        android:layout_marginTop="6dp"/>
+
+                    <!-- Last Name -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Last Name"
+                        android:textSize="13sp"/>
+                    <EditText
+                        android:id="@+id/etLastName"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Enter Last Name eg: Selliyah"
+                        android:padding="10dp"
+                        android:background="@android:color/darker_gray"
+                        android:layout_marginTop="6dp"/>
+
+                    <!-- Address -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Address"
+                        android:textSize="13sp"/>
+                    <EditText
+                        android:id="@+id/etAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Enter your address eg: Colombo 5"
+                        android:padding="10dp"
+                        android:background="@android:color/darker_gray"
+                        android:layout_marginTop="6dp"/>
+
+                    <TextView
+                        android:id="@+id/tvSelectLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Select Location on the Map"
+                        android:textColor="@color/purple_500"
+                        android:layout_marginTop="8dp"/>
+
+                    <!-- NIC verification -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="NIC Verification (Optional)"
+                        android:textSize="13sp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical">
+
+                        <EditText
+                            android:id="@+id/etNic"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:hint="[95xxxxxxxxV________]"
+                            android:padding="10dp"
+                            android:background="@android:color/darker_gray"/>
+
+                        <ImageButton
+                            android:id="@+id/btnUploadNic"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginStart="8dp"
+                            android:src="@android:drawable/ic_menu_camera"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Upload NIC"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvSkipNic"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="[Skip for now]"
+                        android:textColor="@color/purple_500"
+                        android:layout_marginTop="6dp"/>
+
+                    <!-- Gender -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Gender"
+                        android:textSize="13sp"/>
+
+                    <RadioGroup
+                        android:id="@+id/rgGender"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="6dp">
+
+                        <RadioButton
+                            android:id="@+id/rbMale"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Male"/>
+
+                        <RadioButton
+                            android:id="@+id/rbFemale"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Female"
+                            android:layout_marginStart="18dp"/>
+                    </RadioGroup>
+
+                    <!-- Date of Birth -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Date of Birth"
+                        android:textSize="13sp"/>
+
+                    <EditText
+                        android:id="@+id/etDob"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Enter your date of birth : day/ month/ year"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:padding="10dp"
+                        android:background="@android:color/darker_gray"
+                        android:layout_marginTop="6dp"/>
+
+                    <!-- Skills (Workers only) -->
+                    <TextView
+                        android:id="@+id/tvSkillsLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Skills (Workers Only)"
+                        android:textSize="13sp"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerSkills"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"/>
+
+                    <!-- Submit button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSubmitProfile"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Submit"
+                        android:textAllCaps="false"
+                        android:layout_marginTop="16dp"
+                        android:padding="10dp"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="24dp"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
