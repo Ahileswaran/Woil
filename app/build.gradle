@@ -34,28 +34,18 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore:26.0.2'
 
 
-    //implementation platform('com.google.firebase:firebase-bom:34.5.0')
-
-    //implementation 'com.google.firebase:firebase-auth'
-    //implementation 'com.google.firebase:firebase-firestore'
-    //implementation 'com.google.firebase:firebase-storage'
-   // implementation 'com.google.firebase:firebase-messaging'
+    // Firebase BOM manages versions
+    implementation platform('com.google.firebase:firebase-bom:34.8.0') // or latest
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage'
+    // Material, Play services if needed:
+    implementation 'com.google.android.gms:play-services-auth:20.7.0' // optional
 
     implementation libs.appcompat
     implementation libs.material
 
-    // Firebase BOM for version management
-    //implementation platform('com.google.firebase:firebase-bom:33.4.0')  // Use latest stable; check Firebase docs for updates
 
-    // Auth (for email/password or phone)
-    //implementation 'com.google.firebase:firebase-auth'
-
-    // If using Firestore for user profiles (as per SRS schema)
-    //implementation 'com.google.firebase:firebase-firestore'
-
-    // Other optional for Woil (e.g., Storage for NIC images, FCM for notifications)
-    //implementation 'com.google.firebase:firebase-storage'
-    //implementation 'com.google.firebase:firebase-messaging'
 
 
     implementation 'com.google.android.material:material:1.9.0'
