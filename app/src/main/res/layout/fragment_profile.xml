@@ -67,8 +67,9 @@
                             app:layout_constraintStart_toStartOf="parent"
                             android:layout_marginTop="-40dp"
                             android:layout_marginStart="14dp"
-                            android:background="@drawable/circle_white_background"
                             android:padding="4dp" />
+                         <!--   android:background="@drawable/circle_white_background" -->
+
 
                         <!-- Name / handle -->
                         <TextView
