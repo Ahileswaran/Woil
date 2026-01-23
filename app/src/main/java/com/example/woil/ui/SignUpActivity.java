@@ -82,6 +82,7 @@ public class SignUpActivity extends AppCompatActivity {
             }
         };
 
+        // Sign up button click
         btnSignUp.setOnClickListener(v -> {
             String phone = etPhone.getText().toString().trim();
             if (!validatePhone(phone)) return;
