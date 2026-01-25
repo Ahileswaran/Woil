@@ -23,7 +23,7 @@ public class SplashActivity extends AppCompatActivity {
     private void goNext() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             // Always go to signup if not logged in
-            startActivity(new Intent(this, SignUpActivity.class));
+            startActivity(new Intent(this, MainActivity.class));
         } else {
             // Logged in → go straight to main (TEST)
             startActivity(new Intent(this, MainActivity.class));

@@ -26,9 +26,7 @@ import java.util.List;
 
 public class HomeFragment extends Fragment {
 
-    public HomeFragment() {
-        // Required empty constructor
-    }
+    public HomeFragment() { }
 
     @Nullable
     @Override
@@ -36,11 +34,12 @@ public class HomeFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
+        final View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         RecyclerView rvCategories = view.findViewById(R.id.rvCategories);
         RecyclerView rvTimeline = view.findViewById(R.id.rvTimeline);
 
+        // categories
         List<CategoryModel> categoryList = new ArrayList<>();
         categoryList.add(new CategoryModel("Plumbing", R.drawable.ic_plumber));
         categoryList.add(new CategoryModel("Electrician", R.drawable.ic_electrician));
@@ -50,6 +49,7 @@ public class HomeFragment extends Fragment {
         CategoryAdapter catAdapter = new CategoryAdapter(categoryList, getContext());
         rvCategories.setAdapter(catAdapter);
 
+        // timeline
         List<TimelineModel> timelineList = new ArrayList<>();
         timelineList.add(new TimelineModel("Fix sink leak", "Pending", "Today 2PM"));
         timelineList.add(new TimelineModel("Install ceiling fan", "Completed", "Yesterday"));
@@ -60,27 +60,34 @@ public class HomeFragment extends Fragment {
         rvTimeline.setAdapter(tAdapter);
 
         // ---- Gesture detector for right-edge -> left swipe ----
-        final View rootView = view; // capture root view for width checks
+        final View rootView = view; // fragment root
 
         final GestureDetector gestureDetector = new GestureDetector(requireContext(),
                 new GestureDetector.SimpleOnGestureListener() {
-                    private static final int SWIPE_THRESHOLD = 100;
+                    private static final int SWIPE_THRESHOLD = 100;       // pixels
                     private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        // Important: return true so subsequent gestures (fling) are detected.
+                        return true;
+                    }
 
                     @Override
                     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                         if (e1 == null || e2 == null) return false;
+
                         float diffX = e2.getX() - e1.getX();
                         float diffY = e2.getY() - e1.getY();
 
-                        // only consider mostly-horizontal flings
+                        // Make sure it's mostly horizontal
                         if (Math.abs(diffX) > Math.abs(diffY)) {
-                            // ensure fling started near the right edge to avoid interfering with normal list scrolls
                             int width = rootView.getWidth();
-                            // if width isn't ready, still allow normal check (guard)
+                            // Consider fling started near right edge (60% or more to the right)
                             boolean startedNearRight = (width == 0) || (e1.getX() > width * 0.6f);
 
                             if (startedNearRight && diffX < -SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                                // Detected right-edge -> left fling
                                 openSettingsFragmentWithAnimation();
                                 return true;
                             }
@@ -89,31 +96,29 @@ public class HomeFragment extends Fragment {
                     }
                 });
 
-        // Attach listener to root view. Return FALSE so child views (RecyclerView) still receive touch events.
+        // Attach listener to root view. We return true from onTouch only if the gestureDetector handled it.
         rootView.setOnTouchListener((v, event) -> {
-            gestureDetector.onTouchEvent(event);
-            return false; // allow children to continue receiving events (important for RecyclerView)
+            boolean handled = gestureDetector.onTouchEvent(event);
+            // if gesture detector handled it (e.g. recognized a fling), consume it
+            return handled;
+            // returning false allows children (RecyclerView) to keep receiving touch events
         });
 
         return view;
     }
 
-    // ---- helper method (class-level) ----
+    // helper method to open settings
     private void openSettingsFragmentWithAnimation() {
-        // Create the settings fragment
         SettingsFragment settingsFragment = new SettingsFragment();
 
-        // Option A: use MainActivity navigation helper so bottom nav & backstack behavior is consistent
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) requireActivity()).navigateToFragment(settingsFragment, true, "settings");
             return;
         }
 
-        // Fallback: if Activity isn't MainActivity, do direct fragment transaction.
-        // NOTE: Use your nav host id (nav_host_fragment) so it replaces the correct container.
         FragmentTransaction ft = requireActivity().getSupportFragmentManager().beginTransaction();
 
-        // Optional: animations (ensure these anim resources exist; otherwise remove this block)
+        // Optional animations (guarded)
         try {
             ft.setCustomAnimations(
                     R.anim.enter_from_right,
@@ -121,9 +126,7 @@ public class HomeFragment extends Fragment {
                     R.anim.enter_from_left,
                     R.anim.exit_to_right
             );
-        } catch (Resources.NotFoundException ignored) {
-            // If animations missing, continue without animations.
-        }
+        } catch (Resources.NotFoundException ignored) { }
 
         ft.replace(R.id.nav_host_fragment, settingsFragment);
         ft.addToBackStack("settings");

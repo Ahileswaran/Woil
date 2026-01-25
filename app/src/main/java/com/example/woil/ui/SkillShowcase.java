@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import com.example.woil.R;
@@ -19,12 +20,6 @@ public class SkillShowcase extends AppCompatActivity {
         setContentView(R.layout.activity_skillshowcase);
 
         // Set up toolbar with back navigation
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
 
 
 
