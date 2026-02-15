@@ -45,7 +45,7 @@ dependencies {
     implementation libs.appcompat
     implementation libs.material
 
-
+    implementation 'com.google.firebase:firebase-appcheck-debug:16.0.0' // check latest in BOM or docs
 
 
     implementation 'com.google.android.material:material:1.9.0'

@@ -34,9 +34,8 @@
                 <!-- Orange top rounded panel (use your drawable orange_rounded_vertical) -->
                 <View
                     android:id="@+id/orange_panel"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="120dp"
-                    android:layout_gravity="top"
                     android:background="@drawable/orange_rounded_vertical" />
 
                 <!-- Card that holds profile details -->
@@ -53,7 +52,11 @@
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="140dp"
+                        android:layout_gravity="bottom"
+                        android:padding="16dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="4dp">
 
                         <!-- Profile image (circle) -->
                         <ImageView

@@ -15,4 +15,6 @@
 
     <!-- light divider/background used in the layout -->
     <color name="light_gray">#FFEEEEEE</color>
+    <color name="nav_background">#0F1724</color> <!-- dark slate; change as needed -->
+    <color name="orange_header_main">#FF7A00</color> <!-- example header orange -->
 </resources>

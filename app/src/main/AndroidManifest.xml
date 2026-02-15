@@ -16,6 +16,7 @@
         <!-- Launcher (Splash) activity -->
         <activity
             android:name=".ui.SplashActivity"
+
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Woil">
@@ -31,6 +32,14 @@
 
         <activity
             android:name=".ui.SignUpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.VerifyOtpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.ProfileSetupActivity"
             android:exported="false" />
 
         <activity

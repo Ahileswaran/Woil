@@ -22,10 +22,17 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.button.MaterialButton;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.SetOptions;
+
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProfileSetupActivity extends AppCompatActivity {
 
@@ -40,7 +47,10 @@ public class ProfileSetupActivity extends AppCompatActivity {
     private MaterialButton btnSubmit;
 
     private String nicImageUriString = null;
-    private String role = "worker"; // default assume worker; will be overwritten by intent extra
+    private String role = "worker"; // default
+
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     // modern activity result launcher for picking images
     private final ActivityResultLauncher<Intent> pickImageLauncher =
@@ -63,6 +73,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_setup);
 
+        // UI refs
         etFirstName = findViewById(R.id.etFirstName);
         etLastName = findViewById(R.id.etLastName);
         etAddress = findViewById(R.id.etAddress);
@@ -78,7 +89,11 @@ public class ProfileSetupActivity extends AppCompatActivity {
         tvSkillsLabel = findViewById(R.id.tvSkillsLabel);
         btnSubmit = findViewById(R.id.btnSubmitProfile);
 
-        // read role from intent (if passed from SignUp)
+        // Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        // read role from intent (if passed)
         if (getIntent() != null && getIntent().hasExtra("role")) {
             role = getIntent().getStringExtra("role");
         }
@@ -99,7 +114,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSkills.setAdapter(adapter);
 
-        // launch gallery to pick NIC image
+        // upload NIC image (just pick and store URI string for tests)
         btnUploadNic.setOnClickListener(v -> {
             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
             i.setType("image/*");
@@ -116,20 +131,17 @@ public class ProfileSetupActivity extends AppCompatActivity {
             Toast.makeText(this, "NIC skipped", Toast.LENGTH_SHORT).show();
         });
 
-        // select location (open maps search). You can replace with a PlacePicker integration later.
+        // select location (open maps search)
         tvSelectLocation.setOnClickListener(v -> {
             String q = etAddress.getText().toString().trim();
-            if (TextUtils.isEmpty(q)) {
-                q = "my location";
-            }
-            Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + Uri.encode(q));
+            if (TextUtils.isEmpty(q)) q = "my location";
+            android.net.Uri gmmIntentUri = android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode(q));
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
             try {
                 startActivity(mapIntent);
             } catch (ActivityNotFoundException e) {
-                // fallback: open any maps app / browser
-                Intent alt = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/search/?api=1&query=" + Uri.encode(q)));
+                Intent alt = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/maps/search/?api=1&query=" + android.net.Uri.encode(q)));
                 startActivity(alt);
             }
         });
@@ -160,7 +172,12 @@ public class ProfileSetupActivity extends AppCompatActivity {
         String address = etAddress.getText().toString().trim();
         String nic = etNic.getText().toString().trim();
         String dob = etDob.getText().toString().trim();
-        String gender = (rgGender.getCheckedRadioButtonId() == R.id.rbMale) ? "male" : "female";
+
+        int selectedGenderId = rgGender.getCheckedRadioButtonId();
+        String gender = null;
+        if (selectedGenderId == R.id.rbMale) gender = "male";
+        else if (selectedGenderId == R.id.rbFemale) gender = "female";
+
         String skill = spinnerSkills.getSelectedItem() != null ? spinnerSkills.getSelectedItem().toString() : "";
 
         // Basic validation
@@ -184,20 +201,62 @@ public class ProfileSetupActivity extends AppCompatActivity {
             etDob.requestFocus();
             return;
         }
-
-        // If worker ensure skill chosen (optional)
+        if (gender == null) {
+            Toast.makeText(this, "Select gender", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if ("worker".equalsIgnoreCase(role) && (skill == null || skill.isEmpty())) {
             Toast.makeText(this, "Please choose at least one skill", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // At this point you have everything. Replace this with your API call / upload logic.
-        // Example bundle to send to server:
-        // first, last, address, nic (optional), nicImageUriString (optional), gender, dob, skill, role
+        // Ensure we have an authenticated user (uid). For testing with bypassed OTP we expect anonymous or phone user.
+        if (mAuth.getCurrentUser() == null) {
+            // fallback: sign in anonymously to get a uid for test flow
+            mAuth.signInAnonymously().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
+                    writeProfileToFirestore(first, last, address, nic, dob, null, skill);
+                } else {
+                    String err = task.getException() != null ? task.getException().getMessage() : "Anonymous signin failed";
+                    Toast.makeText(ProfileSetupActivity.this, "Auth error: " + err, Toast.LENGTH_LONG).show();
+                }
+            });
+        } else {
+            writeProfileToFirestore(first, last, address, nic, dob, gender, skill);
+        }
+    }
 
-        Toast.makeText(this, "Profile submitted successfully", Toast.LENGTH_LONG).show();
+    private void writeProfileToFirestore(String first, String last, String address, String nic,
+                                         String dob, String gender, String skill) {
+        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (uid == null) {
+            Toast.makeText(this, "No authenticated user available", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        // TODO: send to your server, then navigate to next screen. For now finish:
-        finish();
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("firstName", first);
+        updates.put("lastName", last);
+        updates.put("address", address);
+        updates.put("nic", nic);
+        updates.put("dob", dob);
+        updates.put("gender", gender);
+        updates.put("role", role);
+        if ("worker".equalsIgnoreCase(role)) updates.put("skill", skill);
+        updates.put("nicImageUri", nicImageUriString); // stores the selected URI string for testing
+        updates.put("profileCompleted", true);
+        updates.put("lastSeenAt", FieldValue.serverTimestamp());
+
+        // Merge so we don't overwrite existing fields such as phone/nicVerified that were set earlier
+        db.collection("users").document(uid)
+                .set(updates, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(ProfileSetupActivity.this, "Profile saved successfully", Toast.LENGTH_SHORT).show();
+                    // move on to main screen or finish test flow
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(ProfileSetupActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }

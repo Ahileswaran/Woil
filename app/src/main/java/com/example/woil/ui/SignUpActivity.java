@@ -12,22 +12,16 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import com.google.firebase.auth.PhoneAuthOptions;
+import com.google.firebase.FirebaseException;
 
-/**
- * Starts phone verification with Firebase and navigates to VerifyOtpActivity when code is sent.
- */
+import com.google.firebase.auth.PhoneAuthProvider;
+
 public class SignUpActivity extends AppCompatActivity {
 
     private EditText etPhone;
@@ -37,7 +31,11 @@ public class SignUpActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
-    private PhoneAuthProvider.ForceResendingToken mResendToken; // kept in case you implement resend later
+    private PhoneAuthProvider.ForceResendingToken mResendToken;
+
+    // Toggle for testing - set to true to bypass OTP flow and accept any OTP
+    // Replace with BuildConfig.DEBUG or a runtime toggle if you prefer
+    private static final boolean SKIP_OTP_FOR_TESTING = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +49,10 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        // callbacks for phone verification
+        // Callbacks for phone verification (keep for later when you re-enable real OTP)
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(PhoneAuthCredential credential) {
-                // Auto verification or instant verification (rare) - sign in directly
                 signInWithPhoneAuthCredential(credential, getRoleFromUi());
             }
 
@@ -67,10 +64,7 @@ public class SignUpActivity extends AppCompatActivity {
 
             @Override
             public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
-                // Save token if you want to support resending later
                 mResendToken = token;
-
-                // Pass verificationId to OTP screen
                 String phone = etPhone.getText().toString().trim();
                 String role = getRoleFromUi();
 
@@ -82,12 +76,23 @@ public class SignUpActivity extends AppCompatActivity {
             }
         };
 
-        // Sign up button click
         btnSignUp.setOnClickListener(v -> {
             String phone = etPhone.getText().toString().trim();
             if (!validatePhone(phone)) return;
 
-            startPhoneNumberVerification("+94" + phone);
+            String fullPhone = "+94" + phone;
+
+            if (SKIP_OTP_FOR_TESTING) {
+                // Launch VerifyOtpActivity in bypass mode (accept any OTP / sign in anonymously)
+                Intent i = new Intent(SignUpActivity.this, VerifyOtpActivity.class);
+                i.putExtra("phone", fullPhone);
+                i.putExtra("role", getRoleFromUi());
+                i.putExtra("bypass", true);
+                startActivity(i);
+            } else {
+                // Normal (real) OTP flow
+                startPhoneNumberVerification(fullPhone);
+            }
         });
 
         tvAlready.setOnClickListener(v -> {
@@ -106,7 +111,6 @@ public class SignUpActivity extends AppCompatActivity {
             etPhone.setError("Enter phone number");
             return false;
         }
-        // basic length check - adjust to your expected local formats
         if (phone.length() < 7) {
             etPhone.setError("Enter valid phone number");
             return false;
@@ -127,23 +131,22 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential, String role) {
+        // This belongs to the 'real' flow and can stay as-is.
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Signed in successfully
                         String uid = task.getResult().getUser().getUid();
                         String phone = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getPhoneNumber() : null;
 
                         createUserInFirestoreIfNotExists(uid, phone, role);
 
-                        // Navigate to profile setup
                         Intent i = new Intent(SignUpActivity.this, ProfileSetupActivity.class);
                         i.putExtra("role", role);
                         startActivity(i);
                         finish();
                     } else {
                         String err = (task.getException() != null) ? task.getException().getMessage() : "Authentication failed";
-                        if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                        if (task.getException() instanceof com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
                             Toast.makeText(SignUpActivity.this, "Invalid code.", Toast.LENGTH_LONG).show();
                         } else {
                             Toast.makeText(SignUpActivity.this, "Sign-in failed: " + err, Toast.LENGTH_LONG).show();
@@ -152,17 +155,19 @@ public class SignUpActivity extends AppCompatActivity {
                 });
     }
 
+    // keep your existing Firestore helper or copy the one from VerifyOtpActivity / ProfileSetupActivity if needed
     private void createUserInFirestoreIfNotExists(String uid, String phone, String role) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Same method as you already have: either copy from your original code or call a shared helper.
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
         db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
             if (!documentSnapshot.exists()) {
-                Map<String, Object> user = new HashMap<>();
+                java.util.Map<String, Object> user = new java.util.HashMap<>();
                 user.put("phone", phone);
                 user.put("role", role);
                 user.put("nicVerified", false);
                 user.put("consentNicProcessing", false);
-                user.put("createdAt", FieldValue.serverTimestamp());
-                user.put("lastSeenAt", FieldValue.serverTimestamp());
+                user.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+                user.put("lastSeenAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
 
                 db.collection("users").document(uid).set(user)
                         .addOnSuccessListener(aVoid -> {

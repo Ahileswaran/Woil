@@ -22,6 +22,7 @@ import java.util.Map;
 
 /**
  * Receives verificationId from SignUpActivity. Verifies OTP and signs in.
+ * Also supports 'bypass' mode for testing: any OTP accepted -> signInAnonymously().
  */
 public class VerifyOtpActivity extends AppCompatActivity {
 
@@ -32,6 +33,7 @@ public class VerifyOtpActivity extends AppCompatActivity {
     private String phone;
     private String role;
     private String verificationId;
+    private boolean bypass = false;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -52,16 +54,56 @@ public class VerifyOtpActivity extends AppCompatActivity {
         phone = i.getStringExtra("phone");
         role = i.getStringExtra("role");
         verificationId = i.getStringExtra("verificationId");
+        bypass = i.getBooleanExtra("bypass", false);
 
         btnVerify.setOnClickListener(v -> {
             String otp = etOtp.getText().toString().trim();
             if (!validateOtp(otp)) return;
-            verifyOtp(otp);
+
+            if (bypass) {
+                // TEST MODE: accept any OTP by signing in anonymously
+                mAuth.signInAnonymously()
+                        .addOnCompleteListener(this, task -> {
+                            if (task.isSuccessful()) {
+                                String uid = mAuth.getCurrentUser().getUid();
+                                createUserInFirestoreIfNotExists(uid, phone, role);
+
+                                Intent intent = new Intent(VerifyOtpActivity.this, ProfileSetupActivity.class);
+                                intent.putExtra("role", role);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                String err = (task.getException() != null) ? task.getException().getMessage() : "Anonymous sign-in failed";
+                                Toast.makeText(VerifyOtpActivity.this, "Anonymous sign-in failed: " + err, Toast.LENGTH_LONG).show();
+                            }
+                        });
+            } else {
+                // Real OTP verification path
+                if (verificationId == null) {
+                    Toast.makeText(this, "Missing verification data. Please request OTP again.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
+                mAuth.signInWithCredential(credential)
+                        .addOnCompleteListener(this, task -> {
+                            if (task.isSuccessful()) {
+                                String uid = mAuth.getCurrentUser().getUid();
+                                String phoneNumber = mAuth.getCurrentUser().getPhoneNumber();
+                                createUserInFirestoreIfNotExists(uid, phoneNumber, role);
+
+                                Intent intent = new Intent(VerifyOtpActivity.this, ProfileSetupActivity.class);
+                                intent.putExtra("role", role);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                String err = (task.getException() != null) ? task.getException().getMessage() : "Verification failed";
+                                Toast.makeText(VerifyOtpActivity.this, "OTP verification failed: " + err, Toast.LENGTH_LONG).show();
+                            }
+                        });
+            }
         });
 
         tvResend.setOnClickListener(v -> {
-            // For simplicity we ask user to go back and request again from SignUp.
-            // Implement resend using ForceResendingToken if you save/pass it.
             Toast.makeText(this, "Resend not implemented here. Go back and request a new OTP.", Toast.LENGTH_LONG).show();
         });
     }
@@ -71,36 +113,12 @@ public class VerifyOtpActivity extends AppCompatActivity {
             etOtp.setError("Enter OTP");
             return false;
         }
-        if (otp.length() != 6) {
+        // accept any length in bypass mode so quick testing is easier
+        if (!bypass && otp.length() != 6) {
             etOtp.setError("OTP must be 6 digits");
             return false;
         }
         return true;
-    }
-
-    private void verifyOtp(String otp) {
-        if (verificationId == null) {
-            Toast.makeText(this, "Missing verification data. Please request OTP again.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        String uid = mAuth.getCurrentUser().getUid();
-                        String phoneNumber = mAuth.getCurrentUser().getPhoneNumber();
-                        createUserInFirestoreIfNotExists(uid, phoneNumber, role);
-
-                        // Move to profile setup
-                        Intent i = new Intent(VerifyOtpActivity.this, ProfileSetupActivity.class);
-                        i.putExtra("role", role);
-                        startActivity(i);
-                        finish();
-                    } else {
-                        String err = (task.getException() != null) ? task.getException().getMessage() : "Verification failed";
-                        Toast.makeText(VerifyOtpActivity.this, "OTP verification failed: " + err, Toast.LENGTH_LONG).show();
-                    }
-                });
     }
 
     private void createUserInFirestoreIfNotExists(String uid, String phone, String role) {
@@ -119,6 +137,9 @@ public class VerifyOtpActivity extends AppCompatActivity {
                             // created successfully
                         })
                         .addOnFailureListener(e -> Toast.makeText(this, "Firestore error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            } else {
+                // Optionally update lastSeenAt if doc exists
+                db.collection("users").document(uid).update("lastSeenAt", FieldValue.serverTimestamp());
             }
         }).addOnFailureListener(e -> Toast.makeText(this, "Firestore read error: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
