@@ -252,9 +252,16 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 .set(updates, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(ProfileSetupActivity.this, "Profile saved successfully", Toast.LENGTH_SHORT).show();
-                    // move on to main screen or finish test flow
+
+                    // Start MainActivity and ask it to open ProfileFragment
+                    Intent intent = new Intent(ProfileSetupActivity.this, MainActivity.class);
+                    intent.putExtra("openProfile", true);
+                    // clear back stack so user cannot go back to setup
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
                     finish();
                 })
+
                 .addOnFailureListener(e -> {
                     Toast.makeText(ProfileSetupActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
