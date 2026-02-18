@@ -1,0 +1,8 @@
+<resources>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- false => light status bar icons = disabled, so icons remain light (for dark backgrounds) -->
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

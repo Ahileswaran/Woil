@@ -26,10 +26,11 @@
             <!-- Top header -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="170dp"
-                android:layout_marginBottom="10dp">
+                android:layout_height="180dp"
+                android:layout_marginBottom="12dp">
 
                 <View
+                    android:id="@+id/orange_panel"
                     android:layout_width="match_parent"
                     android:layout_height="120dp"
                     android:background="@drawable/orange_rounded_vertical" />
@@ -44,7 +45,7 @@
                     app:cardElevation="3dp">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="383dp"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical">
@@ -52,16 +53,16 @@
                         <ImageView
                             android:layout_width="72dp"
                             android:layout_height="72dp"
-                            android:src="@drawable/woil"
-                            android:contentDescription="Woil logo"/>
+                            android:contentDescription="Woil logo"
+                            android:src="@drawable/woil" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
                             android:text="Set up your profile"
                             android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:layout_marginTop="6dp"/>
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>

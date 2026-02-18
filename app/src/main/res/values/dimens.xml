@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="header_base_height">120dp</dimen>
+    <dimen name="header_card_height">130dp</dimen>
+</resources>

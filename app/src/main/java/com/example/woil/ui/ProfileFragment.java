@@ -11,6 +11,14 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -29,6 +37,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class ProfileFragment extends Fragment {
+
+
 
     private ImageView ivProfile;
     private TextView tvHandle, tvRoleLocation, tvRatingLabel, tvJobsCompleted, tvMemberSince;
@@ -57,6 +67,16 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        // find the header root and orange panel from the included layout
+        View headerRoot = view.findViewById(R.id.header_root);
+        View orangePanel = view.findViewById(R.id.orange_panel);
+
+        // if null-check for safety
+        if (headerRoot != null && orangePanel != null) {
+            int baseHeightPx = getResources().getDimensionPixelSize(R.dimen.header_base_height);
+            InsetsUtil.applyStatusBarInsetToHeader(headerRoot, orangePanel, baseHeightPx);
+        }
+
         // view refs
         ivProfile = view.findViewById(R.id.ivProfile);
         tvHandle = view.findViewById(R.id.tvHandle);
