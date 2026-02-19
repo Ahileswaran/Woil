@@ -1,23 +1,20 @@
 package com.example.woil.ui;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,19 +33,24 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
+/**
+ * ProfileFragment that reads data from Firestore and FirebaseAuth
+ * and populates the UI elements in fragment_profile / activity_profile.
+ */
 public class ProfileFragment extends Fragment {
 
-
-
-    private ImageView ivProfile;
-    private TextView tvHandle, tvRoleLocation, tvRatingLabel, tvJobsCompleted, tvMemberSince;
+    private CircleImageView ivProfile;
+    private TextView tvUsername, tvSubtitle, tvRatingValue, tvJobsValue, tvMemberSince;
     private TextView tvFullName, tvPhone, tvEmail, tvLocation;
     private Button btnEditProfile;
-    private Button btnClient, btnWorker;
+    private ImageButton btnBack;
+    private TextView tvPending;
 
     // Accessibility UI
     private SwitchMaterial switchDigital, switchVoice, switchSimplified;
-    private SeekBar sbTextSize;
+    private SeekBar seekTextSize;
     private TextView tvTextSizeValue;
 
     // Firebase
@@ -62,122 +64,98 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        // make sure you're inflating the layout that matches the IDs you provided
         return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // find the header root and orange panel from the included layout
-        View headerRoot = view.findViewById(R.id.header_root);
-        View orangePanel = view.findViewById(R.id.orange_panel);
-
-        // if null-check for safety
-        if (headerRoot != null && orangePanel != null) {
-            int baseHeightPx = getResources().getDimensionPixelSize(R.dimen.header_base_height);
-            InsetsUtil.applyStatusBarInsetToHeader(headerRoot, orangePanel, baseHeightPx);
-        }
-
-        // view refs
-        ivProfile = view.findViewById(R.id.ivProfile);
-        tvHandle = view.findViewById(R.id.tvHandle);
-        tvRoleLocation = view.findViewById(R.id.tvRoleLocation);
-        tvRatingLabel = view.findViewById(R.id.tvRatingLabel);
-        tvJobsCompleted = view.findViewById(R.id.tvJobsCompleted);
-        tvMemberSince = view.findViewById(R.id.tvMemberSince);
-
-        tvFullName = view.findViewById(R.id.tvFullName);
-        tvPhone = view.findViewById(R.id.tvPhone);
-        tvEmail = view.findViewById(R.id.tvEmail);
-        tvLocation = view.findViewById(R.id.tvLocation);
-
-        btnEditProfile = view.findViewById(R.id.btnEditProfile);
-        btnClient = view.findViewById(R.id.btnClient);
-        btnWorker = view.findViewById(R.id.btnWorker);
-
-        // accessibility
-        switchDigital = view.findViewById(R.id.switchDigital);
-        switchVoice = view.findViewById(R.id.switchVoice);
-        switchSimplified = view.findViewById(R.id.switchSimplified);
-        sbTextSize = view.findViewById(R.id.sbTextSize);
-        tvTextSizeValue = view.findViewById(R.id.tvTextSizeValue);
-
-        // Firebase init
+        // init firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // default UI placeholders while waiting for Firestore
+        // find views (IDs matched to your XML)
+        ivProfile = view.findViewById(R.id.profile_image_main);
+        tvUsername = view.findViewById(R.id.username);
+        tvSubtitle = view.findViewById(R.id.subtitle);
+
+        tvRatingValue = view.findViewById(R.id.rating_value);
+        tvJobsValue = view.findViewById(R.id.jobs_value);
+        tvMemberSince = view.findViewById(R.id.member_since_value);
+
+        tvFullName = view.findViewById(R.id.tv_name);
+        tvPhone = view.findViewById(R.id.tv_phone);
+        tvEmail = view.findViewById(R.id.tv_email);
+        tvLocation = view.findViewById(R.id.tv_location);
+
+        btnEditProfile = view.findViewById(R.id.btn_edit_profile);
+        btnBack = view.findViewById(R.id.btn_back);
+        tvPending = view.findViewById(R.id.tv_pending);
+
+        // accessibility controls (IDs as in layout)
+        //switchDigital = view.findViewById(R.id.switch_digital);
+        //switchVoice = view.findViewById(R.id.switch_voice);
+        //switchSimplified = view.findViewById(R.id.switch_simple);
+        seekTextSize = view.findViewById(R.id.seek_text_size);
+        tvTextSizeValue = view.findViewById(R.id.tv_text_size_value);
+
+        // set placeholders while loading
         setPlaceholders();
 
-        // attach Firestore listener to update UI when data arrives/changes
+        // wire buttons
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> {
+                if (requireActivity() != null) requireActivity().onBackPressed();
+            });
+        }
+
+        if (btnEditProfile != null) {
+            btnEditProfile.setOnClickListener(v -> {
+                // Launch ProfileSetupActivity (ensure it exists in your app)
+                try {
+                    startActivity(new Intent(requireContext(), Class.forName("com.example.woil.ui.ProfileSetupActivity")));
+                } catch (ClassNotFoundException e) {
+                    // fallback toast if activity isn't present
+                    Toast.makeText(requireContext(), "Profile editor not available", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // accessibility defaults and listeners
+        if (switchDigital != null) switchDigital.setChecked(true);
+        if (switchVoice != null) switchVoice.setChecked(false);
+        if (switchSimplified != null) switchSimplified.setChecked(false);
+
+        if (seekTextSize != null) {
+            seekTextSize.setMax(100);
+            seekTextSize.setProgress(50);
+            updateTextSizeLabel(50);
+            seekTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { updateTextSizeLabel(progress); }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        // attach Firestore listener
         attachProfileListener();
-
-        // button actions (adapt to your navigation)
-        btnEditProfile.setOnClickListener(v -> {
-            // open the profile setup activity for editing
-            // ensure ProfileSetupActivity is declared in manifest
-            startActivity(new android.content.Intent(requireContext(), ProfileSetupActivity.class));
-        });
-
-        btnClient.setOnClickListener(v -> {
-            setToggleState(false);
-            Toast.makeText(requireContext(), "Client mode selected", Toast.LENGTH_SHORT).show();
-            // optionally write mode to UI state or to Firestore
-        });
-
-        btnWorker.setOnClickListener(v -> {
-            setToggleState(true);
-            Toast.makeText(requireContext(), "Worker mode selected", Toast.LENGTH_SHORT).show();
-            // optionally write mode to UI state or to Firestore
-        });
-
-        // accessibility defaults (you can override from saved preferences)
-        switchDigital.setChecked(true);
-        switchVoice.setChecked(false);
-        switchSimplified.setChecked(false);
-
-        switchDigital.setOnCheckedChangeListener((buttonView, isChecked) ->
-                Toast.makeText(requireContext(),
-                        "Digital proficiency: " + (isChecked ? "ON" : "OFF"),
-                        Toast.LENGTH_SHORT).show());
-
-        switchVoice.setOnCheckedChangeListener((buttonView, isChecked) ->
-                Toast.makeText(requireContext(),
-                        "Voice guidance: " + (isChecked ? "ON" : "OFF"),
-                        Toast.LENGTH_SHORT).show());
-
-        switchSimplified.setOnCheckedChangeListener((buttonView, isChecked) ->
-                Toast.makeText(requireContext(),
-                        "Simplified layout: " + (isChecked ? "ON" : "OFF"),
-                        Toast.LENGTH_SHORT).show());
-
-        sbTextSize.setMax(100);
-        sbTextSize.setProgress(50);
-        updateTextSizeLabel(50);
-        sbTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                updateTextSizeLabel(progress);
-            }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) { }
-            @Override public void onStopTrackingTouch(SeekBar seekBar) { }
-        });
     }
 
     private void setPlaceholders() {
-        tvHandle.setText("—");
-        tvRoleLocation.setText("—");
-        tvRatingLabel.setText("★ —");
-        tvJobsCompleted.setText("0");
-        tvMemberSince.setText("—");
+        if (tvUsername != null) tvUsername.setText("—");
+        if (tvSubtitle != null) tvSubtitle.setText("Worker · —");
+        if (tvRatingValue != null) tvRatingValue.setText("★ —");
+        if (tvJobsValue != null) tvJobsValue.setText("0");
+        if (tvMemberSince != null) tvMemberSince.setText("—");
 
-        tvFullName.setText("—");
-        tvPhone.setText("");
-        tvEmail.setText("");
-        tvLocation.setText("—");
+        if (tvFullName != null) tvFullName.setText("—");
+        if (tvPhone != null) tvPhone.setText("");
+        if (tvEmail != null) tvEmail.setText("");
+        if (tvLocation != null) tvLocation.setText("—");
 
-        // placeholder image
-        ivProfile.setImageResource(R.drawable.ic_profile_placeholder);
-        // default toggle state: worker
-        setToggleState(true);
+        if (ivProfile != null) ivProfile.setImageResource(R.drawable.photo_placeholder);
+
+        if (tvPending != null) tvPending.setText("⏱ Pending");
     }
 
     private void attachProfileListener() {
@@ -185,9 +163,9 @@ public class ProfileFragment extends Fragment {
         String uid = mAuth.getCurrentUser().getUid();
 
         profileListener = db.collection("users").document(uid)
-                .addSnapshotListener((DocumentSnapshot snap, com.google.firebase.firestore.FirebaseFirestoreException e) -> {
+                .addSnapshotListener((snap, e) -> {
                     if (e != null) {
-                        // Log or show error if you want
+                        // optional: log the error
                         return;
                     }
                     if (snap != null && snap.exists()) {
@@ -197,104 +175,120 @@ public class ProfileFragment extends Fragment {
     }
 
     private void populateUIFromSnapshot(DocumentSnapshot snap) {
-        // name
+        // --- NAME / USERNAME / SUBTITLE ---
         String first = snap.getString("firstName");
-        String last = snap.getString("lastName");
-        String fullName = ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
-        tvFullName.setText(fullName.isEmpty() ? "—" : fullName);
+        String last  = snap.getString("lastName");
+        String displayName = snap.getString("displayName"); // optional
 
-        // handle (@name) - using first + last or fallback to uid
-        String handle = (first != null || last != null) ? ("@" + (fullName.isEmpty() ? mAuth.getCurrentUser().getUid() : fullName)) : "@" + mAuth.getCurrentUser().getUid();
-        tvHandle.setText(handle);
+        String fullName = (displayName != null && !displayName.isEmpty())
+                ? displayName
+                : ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
 
-        // address / location
-        String address = snap.getString("address");
-        tvLocation.setText(address != null ? address : "—");
+        if (tvFullName != null) tvFullName.setText(fullName.isEmpty() ? "—" : fullName);
 
-        // role + location
+        // header username (handle) - try "handle" then @displayName fallback
+        String handle = snap.getString("handle");
+        if (handle == null || handle.isEmpty()) {
+            handle = fullName.isEmpty() ? ("@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user")) : ("@" + fullName.replaceAll("\\s+", ""));
+        }
+        if (tvUsername != null) tvUsername.setText(handle);
+
+        // role + location in subtitle
         String role = snap.getString("role");
-        String roleText = role != null ? (role.substring(0,1).toUpperCase() + role.substring(1)) : "";
-        tvRoleLocation.setText(roleText + (address != null && !address.isEmpty() ? " · " + address : ""));
+        String address = snap.getString("address");
+        String subtitle = (role != null ? capitalize(role) : "Worker") + (address != null && !address.isEmpty() ? " · " + address : "");
+        if (tvSubtitle != null) tvSubtitle.setText(subtitle);
 
-        // phone/email from FirebaseAuth (Auth is canonical for these)
+        // --- CONTACTS FROM AUTH (canonical) ---
         if (mAuth.getCurrentUser() != null) {
             String phone = mAuth.getCurrentUser().getPhoneNumber();
             String email = mAuth.getCurrentUser().getEmail();
-            tvPhone.setText(phone != null ? phone : "");
-            tvEmail.setText(email != null ? email : "");
+            if (tvPhone != null) tvPhone.setText(phone != null ? phone : (snap.getString("phone") != null ? snap.getString("phone") : ""));
+            if (tvEmail != null) tvEmail.setText(email != null ? email : (snap.getString("email") != null ? snap.getString("email") : ""));
+        } else {
+            if (tvPhone != null) tvPhone.setText(snap.getString("phone") != null ? snap.getString("phone") : "");
+            if (tvEmail != null) tvEmail.setText(snap.getString("email") != null ? snap.getString("email") : "");
         }
 
-        // rating and jobsCompleted (if present)
+        if (tvLocation != null) tvLocation.setText(address != null ? address : "—");
+
+        // --- RATING / JOBS / MEMBER SINCE ---
         Object ratingObj = snap.get("rating");
-        if (ratingObj != null) {
+        if (ratingObj != null && tvRatingValue != null) {
             try {
                 double rating = Double.parseDouble(ratingObj.toString());
-                tvRatingLabel.setText("★ " + new DecimalFormat("#0.0").format(rating));
+                tvRatingValue.setText("★ " + new DecimalFormat("#0.0").format(rating));
             } catch (Exception ignored) { }
         }
 
         Object jobsObj = snap.get("jobsCompleted");
-        if (jobsObj != null) tvJobsCompleted.setText(String.valueOf(jobsObj));
+        if (jobsObj != null && tvJobsValue != null) {
+            tvJobsValue.setText(String.valueOf(jobsObj));
+        }
 
-        // member since (handle Timestamp or millis)
-        Object ms = snap.get("memberSince");
-        if (ms instanceof Timestamp) {
-            Date d = ((Timestamp) ms).toDate();
+        Object memberSinceObj = snap.get("memberSince");
+        if (memberSinceObj instanceof Timestamp && tvMemberSince != null) {
+            Date d = ((Timestamp) memberSinceObj).toDate();
             Calendar c = Calendar.getInstance();
             c.setTime(d);
             tvMemberSince.setText(String.valueOf(c.get(Calendar.YEAR)));
         } else {
-            // try millis
+            // fallback to millis or year field
             Object msMillis = snap.get("memberSinceMillis");
-            if (msMillis instanceof Number) {
+            if (msMillis instanceof Number && tvMemberSince != null) {
                 long millis = ((Number) msMillis).longValue();
                 Calendar c = Calendar.getInstance();
                 c.setTimeInMillis(millis);
                 tvMemberSince.setText(String.valueOf(c.get(Calendar.YEAR)));
+            } else if (snap.getString("memberSinceYear") != null && tvMemberSince != null) {
+                tvMemberSince.setText(snap.getString("memberSinceYear"));
             }
         }
 
-        // profile image - nicImageUri could be a download URL or content:// uri saved earlier
-        String nicImageUri = snap.getString("nicImageUri");
-        if (nicImageUri != null && !nicImageUri.isEmpty()) {
-            // Glide handles http(s) and local URIs
-            try {
-                Glide.with(this)
-                        .load(nicImageUri)
-                        .placeholder(R.drawable.ic_profile_placeholder)
-                        .error(R.drawable.ic_profile_placeholder)
-                        .into(ivProfile);
-            } catch (Exception ex) {
-                // fallback to direct Uri set
-                try { ivProfile.setImageURI(Uri.parse(nicImageUri)); } catch (Exception ignored) { }
+        // --- VERIFIED / PENDING --- (toggle UI)
+        Boolean verified = snap.getBoolean("isVerified");
+        if (verified != null && verified && tvPending != null) {
+            tvPending.setText("✔ Verified");
+            tvPending.setTextColor(Color.parseColor("#2E7D32")); // green
+        } else if (tvPending != null) {
+            tvPending.setText("⏱ Pending");
+            tvPending.setTextColor(Color.parseColor("#6B4B00"));
+        }
+
+        // --- PROFILE IMAGE ---
+        // try common fields (photoUrl, photo, nicImageUri)
+        String photoUrl = snap.getString("photoUrl");
+        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("photo");
+        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("nicImageUri");
+        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("avatar");
+
+        if (photoUrl != null && !photoUrl.isEmpty()) {
+            if (ivProfile != null) {
+                try {
+                    Glide.with(this)
+                            .load(photoUrl)
+                            .placeholder(R.drawable.photo_placeholder)
+                            .error(R.drawable.photo_placeholder)
+                            .into(ivProfile);
+                } catch (Exception ex) {
+                    // fallback to Uri
+                    try { ivProfile.setImageURI(Uri.parse(photoUrl)); } catch (Exception ignored) {}
+                }
             }
         } else {
-            ivProfile.setImageResource(R.drawable.ic_profile_placeholder);
+            if (ivProfile != null) ivProfile.setImageResource(R.drawable.photo_placeholder);
         }
-
-        // choose toggle based on role
-        setToggleState("worker".equalsIgnoreCase(role));
     }
 
     private void updateTextSizeLabel(int progress) {
         double val = 0.8 + (progress / 100.0); // 0.8 .. 1.8
         DecimalFormat df = new DecimalFormat("0.0");
-        tvTextSizeValue.setText(df.format(val) + "x");
+        if (tvTextSizeValue != null) tvTextSizeValue.setText(df.format(val) + "x");
     }
 
-    private void setToggleState(boolean workerSelected) {
-        if (requireContext() == null) return;
-        if (workerSelected) {
-            btnWorker.setBackgroundTintList(requireContext().getResources().getColorStateList(R.color.purple_500));
-            btnWorker.setTextColor(requireContext().getResources().getColor(android.R.color.white));
-            btnClient.setBackgroundTintList(requireContext().getResources().getColorStateList(android.R.color.transparent));
-            btnClient.setTextColor(requireContext().getResources().getColor(R.color.black));
-        } else {
-            btnClient.setBackgroundTintList(requireContext().getResources().getColorStateList(R.color.purple_500));
-            btnClient.setTextColor(requireContext().getResources().getColor(android.R.color.white));
-            btnWorker.setBackgroundTintList(requireContext().getResources().getColorStateList(android.R.color.transparent));
-            btnWorker.setTextColor(requireContext().getResources().getColor(R.color.black));
-        }
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return s.substring(0,1).toUpperCase() + s.substring(1);
     }
 
     @Override
