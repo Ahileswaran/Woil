@@ -1,734 +1,444 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_frame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="false">
+    android:fitsSystemWindows="false"
+    tools:context=".ui.ProfileFragment">
 
     <!-- ORANGE HEADER (draws behind status bar) -->
+
+    <!-- MAIN CONTENT — compact, not scrollable. overlaps header by using marginTop -->
+
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="320dp"
+        android:layout_height="206dp"
         android:background="@drawable/bg_orange_gradient">
 
-        <!-- Back arrow (left) -->
+        <!-- circle profile image centered horizontally (smaller) -->
+
+        <!-- username & verified -->
+
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="18dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="12dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/ic_arrow_back_white"
             android:contentDescription="Back"
-            android:scaleType="centerInside" />
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_arrow_back_white" />
 
-        <!-- Profile circle image (centered horizontally, lower so it overlaps white card) -->
+        <!-- compact info card inside header (rating / jobs / member since) -->
+
         <de.hdodenhof.circleimageview.CircleImageView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/profile_image_main"
-            android:layout_width="104dp"
-            android:layout_height="104dp"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="56dp"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="150dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="150dp"
             android:src="@drawable/photo_placeholder"
-            app:civ_border_width="2dp"
             app:civ_border_color="#FFFFFFFF"
+            app:civ_border_width="2dp"
             tools:ignore="MissingClass" />
 
-        <!-- Username + verified badge (centered below image) -->
         <LinearLayout
             android:id="@+id/username_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/profile_image_main"
-            android:layout_centerHorizontal="true"
-            android:orientation="horizontal"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="151dp"
             android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
-
-            <TextView
-                android:id="@+id/username"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="sample_name"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/verified_badge"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="18dp"
+                android:layout_height="match_parent"
                 android:layout_marginStart="6dp"
-                android:src="@drawable/ic_verified"
-                android:contentDescription="verified" />
+                android:contentDescription="verified"
+                android:src="@drawable/ic_verified" />
         </LinearLayout>
 
-        <!-- subtitle -->
         <TextView
             android:id="@+id/subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/username_row"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="4dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="-6dp"
+            android:layout_marginEnd="174dp"
             android:text="Worker · Colombo 5"
             android:textColor="#FFF2F2"
-            android:textSize="13sp" />
+            android:textSize="8sp" />
 
-        <!-- small info card (rating | jobs completed | member since) - center below subtitle -->
         <LinearLayout
             android:id="@+id/info_card"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="24dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="143dp"
+            android:layout_marginBottom="55dp"
             android:background="@drawable/info_card_bg"
-            android:orientation="horizontal"
-            android:padding="10dp"
+            android:elevation="4dp"
             android:gravity="center_vertical"
-            android:elevation="4dp">
+            android:orientation="horizontal"
+            android:padding="6dp">
 
-            <!-- Rating -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/rating_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="★ 4.6"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333" />
+                    android:textColor="#333333"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Rating"
-                    android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="#666666"
+                    android:textSize="7sp" />
             </LinearLayout>
 
-            <!-- Jobs completed -->
             <View
                 android:layout_width="1dp"
-                android:layout_height="42dp"
+                android:layout_height="36dp"
                 android:background="#e6e6e6" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/jobs_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="24"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333" />
+                    android:textColor="#333333"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Jobs completed"
-                    android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="#666666"
+                    android:textSize="7sp" />
             </LinearLayout>
 
             <View
                 android:layout_width="1dp"
-                android:layout_height="42dp"
+                android:layout_height="36dp"
                 android:background="#e6e6e6" />
 
-            <!-- Member since -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/member_since_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="2021"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333" />
+                    android:textColor="#333333"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Member since"
-                    android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="#666666"
+                    android:textSize="7sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="184dp"
+            android:layout_marginBottom="104dp"
+            android:text="sample_name"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/top_white_container"
+            android:layout_width="323dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/white_card_top_rounded"
+            android:elevation="6dp"
+            android:orientation="vertical"
+            android:paddingLeft="6dp"
+            android:paddingTop="6dp"
+            android:paddingRight="6dp"
+            android:paddingBottom="6dp">
+
+            <!-- Edit profile + Client/Worker toggle (more compact) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_edit_profile"
+                    android:layout_width="189dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1.6"
+                    android:background="@drawable/btn_edit_bg"
+                    android:text="Edit profile"
+                    android:textColor="#FFFFFF"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:background="@drawable/toggle_group_bg"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="2dp">
+
+                    <Button
+                        android:id="@+id/btn_client"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="6dp"
+                        android:backgroundTint="@android:color/white"
+                        android:text="Client"
+                        android:textColor="@color/purple_700"
+                        android:textSize="10sp" />
+
+                    <Button
+                        android:id="@+id/btn_worker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:background="@drawable/outline_pill_bg"
+                        android:text="Worker"
+                        android:textColor="@android:color/black"
+                        android:textSize="10sp" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
     </RelativeLayout>
 
-    <!-- SCROLLING CONTENT (white rounded panel overlaps the orange header) -->
-    <ScrollView
-        android:id="@+id/scroll"
+    <LinearLayout
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingTop="0dp"
-        android:overScrollMode="never">
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:layout_marginTop="200dp"
+        android:clipToPadding="false">
 
+        <!-- compact white container that contains edit button + toggle row -->
+
+        <!-- small gap -->
+        <View android:layout_width="match_parent" android:layout_height="8dp" />
+
+        <!-- Compact Section: Account Info -->
         <LinearLayout
+            android:id="@+id/card_account_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@drawable/section_card_bg"
+            android:padding="8dp"
+            android:elevation="2dp">
 
-            <!-- spacer to push white container up and overlap the header -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="220dp" />
-
-            <!-- WHITE PANEL (main content) -->
-            <LinearLayout
-                android:id="@+id/white_panel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="-64dp"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:paddingTop="80dp"
-                android:paddingBottom="16dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:background="@drawable/white_card_top_rounded"
-                android:elevation="6dp">
-
-            <!-- Edit profile button (centered) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_marginTop="-72dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btn_edit_profile"
-                    android:layout_width="220dp"
-                    android:layout_height="44dp"
-                    android:background="@drawable/btn_edit_bg"
-                    android:text="Edit profile"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold"
-                    android:padding="8dp" />
-            </LinearLayout>
-
-            <!-- Account Info section -->
             <TextView
-                android:id="@+id/section_account_info"
+                android:id="@+id/section_account_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Account Info"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:textColor="#333333"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="#333333" />
 
-            <!-- Row: Name -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_person"
-                    android:contentDescription="name icon" />
-
-                <TextView
-                    android:id="@+id/tv_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Kavitha Dissanayake"
-                    android:textSize="14sp"
-                    android:textColor="#222222" />
+            <!-- rows -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+                android:orientation="horizontal" android:gravity="center_vertical">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_person" />
+                <TextView android:id="@+id/tv_name" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
             </LinearLayout>
 
-            <!-- Row: Phone (with lock icon) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f0f0f0" />
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_phone"
-                    android:contentDescription="phone" />
-
-                <TextView
-                    android:id="@+id/tv_phone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="+91-8129999999"
-                    android:textSize="14sp"
-                    android:textColor="#222222" />
-
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginStart="8dp"
-                    android:src="@drawable/ic_lock"
-                    android:contentDescription="locked" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+                android:orientation="horizontal" android:gravity="center_vertical">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_phone" />
+                <TextView android:id="@+id/tv_phone" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
+                <ImageView android:layout_width="16dp" android:layout_height="16dp" android:layout_marginStart="6dp"
+                    android:src="@drawable/ic_lock" />
             </LinearLayout>
 
-            <!-- Row: Email -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f0f0f0" />
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_email"
-                    android:contentDescription="email" />
-
-                <TextView
-                    android:id="@+id/tv_email"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="kavitha.d@appsnipp.com"
-                    android:textSize="14sp"
-                    android:textColor="#222222" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+                android:orientation="horizontal" android:gravity="center_vertical">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_email" />
+                <TextView android:id="@+id/tv_email" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
             </LinearLayout>
 
-            <!-- Row: Location -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f0f0f0" />
 
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_location"
-                    android:contentDescription="location" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+                android:orientation="horizontal" android:gravity="center_vertical">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_location" />
+                <TextView android:id="@+id/tv_location" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
+            </LinearLayout>
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_location"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Colombo 5"
-                    android:textSize="14sp"
-                    android:textColor="#222222" />
+        <!-- small gap -->
+        <View android:layout_width="match_parent" android:layout_height="8dp" />
+
+        <!-- Compact Section: Verification -->
+        <LinearLayout
+            android:id="@+id/card_verification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/section_card_bg"
+            android:padding="8dp"
+            android:elevation="2dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical">
+
+                <TextView android:id="@+id/section_verify_title" android:layout_width="0dp"
+                    android:layout_weight="1" android:layout_height="wrap_content" android:text="Verification"
+                    android:textSize="14sp" android:textStyle="bold" android:textColor="#333333" />
+
+                <TextView android:id="@+id/tv_pending" android:layout_width="82dp" android:layout_height="26dp"
+                    android:gravity="center" android:text="⏱ Pending" android:background="@drawable/pending_pill_bg"
+                    android:textColor="#6B4B00" android:textSize="12sp" />
             </LinearLayout>
 
-            <!-- Verification section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="16dp"
-                android:padding="10dp"
-                android:background="@drawable/verification_card_bg">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="6dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_height="1dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Verification"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Awaiting admin review"
-                        android:textSize="13sp"
-                        android:textColor="#888888" />
-                </LinearLayout>
-
-                <!-- Pending pill -->
-                <TextView
-                    android:id="@+id/tv_pending"
-                    android:layout_width="78dp"
-                    android:layout_height="28dp"
-                    android:gravity="center"
-                    android:text="⏱ Pending"
-                    android:textSize="13sp"
-                    android:background="@drawable/pending_pill_bg"
-                    android:textColor="#6B4B00"
-                    android:padding="4dp" />
-            </LinearLayout>
-
-            <!-- Verification details (icons + values) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="12dp"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp">
-
-                <!-- Left column icons -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_height="1dp">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp">
-
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_id"
-                            android:contentDescription="ID parsed" />
-
-                        <TextView
-                            android:layout_marginStart="8dp"
-                            android:text="ID Parsed DOB"
-                            android:textSize="13sp"
-                            android:textColor="#444444"
-                            android:layout_height="1dp"
-                            android:layout_width="1dp"/>
-
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:orientation="vertical">
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_id" />
+                        <TextView android:layout_marginStart="6dp" android:text="ID Parsed DOB" android:textSize="12sp" android:textColor="#444444" />
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp">
-
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_match"
-                            android:contentDescription="data match" />
-
-                        <TextView
-                            android:layout_marginStart="8dp"
-                            android:text="ID data match:"
-                            android:textSize="13sp"
-                            android:textColor="#444444"
-                            android:layout_height="1dp"
-                            android:layout_width="1dp"/>
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
+                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_match" />
+                        <TextView android:layout_marginStart="6dp" android:text="ID data match:" android:textSize="12sp" android:textColor="#444444" />
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_audio"
-                            android:contentDescription="voice" />
-
-                        <TextView
-                            android:layout_marginStart="8dp"
-                            android:text="Yes (Auto-Matched)"
-                            android:textSize="13sp"
-                            android:textColor="#444444"
-                            android:layout_height="1dp"
-                            android:layout_width="1dp"/>
-
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
+                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_audio" />
+                        <TextView android:layout_marginStart="6dp" android:text="Yes (Auto-Matched)" android:textSize="12sp" android:textColor="#444444" />
                     </LinearLayout>
-
                 </LinearLayout>
 
-                <!-- Right column small values -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginLeft="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Gender: Female"
-                        android:textSize="13sp"
-                        android:textColor="#444444"
-                        android:layout_marginBottom="8dp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Yes (Auto-Matched)"
-                        android:textSize="13sp"
-                        android:textColor="#444444"
-                        android:layout_marginBottom="8dp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Given v1.0"
-                        android:textSize="13sp"
-                        android:textColor="#444444"/>
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="6dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gender: Female" android:textSize="12sp" android:textColor="#444444" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Yes (Auto-Matched)" android:textSize="12sp" android:textColor="#444444" android:layout_marginTop="6dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Given v1.0" android:textSize="12sp" android:textColor="#444444" android:layout_marginTop="6dp" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Mopping demo thumbnail -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="90dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="12dp"
-                android:padding="8dp"
-                android:background="#FFF9F9"
-                android:elevation="1dp">
-
-                <ImageView
-                    android:layout_width="72dp"
-                    android:layout_height="64dp"
-                    android:src="@drawable/photo_placeholder"
-                    android:contentDescription="demo" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingLeft="12dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Mopping demo"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="1.3 x"
-                        android:textSize="13sp"
-                        android:textColor="#777777" />
+            <!-- demo thumbnail -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="74dp" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp" android:padding="6dp" android:background="#FFF9F9">
+                <ImageView android:layout_width="64dp" android:layout_height="56dp" android:src="@drawable/photo_placeholder" />
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:orientation="vertical" android:paddingLeft="8dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mopping demo" android:textSize="13sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.3 x" android:textSize="12sp" android:textColor="#777777" />
                 </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View details" android:textColor="#6E49D6" android:padding="6dp" android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="View details"
-                    android:textColor="#6E49D6"
-                    android:textSize="14sp"
-                    android:padding="6dp" />
+        <!-- small gap -->
+        <View android:layout_width="match_parent" android:layout_height="8dp" />
+
+        <!-- Compact Section: Accessibility / UI -->
+        <LinearLayout
+            android:id="@+id/card_accessibility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/section_card_bg"
+            android:padding="8dp"
+            android:elevation="2dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Accessibility / UI" android:textSize="14sp" android:textStyle="bold" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
+                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Digital proficiency" android:textSize="13sp" />
+                <TextView android:layout_width="44dp" android:layout_height="24dp" android:gravity="center" android:text="LOW" android:textSize="11sp" android:background="@drawable/low_badge_bg" android:textColor="#FF6B00" />
+                <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_digital" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:layout_marginStart="8dp" />
             </LinearLayout>
 
-            <!-- Accessibility / UI section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Accessibility / UI"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
-
-            <!-- Digital proficiency row with "LOW" badge and a toggle -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingTop="8dp">
-
-                <LinearLayout
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Digital proficiency"
-                        android:textSize="14sp"
-                        android:textColor="#333333"/>
-
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="48dp"
-                    android:layout_height="28dp"
-                    android:gravity="center"
-                    android:text="LOW"
-                    android:textSize="12sp"
-                    android:background="@drawable/low_badge_bg"
-                    android:textColor="#FF6B00"
-                    android:padding="4dp" />
-
-                <Switch
-                    android:id="@+id/switch_digital"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:layout_marginStart="12dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Voice guidance" android:textSize="13sp" />
+                <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_voice" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
             </LinearLayout>
 
-            <!-- Voice guidance -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Voice guidance"
-                        android:textSize="14sp"
-                        android:textColor="#333333"/>
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switch_voice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Simplified layout (large buttons)" android:textSize="13sp" />
+                <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_simple" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
             </LinearLayout>
 
-            <!-- Simplified layout toggle -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Simplified layout (large buttons)"
-                        android:textSize="14sp"
-                        android:textColor="#333333"/>
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switch_simple"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Confirm with physical keys" android:textSize="13sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="සිංහල  தமிழ்" android:textSize="13sp" android:textColor="#666666" />
             </LinearLayout>
 
-            <!-- Confirm with physical keys row -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Confirm with physical keys"
-                        android:textSize="14sp"
-                        android:textColor="#333333"/>
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="සිංහල  தமிழ்"
-                    android:textSize="14sp"
-                    android:textColor="#666666" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Text size" android:textSize="13sp" />
+                <SeekBar android:id="@+id/seek_text_size" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="30" android:progress="13" />
+                <TextView android:id="@+id/tv_text_size_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.3x" android:layout_gravity="end" android:layout_marginTop="4dp" android:textSize="12sp" />
             </LinearLayout>
-
-            <!-- Text size slider -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="8dp"
-                android:paddingBottom="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Text size"
-                    android:textSize="14sp"
-                    android:textColor="#333333" />
-
-                <SeekBar
-                    android:id="@+id/seek_text_size"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="30"
-                    android:progress="13" />
-
-                <TextView
-                    android:id="@+id/tv_text_size_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1.3x"
-                    android:layout_gravity="end"
-                    android:textColor="#666666"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
         </LinearLayout>
 
         <!-- bottom spacing -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp" />
+        <View android:layout_width="match_parent" android:layout_height="12dp" />
     </LinearLayout>
-</ScrollView>
-
-    </FrameLayout>
+</FrameLayout>
