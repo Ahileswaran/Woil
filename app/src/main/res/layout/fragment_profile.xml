@@ -9,19 +9,13 @@
     tools:context=".ui.ProfileFragment">
 
     <!-- ORANGE HEADER (draws behind status bar) -->
-
-    <!-- MAIN CONTENT — compact, not scrollable. overlaps header by using marginTop -->
-
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
         android:layout_height="206dp"
         android:background="@drawable/bg_orange_gradient">
 
-        <!-- circle profile image centered horizontally (smaller) -->
-
-        <!-- username & verified -->
-
+        <!-- Back button -->
         <ImageButton
             android:id="@+id/btn_back"
             android:layout_width="40dp"
@@ -31,39 +25,45 @@
             android:background="@android:color/transparent"
             android:contentDescription="Back"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_arrow_back_white" />
+            android:src="@drawable/ic_arrow_back_white"
+            android:layout_alignParentStart="true" />
 
-        <!-- compact info card inside header (rating / jobs / member since) -->
-
+        <!-- circle profile image centered horizontally -->
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image_main"
             android:layout_width="74dp"
             android:layout_height="74dp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="150dp"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp"
-            android:layout_marginEnd="150dp"
             android:src="@drawable/photo_placeholder"
             app:civ_border_color="#FFFFFFFF"
             app:civ_border_width="2dp"
             tools:ignore="MissingClass" />
 
+        <!-- username row centered under profile image -->
         <LinearLayout
             android:id="@+id/username_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/profile_image_main"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="1dp"
-            android:layout_marginEnd="151dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="6dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sample_name"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
             <ImageView
                 android:id="@+id/verified_badge"
                 android:layout_width="18dp"
-                android:layout_height="match_parent"
+                android:layout_height="18dp"
                 android:layout_marginStart="6dp"
                 android:contentDescription="verified"
                 android:src="@drawable/ic_verified" />
@@ -74,22 +74,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/username_row"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="-6dp"
-            android:layout_marginEnd="174dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="2dp"
             android:text="Worker · Colombo 5"
             android:textColor="#FFF2F2"
             android:textSize="8sp" />
 
+        <!-- compact info card inside header (rating / jobs / member since) -->
         <LinearLayout
             android:id="@+id/info_card"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="143dp"
-            android:layout_marginBottom="55dp"
+            android:layout_marginEnd="138dp"
+            android:layout_marginBottom="46dp"
             android:background="@drawable/info_card_bg"
             android:elevation="4dp"
             android:gravity="center_vertical"
@@ -179,27 +178,14 @@
             </LinearLayout>
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/username"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="184dp"
-            android:layout_marginBottom="104dp"
-            android:text="sample_name"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
         <LinearLayout
             android:id="@+id/top_white_container"
             android:layout_width="323dp"
             android:layout_height="40dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginEnd="48dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="53dp"
+            android:layout_marginBottom="3dp"
             android:background="@drawable/white_card_top_rounded"
             android:elevation="6dp"
             android:orientation="vertical"
@@ -208,7 +194,6 @@
             android:paddingRight="6dp"
             android:paddingBottom="6dp">
 
-            <!-- Edit profile + Client/Worker toggle (more compact) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -218,7 +203,7 @@
 
                 <Button
                     android:id="@+id/btn_edit_profile"
-                    android:layout_width="189dp"
+                    android:layout_width="0dp"
                     android:layout_height="30dp"
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1.6"
@@ -260,6 +245,7 @@
 
     </RelativeLayout>
 
+    <!-- MAIN CONTENT — compact, not scrollable. overlaps header by using marginTop -->
     <LinearLayout
         android:id="@+id/main_content"
         android:layout_width="match_parent"
@@ -269,8 +255,6 @@
         android:paddingEnd="8dp"
         android:layout_marginTop="200dp"
         android:clipToPadding="false">
-
-        <!-- compact white container that contains edit button + toggle row -->
 
         <!-- small gap -->
         <View android:layout_width="match_parent" android:layout_height="8dp" />
@@ -360,34 +344,110 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:layout_marginTop="6dp">
 
-                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:orientation="vertical">
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_id" />
-                        <TextView android:layout_marginStart="6dp" android:text="ID Parsed DOB" android:textSize="12sp" android:textColor="#444444" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_id" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="ID Parsed DOB"
+                            android:textSize="12sp"
+                            android:textColor="#444444" />
                     </LinearLayout>
 
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
-                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_match" />
-                        <TextView android:layout_marginStart="6dp" android:text="ID data match:" android:textSize="12sp" android:textColor="#444444" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="6dp">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_match" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="ID data match:"
+                            android:textSize="12sp"
+                            android:textColor="#444444" />
                     </LinearLayout>
 
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
-                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_audio" />
-                        <TextView android:layout_marginStart="6dp" android:text="Yes (Auto-Matched)" android:textSize="12sp" android:textColor="#444444" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="6dp">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_audio" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="Yes (Auto-Matched)"
+                            android:textSize="12sp"
+                            android:textColor="#444444" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="6dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gender: Female" android:textSize="12sp" android:textColor="#444444" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Yes (Auto-Matched)" android:textSize="12sp" android:textColor="#444444" android:layout_marginTop="6dp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Given v1.0" android:textSize="12sp" android:textColor="#444444" android:layout_marginTop="6dp" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="6dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gender: Female"
+                        android:textSize="12sp"
+                        android:textColor="#444444" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Yes (Auto-Matched)"
+                        android:textSize="12sp"
+                        android:textColor="#444444"
+                        android:layout_marginTop="6dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Given v1.0"
+                        android:textSize="12sp"
+                        android:textColor="#444444"
+                        android:layout_marginTop="6dp" />
                 </LinearLayout>
             </LinearLayout>
 
             <!-- demo thumbnail -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="74dp" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp" android:padding="6dp" android:background="#FFF9F9">
                 <ImageView android:layout_width="64dp" android:layout_height="56dp" android:src="@drawable/photo_placeholder" />
-                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:orientation="vertical" android:paddingLeft="8dp">
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:orientation="vertical" android:paddingLeft="8dp" android:layout_height="wrap_content">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mopping demo" android:textSize="13sp" android:textStyle="bold" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.3 x" android:textSize="12sp" android:textColor="#777777" />
                 </LinearLayout>
@@ -413,22 +473,30 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
                 <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Digital proficiency" android:textSize="13sp" />
                 <TextView android:layout_width="44dp" android:layout_height="24dp" android:gravity="center" android:text="LOW" android:textSize="11sp" android:background="@drawable/low_badge_bg" android:textColor="#FF6B00" />
-                <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_digital" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:layout_marginStart="8dp" />
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switch_digital"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:layout_marginStart="8dp" />
             </LinearLayout>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
                 <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Voice guidance" android:textSize="13sp" />
-                <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_voice" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switch_voice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
             </LinearLayout>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
                 <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Simplified layout (large buttons)" android:textSize="13sp" />
-                <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_simple" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" />
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
-                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Confirm with physical keys" android:textSize="13sp" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="සිංහල  தமிழ்" android:textSize="13sp" android:textColor="#666666" />
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switch_simple"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
             </LinearLayout>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <!-- White pill with purple outline used for the selected "Worker" button -->
+    <solid android:color="#FFFFFF"/>
+    <stroke android:width="2dp" android:color="#6E49D6"/>
+    <corners android:radius="18dp"/>
+    <padding android:left="6dp" android:top="4dp" android:right="6dp" android:bottom="4dp"/>
+</shape>

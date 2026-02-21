@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Purple gradient background for the small client/worker toggle group -->
+    <gradient
+        android:angle="0"
+        android:startColor="#6E49D6"
+        android:centerColor="#8A5FF0"
+        android:endColor="#C36BF7"
+        android:type="linear" />
+    <corners android:radius="24dp" />
+    <padding android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp"/>
+</shape>
