@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -92,6 +93,12 @@ public class MainActivity extends AppCompatActivity {
             openFragment(new HomeFragment(), false, "home");
             if (bottomNav != null) bottomNav.setSelectedItemId(R.id.navigation_home);
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.nav_bar_black));
+        }
+        WindowInsetsControllerCompat wic = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        wic.setAppearanceLightNavigationBars(false);
 
         if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
