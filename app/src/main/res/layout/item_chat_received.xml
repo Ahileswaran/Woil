@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:orientation="horizontal"
+    android:gravity="start">
+
+    <ImageView
+        android:id="@+id/img_sender"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/sample_profile"
+        android:scaleType="centerCrop"
+        android:background="@drawable/circle_profile_border"
+        android:padding="2dp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_message_received"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bubble_received"
+            android:padding="12dp"
+            android:text="Hi Ravi, Yes I’ll be available from 2 PM to 4 PM"
+            android:textColor="@color/charcoal"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tv_time_received"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2:12 PM"
+            android:textSize="12sp"
+            android:textColor="#9E9E9E"
+            android:layout_marginTop="4dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>
