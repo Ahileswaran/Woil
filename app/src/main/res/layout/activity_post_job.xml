@@ -390,18 +390,17 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Post Job Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_post_job"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="18dp"
-                android:background="@drawable/bg_post_button_gradient"
                 android:text="Post Job"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="18dp"
-                android:padding="8dp"/>
+                app:backgroundTint="@null"
+                android:background="@drawable/bg_post_button_gradient"/>
 
         </LinearLayout>
     </ScrollView>
