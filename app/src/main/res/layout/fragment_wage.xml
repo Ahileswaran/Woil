@@ -1,123 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/scroll_wage"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:padding="16dp">
+    android:fitsSystemWindows="false">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <!-- ORANGE HEADER -->
+    <RelativeLayout
+        android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="180dp"
+        android:background="@drawable/bg_orange_gradient">
 
-        <!-- Header with overlay button -->
-        <FrameLayout
+        <ImageButton
+            android:id="@+id/btn_back_arrow"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@android:color/white"
+            android:layout_alignParentStart="true"/>
+
+    </RelativeLayout>
+
+    <!-- MAIN CONTENT (overlaps header) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="140dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="120dp">
-
-            <!-- Top orange curvy header background -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/orange_rounded_vertical" />
-
-            <!-- Arrow Button  -->
-            <ImageButton
-                android:id="@+id/btn_back_arrow"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="12dp"
-                android:layout_marginTop="12dp"
-                android:layout_gravity="start|top"
-                android:background="?attr/selectableItemBackgroundBorderless"
-
-                android:padding="8dp"
-                android:scaleType="center"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="@android:color/white"/>
-
-        </FrameLayout>
-
-        <!-- Profile row -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_marginTop="-48dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            android:padding="16dp">
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:overScrollMode="never">
 
             <LinearLayout
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:src="@drawable/ic_profile_placeholder"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="@string/profile_image_desc" />
+                <!-- Profile Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    android:padding="16dp"
+                    app:cardElevation="6dp">
 
-                <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_marginStart="12dp"
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:src="@drawable/ic_profile_placeholder"
+                            android:scaleType="centerCrop"
+                            android:contentDescription="@string/profile_image_desc" />
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Kavitha Dissanayake"
+                                android:textStyle="bold"
+                                android:textSize="18sp"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Worker · Colombo 5"
+                                android:textSize="14sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Total wage -->
+                <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Total wage Rs. 1746"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Kavitha Dissanayake"
-                        android:textStyle="bold"
-                        android:textSize="18sp"/>
+                <!-- Action Buttons -->
+                <LinearLayout
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:weightSum="2">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Worker · Colombo 5"
-                        android:textSize="14sp"/>
+                    <Button
+                        android:id="@+id/btn_send_offer"
+                        android:layout_weight="1"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:text="Send offer" />
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="1dp"/>
+
+                    <Button
+                        android:id="@+id/btn_set_custom_bottom"
+                        android:layout_weight="1"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:text="Set custom" />
                 </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="24dp"/>
+
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Total wage section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Total wage Rs. 1746"
-            android:textSize="32sp"
-            android:textStyle="bold" />
-
-        <!-- Action buttons -->
-        <LinearLayout
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:weightSum="2">
-
-            <Button
-                android:id="@+id/btn_send_offer"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:text="Send offer" />
-
-            <View
-                android:layout_width="12dp"
-                android:layout_height="1dp"/>
-
-            <!-- Optional second button (if you still want it here) -->
-            <Button
-                android:id="@+id/btn_set_custom_bottom"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:text="Set custom" />
-        </LinearLayout>
+        </ScrollView>
 
     </LinearLayout>
-</ScrollView>
+
+</FrameLayout>
