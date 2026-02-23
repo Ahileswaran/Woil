@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                         openFragment(new ProfileFragment(), false, "profile");
                         return true;
                     } else if (id == R.id.nav_guard) {
-                        openFragment(new HomeFragment(), false, "guard");
+                        openFragment(new WoilGuardFragment(), false, "guard");
                         return true;
                     }
 
