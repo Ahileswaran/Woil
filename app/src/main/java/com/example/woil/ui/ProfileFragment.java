@@ -35,10 +35,10 @@ import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-/**
- * ProfileFragment that reads data from Firestore and FirebaseAuth
- * and populates the UI elements in fragment_profile / activity_profile.
- */
+
+import androidx.core.content.ContextCompat;
+import android.graphics.Color;
+
 public class ProfileFragment extends Fragment {
 
     private CircleImageView ivProfile;
@@ -105,9 +105,16 @@ public class ProfileFragment extends Fragment {
         // wire buttons
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> {
-                if (requireActivity() != null) requireActivity().onBackPressed();
+                // Explicitly navigate to Home. This clears backstack and makes bottom nav visible.
+                if (requireActivity() instanceof MainActivity) {
+                    ((MainActivity) requireActivity()).navigateToFragment(new HomeFragment(), false, "home");
+                } else {
+                    requireActivity().onBackPressed();
+                }
             });
         }
+
+
 
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {

@@ -30,6 +30,10 @@ import com.example.woil.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+import androidx.annotation.ColorInt;
+import androidx.core.content.ContextCompat;
+import android.util.Log;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
@@ -293,6 +297,18 @@ public class MainActivity extends AppCompatActivity {
                     orange.setLayoutParams(lp);
                 }
             }
+        }
+    }
+    //Change Nav bar Color when in the other fragments
+    public void setNavigationBarAppearance(@ColorInt int navBarColor, boolean useLightNavIcons) {
+        try {
+            getWindow().setNavigationBarColor(navBarColor);
+            if (insetsController != null) {
+                // true => light navigation bar icons (dark icons); note naming in API is inverted
+                insetsController.setAppearanceLightNavigationBars(useLightNavIcons);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "setNavigationBarAppearance failed: " + t);
         }
     }
 

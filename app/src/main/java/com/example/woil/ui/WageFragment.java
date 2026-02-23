@@ -15,7 +15,7 @@ public class WageFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // create res/layout/fragment_wage.xml and style it per the screenshot
+
         return inflater.inflate(R.layout.fragment_wage, container, false);
     }
 }
