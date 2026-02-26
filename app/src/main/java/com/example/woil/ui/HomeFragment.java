@@ -41,9 +41,20 @@ public class HomeFragment extends Fragment {
 
         // categories
         List<CategoryModel> categoryList = new ArrayList<>();
-        categoryList.add(new CategoryModel("Plumbing", R.drawable.ic_plumber));
-        categoryList.add(new CategoryModel("Electrician", R.drawable.ic_electrician));
-        categoryList.add(new CategoryModel("Cleaning", R.drawable.ic_cleaning));
+        categoryList.add(new CategoryModel("Cleaning", R.drawable.cleaning));
+        categoryList.add(new CategoryModel("Electrician", R.drawable.electic));
+        categoryList.add(new CategoryModel("Caregiver", R.drawable.caregiver));
+        categoryList.add(new CategoryModel("Appliance Repair", R.drawable.repair));
+        categoryList.add(new CategoryModel("Masonry", R.drawable.masanory));
+        categoryList.add(new CategoryModel("laundry", R.drawable.landury));
+        categoryList.add(new CategoryModel("Painting", R.drawable.painting));
+        categoryList.add(new CategoryModel("Plumbing", R.drawable.plumbing));
+        categoryList.add(new CategoryModel("Gardening", R.drawable.gardining));
+        categoryList.add(new CategoryModel("Carpentry", R.drawable.carpentary));
+
+
+
+
 
         rvCategories.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         CategoryAdapter catAdapter = new CategoryAdapter(categoryList, getContext());
