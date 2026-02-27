@@ -431,6 +431,42 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // call this from fragments when you want to go back to Home and guarantee nav is synced
+    public void navigateHomeAndSyncNav() {
+        // Use existing openFragment to replace fragment and update internal tag/menu id
+        openFragment(new HomeFragment(), false, "home");
+
+        if (bottomNav == null) return;
+
+        // Ensure the bottomNav becomes visible and its selection + insets are applied
+        // post() waits until bottomNav is measured/laid out so background drawable & padding are ready.
+        bottomNav.post(() -> {
+            // show and set correct selection
+            setBottomNavVisibility(true);
+            try {
+                bottomNav.setSelectedItemId(R.id.navigation_home);
+            } catch (Throwable ignored) {}
+
+            // re-apply padding + system nav color now that bottomNav is ready
+            applyBottomNavInsets(lastNavBarInset);
+
+            // also explicitly set nav bar color to your desired color so we don't get a black fallback.
+            try {
+                getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.nav_bar_black));
+                // ensure nav icon appearance is consistent (dark icons on light bg: false if black)
+                if (insetsController != null) insetsController.setAppearanceLightNavigationBars(false);
+            } catch (Throwable ignored) {}
+        });
+    }
+
+    /**
+     * Generic helper so fragments don't need to know how MainActivity manages nav.
+     * Use this whenever a fragment back-arrow should always return to Home and show BottomNav.
+     */
+    public void onFragmentArrowBackToHome() {
+        navigateHomeAndSyncNav();
+    }
+
     /**
      * Called after a popBackStack to ensure the bottom nav matches the new top fragment.
      * With method 1: show only for HomeFragment; hide otherwise.

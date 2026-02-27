@@ -105,9 +105,8 @@ public class ProfileFragment extends Fragment {
         // wire buttons
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> {
-                // Explicitly navigate to Home. This clears backstack and makes bottom nav visible.
                 if (requireActivity() instanceof MainActivity) {
-                    ((MainActivity) requireActivity()).navigateToFragment(new HomeFragment(), false, "home");
+                    ((MainActivity) requireActivity()).onFragmentArrowBackToHome();
                 } else {
                     requireActivity().onBackPressed();
                 }
