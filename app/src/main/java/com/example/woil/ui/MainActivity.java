@@ -30,10 +30,6 @@ import com.example.woil.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
-import androidx.annotation.ColorInt;
-import androidx.core.content.ContextCompat;
-import android.util.Log;
-
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
@@ -92,8 +88,11 @@ public class MainActivity extends AppCompatActivity {
             currentTag = savedInstanceState.getString("currentTag", "home");
             currentMenuItemId = savedInstanceState.getInt("currentMenuItemId", R.id.navigation_home);
             if (bottomNav != null) bottomNav.setSelectedItemId(currentMenuItemId);
+            // restore nav visibility if you saved it previously (optional)
+            boolean bottomVisible = savedInstanceState.getBoolean("bottomNavVisible", "home".equals(currentTag));
+            setBottomNavVisibility(bottomVisible);
         } else {
-            // initial fragment
+            // initial fragment: open home -> openFragment will set nav visible
             openFragment(new HomeFragment(), false, "home");
             if (bottomNav != null) bottomNav.setSelectedItemId(R.id.navigation_home);
         }
@@ -299,7 +298,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    //Change Nav bar Color when in the other fragments
+
+    // Change Nav bar Color when in the other fragments
     public void setNavigationBarAppearance(@ColorInt int navBarColor, boolean useLightNavIcons) {
         try {
             getWindow().setNavigationBarColor(navBarColor);
@@ -377,16 +377,18 @@ public class MainActivity extends AppCompatActivity {
         return Math.round(dp * density);
     }
 
+    /**
+     * Central navigation method.
+     * Method 1 behavior: bottom nav is visible only when tag == "home".
+     */
     private void openFragment(Fragment fragment, boolean addToBackStack, @NonNull String tag) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.nav_host_fragment, fragment, tag);
 
         if (addToBackStack) {
             ft.addToBackStack(tag);
-            if (bottomNav != null) bottomNav.setVisibility(View.GONE);
         } else {
             clearBackStack();
-            if (bottomNav != null) bottomNav.setVisibility(View.VISIBLE);
         }
 
         ft.commit();
@@ -399,6 +401,10 @@ public class MainActivity extends AppCompatActivity {
         // re-apply insets to the fragment we just created (if it has orange_panel)
         applyInsetsToCurrentFragment();
 
+        // --- NAV VISIBILITY: visible only for "home" tag ---
+        boolean shouldShowNav = "home".equals(tag);
+        setBottomNavVisibility(shouldShowNav);
+
         currentTag = tag;
         if ("home".equals(tag)) currentMenuItemId = R.id.navigation_home;
         else if ("wage".equals(tag)) currentMenuItemId = R.id.navigation_wallet;
@@ -407,23 +413,46 @@ public class MainActivity extends AppCompatActivity {
         else if (bottomNav != null) currentMenuItemId = bottomNav.getSelectedItemId();
     }
 
+    /**
+     * Helper to set bottom nav visibility and re-apply insets properly.
+     */
+    private void setBottomNavVisibility(boolean visible) {
+        if (bottomNav == null) return;
+        int newVis = visible ? View.VISIBLE : View.GONE;
+        if (bottomNav.getVisibility() == newVis) return; // no-op
+
+        bottomNav.setVisibility(newVis);
+        if (visible) {
+            // use last known nav bar inset so padding matches system nav
+            applyBottomNavInsets(lastNavBarInset);
+        } else {
+            // when hidden, clear bottom padding so content uses full height
+            applyBottomNavInsets(0);
+        }
+    }
+
+    /**
+     * Called after a popBackStack to ensure the bottom nav matches the new top fragment.
+     * With method 1: show only for HomeFragment; hide otherwise.
+     */
     private void updateBottomNavVisibilityAfterPop() {
         Fragment top = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        if (top instanceof WageFragment) {
-            if (bottomNav != null) {
-                bottomNav.setVisibility(View.GONE);
-                bottomNav.setSelectedItemId(R.id.navigation_wallet);
-            }
+        if (top instanceof HomeFragment) {
+            setBottomNavVisibility(true);
+            if (bottomNav != null) bottomNav.setSelectedItemId(R.id.navigation_home);
         } else {
-            if (bottomNav != null) {
-                bottomNav.setVisibility(View.VISIBLE);
-                if (top instanceof HomeFragment) bottomNav.setSelectedItemId(R.id.navigation_home);
-                else if (top instanceof ChatFragment) bottomNav.setSelectedItemId(R.id.nav_messages);
-                else if (top instanceof ProfileFragment) bottomNav.setSelectedItemId(R.id.navigation_profile);
+            setBottomNavVisibility(false);
+            if (top instanceof WageFragment && bottomNav != null) {
+                // keep menu selection consistent if you want
+                bottomNav.setSelectedItemId(R.id.navigation_wallet);
+            } else if (top instanceof ChatFragment && bottomNav != null) {
+                bottomNav.setSelectedItemId(R.id.nav_messages);
+            } else if (top instanceof ProfileFragment && bottomNav != null) {
+                bottomNav.setSelectedItemId(R.id.navigation_profile);
             }
         }
 
-        // re-apply insets to the new to p fragment
+        // re-apply insets to the new top fragment
         applyInsetsToCurrentFragment();
     }
 
@@ -444,5 +473,6 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putString("currentTag", currentTag);
         outState.putInt("currentMenuItemId", currentMenuItemId);
+        outState.putBoolean("bottomNavVisible", bottomNav != null && bottomNav.getVisibility() == View.VISIBLE);
     }
 }
