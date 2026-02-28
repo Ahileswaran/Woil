@@ -9,13 +9,13 @@
     tools:context=".ui.ProfileFragment">
 
     <!-- ORANGE HEADER (draws behind status bar) -->
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
         android:layout_height="206dp"
         android:background="@drawable/bg_orange_gradient">
 
-        <!-- Back button -->
+        <!-- Back button (top-left) -->
         <ImageButton
             android:id="@+id/btn_back"
             android:layout_width="40dp"
@@ -26,30 +26,34 @@
             android:contentDescription="Back"
             android:scaleType="centerInside"
             android:src="@drawable/ic_arrow_back_white"
-            android:layout_alignParentStart="true" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- circle profile image centered horizontally -->
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image_main"
             android:layout_width="74dp"
             android:layout_height="74dp"
-            android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp"
             android:src="@drawable/photo_placeholder"
             app:civ_border_color="#FFFFFFFF"
             app:civ_border_width="2dp"
-            tools:ignore="MissingClass" />
+            tools:ignore="MissingClass"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- username row centered under profile image -->
         <LinearLayout
             android:id="@+id/username_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/profile_image_main"
-            android:layout_centerHorizontal="true"
             android:layout_marginTop="6dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/profile_image_main"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <TextView
                 android:id="@+id/username"
@@ -73,27 +77,29 @@
             android:id="@+id/subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/username_row"
-            android:layout_centerHorizontal="true"
             android:layout_marginTop="2dp"
             android:text="Worker · Colombo 5"
             android:textColor="#FFF2F2"
-            android:textSize="8sp" />
+            android:textSize="8sp"
+            app:layout_constraintTop_toBottomOf="@id/username_row"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- compact info card inside header (rating / jobs / member since) -->
+        <!-- compact info card inside header (rating / jobs / member since),
+             centered horizontally and anchored above bottom with margin -->
         <LinearLayout
             android:id="@+id/info_card"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="138dp"
             android:layout_marginBottom="46dp"
             android:background="@drawable/info_card_bg"
             android:elevation="4dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="6dp">
+            android:padding="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -178,13 +184,11 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- top white container anchored to bottom center (overlaps header bottom) -->
         <LinearLayout
             android:id="@+id/top_white_container"
             android:layout_width="323dp"
             android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="53dp"
             android:layout_marginBottom="3dp"
             android:background="@drawable/white_card_top_rounded"
             android:elevation="6dp"
@@ -192,7 +196,10 @@
             android:paddingLeft="6dp"
             android:paddingTop="6dp"
             android:paddingRight="6dp"
-            android:paddingBottom="6dp">
+            android:paddingBottom="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -243,7 +250,7 @@
             </LinearLayout>
         </LinearLayout>
 
-    </RelativeLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- MAIN CONTENT — compact, not scrollable. overlaps header by using marginTop -->
     <LinearLayout
