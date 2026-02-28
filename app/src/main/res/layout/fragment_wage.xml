@@ -12,18 +12,18 @@
         android:layout_height="70dp"
         android:background="@drawable/bg_orange_gradient">
 
+        <!-- Back button -->
         <ImageButton
-            android:id="@+id/btn_back_arrow"
+            android:id="@+id/btn_back"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_arrow_back"
-            app:tint="@android:color/white"
-            android:layout_alignParentStart="true"/>
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="12dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Back"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_arrow_back_white"
+            android:layout_alignParentStart="true" />
 
     </RelativeLayout>
 

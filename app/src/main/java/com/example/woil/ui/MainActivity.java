@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -83,6 +84,25 @@ public class MainActivity extends AppCompatActivity {
 
         // --- existing initialization (bottom nav and fragment handling) ---
         bottomNav = findViewById(R.id.bottom_navigation);
+
+        // Register lifecycle callback to auto-wire any fragment's btn_back (DRY)
+        getSupportFragmentManager().registerFragmentLifecycleCallbacks(
+                new FragmentManager.FragmentLifecycleCallbacks() {
+                    @Override
+                    public void onFragmentViewCreated(@NonNull FragmentManager fm,
+                                                      @NonNull Fragment f,
+                                                      @NonNull View v,
+                                                      @Nullable Bundle savedInstanceState) {
+                        super.onFragmentViewCreated(fm, f, v, savedInstanceState);
+                        View btnBack = v.findViewById(R.id.btn_back);
+                        if (btnBack != null) {
+                            btnBack.setOnClickListener(view -> {
+                                // route all arrow-backs through MainActivity helper
+                                onFragmentArrowBackToHome();
+                            });
+                        }
+                    }
+                }, true);
 
         if (savedInstanceState != null) {
             currentTag = savedInstanceState.getString("currentTag", "home");
@@ -312,6 +332,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Set padding on the BottomNavigationView and sync the system navigation bar color.
+     * This method defers sampling the BottomNavigationView background until after layout,
+     * using bottomNav.post(...) so we don't sample a zero-sized drawable and get a black fallback.
+     */
     private void applyBottomNavInsets(int navBarInset) {
         if (bottomNav == null) return;
 
@@ -323,40 +348,51 @@ public class MainActivity extends AppCompatActivity {
                 navBarInset
         );
 
-        // Try to set navigation bar color to match bottomNav background:
-        try {
-            int bgColor = Color.TRANSPARENT;
-
-            Drawable bg = bottomNav.getBackground();
-            if (bg instanceof ColorDrawable) {
-                bgColor = ((ColorDrawable) bg).getColor();
-            } else if (bg != null) {
-                // attempt to convert other drawables to a color (best-effort).
-                Bitmap bmp = Bitmap.createBitmap(
-                        Math.max(1, bg.getIntrinsicWidth()),
-                        Math.max(1, bg.getIntrinsicHeight()),
-                        Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(bmp);
-                bg.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-                bg.draw(canvas);
-                bgColor = bmp.getPixel(0, 0);
-            } else {
-                // fallback to a resource color if you have one
-                try {
-                    bgColor = ContextCompat.getColor(this, R.color.nav_background);
-                } catch (Throwable ignored) {}
-            }
-
-            getWindow().setNavigationBarColor(bgColor);
-
-            // set nav icon appearance depending on whether bg is light/dark
-            boolean useDarkNavIcons = isColorLight(bgColor);
+        // Defer sampling of background until after layout, to avoid black fallback.
+        bottomNav.post(() -> {
             try {
-                insetsController.setAppearanceLightNavigationBars(useDarkNavIcons);
-            } catch (Throwable t) { /* ignore */ }
-        } catch (Throwable t) {
-            Log.w(TAG, "applyBottomNavInsets: failed to set nav color: " + t);
-        }
+                int bgColor = Color.TRANSPARENT;
+
+                Drawable bg = bottomNav.getBackground();
+                if (bg instanceof ColorDrawable) {
+                    bgColor = ((ColorDrawable) bg).getColor();
+                } else if (bg != null) {
+                    // attempt to convert other drawables to a color (best-effort).
+                    int w = Math.max(1, bg.getIntrinsicWidth());
+                    int h = Math.max(1, bg.getIntrinsicHeight());
+                    Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                    Canvas canvas = new Canvas(bmp);
+                    bg.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                    bg.draw(canvas);
+                    bgColor = bmp.getPixel(0, 0);
+                } else {
+                    // fallback to a resource color if you have one
+                    try {
+                        bgColor = ContextCompat.getColor(this, R.color.nav_background);
+                    } catch (Throwable ignored) {}
+                }
+
+                // If bgColor is still transparent, use a sensible default to avoid transparent/system-black.
+                if (bgColor == Color.TRANSPARENT) {
+                    try {
+                        bgColor = ContextCompat.getColor(this, R.color.nav_bar_black);
+                    } catch (Throwable ignored) {
+                        bgColor = Color.BLACK;
+                    }
+                }
+
+                // apply to system nav
+                getWindow().setNavigationBarColor(bgColor);
+
+                // set nav icon appearance depending on whether bg is light/dark
+                boolean useDarkNavIcons = isColorLight(bgColor);
+                try {
+                    insetsController.setAppearanceLightNavigationBars(useDarkNavIcons);
+                } catch (Throwable t) { /* ignore */ }
+            } catch (Throwable t) {
+                Log.w(TAG, "applyBottomNavInsets: failed to set nav color: " + t);
+            }
+        });
     }
 
     /**
@@ -415,6 +451,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Helper to set bottom nav visibility and re-apply insets properly.
+     * When showing, we wait for layout before forcing selection & insets to avoid visual glitches.
      */
     private void setBottomNavVisibility(boolean visible) {
         if (bottomNav == null) return;
@@ -423,8 +460,13 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNav.setVisibility(newVis);
         if (visible) {
-            // use last known nav bar inset so padding matches system nav
-            applyBottomNavInsets(lastNavBarInset);
+            // ensure selection & padding applied after layout
+            bottomNav.post(() -> {
+                try {
+                    bottomNav.setSelectedItemId(R.id.navigation_home);
+                } catch (Throwable ignored) {}
+                applyBottomNavInsets(lastNavBarInset);
+            });
         } else {
             // when hidden, clear bottom padding so content uses full height
             applyBottomNavInsets(0);
@@ -438,24 +480,14 @@ public class MainActivity extends AppCompatActivity {
 
         if (bottomNav == null) return;
 
-        // Ensure the bottomNav becomes visible and its selection + insets are applied
-        // post() waits until bottomNav is measured/laid out so background drawable & padding are ready.
+        // Ensure the bottomNav becomes visible and its selection + insets are applied after layout.
         bottomNav.post(() -> {
-            // show and set correct selection
             setBottomNavVisibility(true);
             try {
                 bottomNav.setSelectedItemId(R.id.navigation_home);
             } catch (Throwable ignored) {}
-
-            // re-apply padding + system nav color now that bottomNav is ready
+            // apply bottom nav insets (will also set system nav color)
             applyBottomNavInsets(lastNavBarInset);
-
-            // also explicitly set nav bar color to your desired color so we don't get a black fallback.
-            try {
-                getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.nav_bar_black));
-                // ensure nav icon appearance is consistent (dark icons on light bg: false if black)
-                if (insetsController != null) insetsController.setAppearanceLightNavigationBars(false);
-            } catch (Throwable ignored) {}
         });
     }
 
