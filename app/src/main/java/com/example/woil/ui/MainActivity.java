@@ -340,24 +340,38 @@ public class MainActivity extends AppCompatActivity {
     private void applyBottomNavInsets(int navBarInset) {
         if (bottomNav == null) return;
 
+        // sensible default nav height (fallback for gesture nav or temporary 0 inset)
+        final int defaultNavHeight = dpToPx(56); // typical bottom nav height on many devices
+
+        // if inset is zero, fallback to defaultNavHeight
+        final int effectiveInset = (navBarInset > 0) ? navBarInset : defaultNavHeight;
+
         // Add bottom padding so BottomNavigationView content isn't under the system nav
+        // Add a small extra top padding so the rounded fragment card doesn't visually overlap nav icons
+        int extraTop = dpToPx(4);
         bottomNav.setPadding(
                 bottomNav.getPaddingLeft(),
-                bottomNav.getPaddingTop(),
+                extraTop,
                 bottomNav.getPaddingRight(),
-                navBarInset
+                effectiveInset
         );
 
-        // Defer sampling of background until after layout, to avoid black fallback.
+        // Make sure the bottomNav background is opaque so system nav color sampling works
+        // (replace with your desired opaque color if needed)
+        try {
+            if (bottomNav.getBackground() == null) {
+                bottomNav.setBackgroundColor(ContextCompat.getColor(this, R.color.nav_bar_black));
+            }
+        } catch (Throwable ignored) {}
+
+        // Defer sampling of background until after layout, to avoid black fallback or wrong sampling.
         bottomNav.post(() -> {
             try {
                 int bgColor = Color.TRANSPARENT;
-
                 Drawable bg = bottomNav.getBackground();
                 if (bg instanceof ColorDrawable) {
                     bgColor = ((ColorDrawable) bg).getColor();
                 } else if (bg != null) {
-                    // attempt to convert other drawables to a color (best-effort).
                     int w = Math.max(1, bg.getIntrinsicWidth());
                     int h = Math.max(1, bg.getIntrinsicHeight());
                     Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
@@ -366,19 +380,13 @@ public class MainActivity extends AppCompatActivity {
                     bg.draw(canvas);
                     bgColor = bmp.getPixel(0, 0);
                 } else {
-                    // fallback to a resource color if you have one
-                    try {
-                        bgColor = ContextCompat.getColor(this, R.color.nav_background);
-                    } catch (Throwable ignored) {}
+                    // fallback to a resource color if necessary
+                    bgColor = ContextCompat.getColor(this, R.color.nav_bar_black);
                 }
 
-                // If bgColor is still transparent, use a sensible default to avoid transparent/system-black.
+                // final safety: if still transparent, set to solid fallback
                 if (bgColor == Color.TRANSPARENT) {
-                    try {
-                        bgColor = ContextCompat.getColor(this, R.color.nav_bar_black);
-                    } catch (Throwable ignored) {
-                        bgColor = Color.BLACK;
-                    }
+                    bgColor = ContextCompat.getColor(this, R.color.nav_bar_black);
                 }
 
                 // apply to system nav
@@ -389,6 +397,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     insetsController.setAppearanceLightNavigationBars(useDarkNavIcons);
                 } catch (Throwable t) { /* ignore */ }
+
             } catch (Throwable t) {
                 Log.w(TAG, "applyBottomNavInsets: failed to set nav color: " + t);
             }
@@ -455,20 +464,56 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setBottomNavVisibility(boolean visible) {
         if (bottomNav == null) return;
+
+        final View mainContent = findViewById(R.id.main_content);
         int newVis = visible ? View.VISIBLE : View.GONE;
         if (bottomNav.getVisibility() == newVis) return; // no-op
 
         bottomNav.setVisibility(newVis);
+
         if (visible) {
-            // ensure selection & padding applied after layout
+            // bring to front + elevation so nav visually sits above fragment content
+            bottomNav.bringToFront();
+            ViewCompat.setElevation(bottomNav, dpToPx(8));
+
+            // Determine an effective nav inset (use lastNavBarInset if available, otherwise default).
+            final int defaultNavHeight = dpToPx(56);
+            final int effectiveInset = (lastNavBarInset > 0) ? lastNavBarInset : defaultNavHeight;
+
+            // Safety gap so content cannot overlap (in addition to inset)
+            final int safety = dpToPx(6);
+
+            // adjust main content bottom padding immediately so layout doesn't overlap visually
+            if (mainContent != null) {
+                mainContent.setPadding(
+                        mainContent.getPaddingLeft(),
+                        mainContent.getPaddingTop(),
+                        mainContent.getPaddingRight(),
+                        effectiveInset + safety
+                );
+            }
+
+            // Wait until bottomNav is laid out before forcing selection & re-applying insets (ensures background sampling works)
             bottomNav.post(() -> {
-                try {
-                    bottomNav.setSelectedItemId(R.id.navigation_home);
-                } catch (Throwable ignored) {}
-                applyBottomNavInsets(lastNavBarInset);
+                try { bottomNav.setSelectedItemId(R.id.navigation_home); } catch (Throwable ignored) {}
+                // Ensure bottom nav has a solid background while visible
+                try { bottomNav.setBackgroundColor(ContextCompat.getColor(this, R.color.nav_bar_black)); } catch (Throwable ignored) {}
+                // Re-apply insets using the effective inset (this will also set system nav color)
+                applyBottomNavInsets(effectiveInset);
+                bottomNav.requestLayout();
+                bottomNav.invalidate();
             });
         } else {
-            // when hidden, clear bottom padding so content uses full height
+            // remove extra bottom padding when nav hidden
+            if (mainContent != null) {
+                mainContent.setPadding(
+                        mainContent.getPaddingLeft(),
+                        mainContent.getPaddingTop(),
+                        mainContent.getPaddingRight(),
+                        0
+                );
+            }
+            // apply zero inset (system nav will fallback to default color handled in applyBottomNavInsets)
             applyBottomNavInsets(0);
         }
     }
