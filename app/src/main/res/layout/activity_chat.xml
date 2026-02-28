@@ -105,10 +105,12 @@
     </com.google.android.material.card.MaterialCardView>
 
     <!-- CHAT SHEET -->
+
+    <!-- INPUT BAR -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/chat_sheet"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="472dp"
         android:layout_marginTop="188dp"
         android:layout_marginBottom="88dp"
         app:cardCornerRadius="24dp"
@@ -117,35 +119,34 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_messages"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="460dp"
+            android:clipToPadding="false"
             android:paddingStart="12dp"
-            android:paddingEnd="12dp"
             android:paddingTop="18dp"
-            android:paddingBottom="140dp"
-            android:clipToPadding="false" />
+            android:paddingEnd="12dp"
+            android:paddingBottom="140dp" />
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- INPUT BAR -->
     <LinearLayout
         android:id="@+id/input_container"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="158dp"
         android:layout_gravity="bottom"
-        android:padding="12dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:padding="12dp">
 
         <LinearLayout
             android:id="@+id/input_box"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:orientation="horizontal"
+            android:background="@drawable/bg_input"
             android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:background="@drawable/bg_input">
+            android:paddingEnd="12dp">
 
             <ImageButton
                 android:id="@+id/btn_emoji"
@@ -159,8 +160,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Type a message"
                 android:background="@android:color/transparent"
+                android:hint="Type a message"
                 android:maxLines="4" />
 
             <ImageButton
