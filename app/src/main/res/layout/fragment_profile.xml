@@ -256,100 +256,192 @@
     <LinearLayout
         android:id="@+id/main_content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="200dp"
+        android:clipToPadding="false"
         android:orientation="vertical"
         android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:layout_marginTop="200dp"
-        android:clipToPadding="false">
+        android:paddingEnd="8dp">
 
         <!-- small gap -->
-        <View android:layout_width="match_parent" android:layout_height="8dp" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
 
         <!-- Compact Section: Account Info -->
+
+        <!-- small gap -->
         <LinearLayout
             android:id="@+id/card_account_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:background="@drawable/section_card_bg"
-            android:padding="8dp"
-            android:elevation="2dp">
+            android:elevation="2dp"
+            android:orientation="vertical"
+            android:padding="8dp">
 
             <TextView
                 android:id="@+id/section_account_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Account Info"
+                android:textColor="#333333"
                 android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#333333" />
+                android:textStyle="bold" />
 
             <!-- rows -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
-                android:orientation="horizontal" android:gravity="center_vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_person" />
-                <TextView android:id="@+id/tv_name" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_person" />
+
+                <TextView
+                    android:id="@+id/tv_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="—"
+                    android:textColor="#222222"
+                    android:textSize="12sp" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f0f0f0" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#f0f0f0" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
-                android:orientation="horizontal" android:gravity="center_vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_phone" />
-                <TextView android:id="@+id/tv_phone" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
-                <ImageView android:layout_width="16dp" android:layout_height="16dp" android:layout_marginStart="6dp"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_phone" />
+
+                <TextView
+                    android:id="@+id/tv_phone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="—"
+                    android:textColor="#222222"
+                    android:textSize="12sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="6dp"
                     android:src="@drawable/ic_lock" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f0f0f0" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#f0f0f0" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
-                android:orientation="horizontal" android:gravity="center_vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_email" />
-                <TextView android:id="@+id/tv_email" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_email" />
+
+                <TextView
+                    android:id="@+id/tv_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="—"
+                    android:textColor="#222222"
+                    android:textSize="12sp" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#f0f0f0" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#f0f0f0" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
-                android:orientation="horizontal" android:gravity="center_vertical">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_location" />
-                <TextView android:id="@+id/tv_location" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp" android:text="—" android:textSize="12sp" android:textColor="#222222" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_location" />
+
+                <TextView
+                    android:id="@+id/tv_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="—"
+                    android:textColor="#222222"
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- small gap -->
-        <View android:layout_width="match_parent" android:layout_height="8dp" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
 
         <!-- Compact Section: Verification -->
         <LinearLayout
             android:id="@+id/card_verification"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:background="@drawable/section_card_bg"
-            android:padding="8dp"
-            android:elevation="2dp">
+            android:elevation="2dp"
+            android:orientation="vertical"
+            android:padding="8dp">
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:gravity="center_vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <TextView android:id="@+id/section_verify_title" android:layout_width="0dp"
-                    android:layout_weight="1" android:layout_height="wrap_content" android:text="Verification"
-                    android:textSize="14sp" android:textStyle="bold" android:textColor="#333333" />
+                <TextView
+                    android:id="@+id/section_verify_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Verification"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-                <TextView android:id="@+id/tv_pending" android:layout_width="82dp" android:layout_height="26dp"
-                    android:gravity="center" android:text="⏱ Pending" android:background="@drawable/pending_pill_bg"
-                    android:textColor="#6B4B00" android:textSize="12sp" />
+                <TextView
+                    android:id="@+id/tv_pending"
+                    android:layout_width="82dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/pending_pill_bg"
+                    android:gravity="center"
+                    android:text="⏱ Pending"
+                    android:textColor="#6B4B00"
+                    android:textSize="12sp" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:layout_marginTop="6dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -360,8 +452,8 @@
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="16dp"
@@ -373,16 +465,16 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:text="ID Parsed DOB"
-                            android:textSize="12sp"
-                            android:textColor="#444444" />
+                            android:textColor="#444444"
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginTop="6dp"
                         android:gravity="center_vertical"
-                        android:layout_marginTop="6dp">
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="16dp"
@@ -394,16 +486,16 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:text="ID data match:"
-                            android:textSize="12sp"
-                            android:textColor="#444444" />
+                            android:textColor="#444444"
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginTop="6dp"
                         android:gravity="center_vertical"
-                        android:layout_marginTop="6dp">
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="16dp"
@@ -415,105 +507,214 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:text="Yes (Auto-Matched)"
-                            android:textSize="12sp"
-                            android:textColor="#444444" />
+                            android:textColor="#444444"
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginStart="6dp">
+                    android:layout_marginStart="6dp"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Gender: Female"
-                        android:textSize="12sp"
-                        android:textColor="#444444" />
+                        android:textColor="#444444"
+                        android:textSize="12sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
                         android:text="Yes (Auto-Matched)"
-                        android:textSize="12sp"
                         android:textColor="#444444"
-                        android:layout_marginTop="6dp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
                         android:text="Given v1.0"
-                        android:textSize="12sp"
                         android:textColor="#444444"
-                        android:layout_marginTop="6dp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
 
             <!-- demo thumbnail -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="74dp" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp" android:padding="6dp" android:background="#FFF9F9">
-                <ImageView android:layout_width="64dp" android:layout_height="56dp" android:src="@drawable/photo_placeholder" />
-                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:orientation="vertical" android:paddingLeft="8dp" android:layout_height="wrap_content">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mopping demo" android:textSize="13sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.3 x" android:textSize="12sp" android:textColor="#777777" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="#FFF9F9"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="6dp">
+
+                <ImageView
+                    android:layout_width="64dp"
+                    android:layout_height="46dp"
+                    android:src="@drawable/photo_placeholder" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingLeft="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mopping demo"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1.3 x"
+                        android:textColor="#777777"
+                        android:textSize="9sp" />
                 </LinearLayout>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View details" android:textColor="#6E49D6" android:padding="6dp" android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="6dp"
+                    android:text="View details"
+                    android:textColor="#6E49D6"
+                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
 
         <!-- small gap -->
-        <View android:layout_width="match_parent" android:layout_height="8dp" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
 
         <!-- Compact Section: Accessibility / UI -->
         <LinearLayout
             android:id="@+id/card_accessibility"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:background="@drawable/section_card_bg"
-            android:padding="8dp"
-            android:elevation="2dp">
+            android:elevation="2dp"
+            android:orientation="vertical"
+            android:padding="8dp">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Accessibility / UI" android:textSize="14sp" android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Accessibility / UI"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
-                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Digital proficiency" android:textSize="13sp" />
-                <TextView android:layout_width="44dp" android:layout_height="24dp" android:gravity="center" android:text="LOW" android:textSize="11sp" android:background="@drawable/low_badge_bg" android:textColor="#FF6B00" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Digital proficiency"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="44dp"
+                    android:layout_height="14dp"
+                    android:background="@drawable/low_badge_bg"
+                    android:gravity="center"
+                    android:text="LOW"
+                    android:textColor="#FF6B00"
+                    android:textSize="11sp" />
+
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switch_digital"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:layout_marginStart="8dp" />
+                    android:layout_height="6dp"
+                    android:layout_marginStart="8dp"
+                    android:checked="true" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
-                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Voice guidance" android:textSize="13sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Voice guidance"
+                    android:textSize="13sp" />
+
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switch_voice"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="6dp"
                     android:checked="true" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
-                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Simplified layout (large buttons)" android:textSize="13sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Simplified layout (large buttons)"
+                    android:textSize="13sp" />
+
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switch_simple"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="6dp"
                     android:checked="true" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Text size" android:textSize="13sp" />
-                <SeekBar android:id="@+id/seek_text_size" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="30" android:progress="13" />
-                <TextView android:id="@+id/tv_text_size_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.3x" android:layout_gravity="end" android:layout_marginTop="4dp" android:textSize="12sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Text size"
+                    android:textSize="13sp" />
+
+                <SeekBar
+                    android:id="@+id/seek_text_size"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="30"
+                    android:progress="13" />
+
+                <TextView
+                    android:id="@+id/tv_text_size_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="4dp"
+                    android:text="1.3x"
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
 
         <!-- bottom spacing -->
-        <View android:layout_width="match_parent" android:layout_height="12dp" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12dp" />
     </LinearLayout>
 </FrameLayout>
