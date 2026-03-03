@@ -52,14 +52,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="18dp"
             android:text="Your Job to do"
             android:textSize="16sp"
             android:textStyle="bold" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="110dp"
+            android:layout_height="200dp"
             android:layout_marginTop="6dp"
             android:padding="8dp"
             app:cardCornerRadius="14dp"
@@ -68,14 +68,14 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvTimeline"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="200dp" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Categories Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="55dp"
             android:text="Find Job"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -83,8 +83,8 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvCategories"
             android:layout_width="match_parent"
-            android:layout_height="144dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="244dp"
+            android:layout_marginTop="18dp"
             android:clipToPadding="false"
             android:paddingEnd="12dp" />
 
