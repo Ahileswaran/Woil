@@ -46,5 +46,8 @@
             android:name=".ui.MainActivity"
             android:exported="true" />
 
+        <activity android:name=".ui.ClientActivity"
+            android:label="Client profile"/>
+
     </application>
 </manifest>
