@@ -49,5 +49,8 @@
         <activity android:name=".ui.ClientActivity"
             android:label="Client profile"/>
 
+        <activity android:name=".ui.PostJobActivity"
+            android:exported="false" />
+
     </application>
 </manifest>

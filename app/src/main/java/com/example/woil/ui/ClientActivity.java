@@ -78,7 +78,7 @@ public class ClientActivity extends AppCompatActivity {
 
         btnEditProfile = findViewById(R.id.btn_edit_profile);
         btnBack = findViewById(R.id.btn_back);
-        tvPending = findViewById(R.id.tv_pending);
+      //  tvPending = findViewById(R.id.tv_pending);
 
         // ads & work progress (optional; null-checks used)
         ad1Image = findViewById(R.id.ad1_image);
