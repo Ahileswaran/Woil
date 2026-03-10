@@ -116,6 +116,19 @@ public class ClientActivity extends AppCompatActivity {
             });
         }
 
+
+        MaterialButton btnAddJob = findViewById(R.id.btn_add_job);
+
+        if (btnAddJob != null) {
+            btnAddJob.setOnClickListener(v -> {
+                try {
+                    startActivity(new Intent(this, PostJobActivity.class));
+                } catch (Exception e) {
+                    Toast.makeText(this, "Can't open Post Job screen", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         // Toggle: if user taps "Worker" while on client view, just finish() and return to previous UI.
         if (btnWorkerToggle != null) {
             btnWorkerToggle.setOnClickListener(v -> {
