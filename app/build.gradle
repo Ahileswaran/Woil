@@ -8,6 +8,11 @@ android {
     compileSdk 36
 
     defaultConfig {
+        manifestPlaceholders = [
+                MAPS_API_KEY: MAPS_API_KEY
+        ]
+
+    defaultConfig {
         applicationId "com.example.woil"
         minSdk 23
         targetSdk 36
@@ -33,6 +38,12 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-firestore:26.0.2'
 
+
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.google.android.libraries.places:places:2.7.0' // optional for autocomplete
+
+    implementation 'com.google.android.material:material:1.8.0'
 
     // Firebase BOM manages versions
     implementation platform('com.google.firebase:firebase-bom:34.8.0') // or latest
