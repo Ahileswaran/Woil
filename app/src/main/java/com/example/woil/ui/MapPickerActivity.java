@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +31,8 @@ import java.util.Locale;
 
 public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    private static final String TAG = "MAP_DEBUG";
+
     private GoogleMap mMap;
     private LatLng selectedLatLng;
     private String selectedAddress = "";
@@ -50,6 +53,19 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_picker);
+
+        // -----------------------
+        // DEBUG: print runtime API key
+        // -----------------------
+        try {
+            String apiKey = getPackageManager()
+                    .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
+                    .metaData.getString("com.google.android.geo.API_KEY");
+            Log.d(TAG, "Maps API key (runtime): " + apiKey);
+        } catch (Exception e) {
+            Log.e(TAG, "Couldn't read API key: " + e.getMessage(), e);
+        }
+        // -----------------------
 
         tvAddress = findViewById(R.id.tv_selected_address);
         btnConfirm = findViewById(R.id.btn_confirm_location);
@@ -119,5 +135,7 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
             e.printStackTrace();
         }
         return "";
+
     }
+
 }
