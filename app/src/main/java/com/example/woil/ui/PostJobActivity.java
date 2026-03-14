@@ -22,6 +22,7 @@ import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -93,7 +94,7 @@ public class PostJobActivity extends AppCompatActivity {
                 "Electrician",
                 "Caregiver",
                 "Appliance Repair",
-                "Masonary", // keep as provided; change to "Masonry" if desired
+                "Masonary",
                 "Laundry",
                 "Painting",
                 "Plumbing",
@@ -110,14 +111,11 @@ public class PostJobActivity extends AppCompatActivity {
 
         // Initialize date/time defaults (start = now rounded to next half-hour, end = start + 2 hours)
         setDefaultStartEndTimes();
-
-        // update UI
         refreshDateTimeText();
 
         btnBack.setOnClickListener(v -> finish());
 
         android.view.View.OnClickListener openMapPicker = v -> {
-            // MapPickerActivity should return "address", "lat", "lng" extras
             Intent i = new Intent(PostJobActivity.this, MapPickerActivity.class);
             startActivityForResult(i, REQ_PICK_LOCATION);
         };
@@ -147,8 +145,6 @@ public class PostJobActivity extends AppCompatActivity {
 
         // Time range picker (start then end)
         tvTimeRange.setOnClickListener(v -> pickStartTime());
-        // also allow clicking wage badge to show typed wage immediately (optional)
-        // tvWageRangeBadge.setOnClickListener(...)
 
         btnPostJob.setOnClickListener(v -> {
             String description = etDescription != null ? etDescription.getText().toString().trim() : "";
@@ -157,7 +153,8 @@ public class PostJobActivity extends AppCompatActivity {
                 return;
             }
 
-            if (TextUtils.isEmpty(etTitle != null ? etTitle.getText().toString().trim() : "")) {
+            String title = etTitle != null ? etTitle.getText().toString().trim() : "";
+            if (TextUtils.isEmpty(title)) {
                 Toast.makeText(this, "Please enter a job title", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -167,14 +164,14 @@ public class PostJobActivity extends AppCompatActivity {
                 return;
             }
 
-            postJobToFirestore();
+            // Ensure authenticated user (falls back to anonymous sign-in for testing)
+            ensureAuthenticatedThenPost();
         });
     }
 
     private void setDefaultStartEndTimes() {
         Calendar now = Calendar.getInstance();
 
-        // round minutes to nearest 30 minutes (next slot)
         int minute = now.get(Calendar.MINUTE);
         if (minute == 0) {
             now.set(Calendar.MINUTE, 0);
@@ -188,13 +185,11 @@ public class PostJobActivity extends AppCompatActivity {
         now.set(Calendar.MILLISECOND, 0);
 
         startCal.setTimeInMillis(now.getTimeInMillis());
-        // default end = start + 2 hours
         endCal.setTimeInMillis(startCal.getTimeInMillis());
         endCal.add(Calendar.HOUR_OF_DAY, 2);
     }
 
     private void refreshDateTimeText() {
-        // date shown uses startCal's date
         tvDate.setText("  " + dateFormatter.format(startCal.getTime()));
         tvTimeRange.setText("  " + timeFormatter.format(startCal.getTime()) + " - " + timeFormatter.format(endCal.getTime()));
     }
@@ -209,13 +204,11 @@ public class PostJobActivity extends AppCompatActivity {
             startCal.set(Calendar.SECOND, 0);
             startCal.set(Calendar.MILLISECOND, 0);
 
-            // ensure end is same day; if end < start, move end to start + 1 hour
             if (!endCal.after(startCal)) {
                 endCal.setTimeInMillis(startCal.getTimeInMillis());
                 endCal.add(Calendar.HOUR_OF_DAY, 1);
             }
 
-            // after picking start, open end time picker
             pickEndTime();
             refreshDateTimeText();
         }, hour, minute, is24);
@@ -232,7 +225,6 @@ public class PostJobActivity extends AppCompatActivity {
             endCal.set(Calendar.SECOND, 0);
             endCal.set(Calendar.MILLISECOND, 0);
 
-            // if end <= start, adjust end = start + 1 hour
             if (!endCal.after(startCal)) {
                 endCal.setTimeInMillis(startCal.getTimeInMillis());
                 endCal.add(Calendar.HOUR_OF_DAY, 1);
@@ -253,22 +245,47 @@ public class PostJobActivity extends AppCompatActivity {
             selectedLng = data.getDoubleExtra("lng", 0.0);
 
             tvSetLocation.setText(selectedAddress != null ? selectedAddress : "Selected location");
-            // Optionally set an image in imgMap using the Static Maps API (not included here).
         }
     }
 
+    /**
+     * Ensure there's an authenticated Firebase user, then call postJobToFirestore().
+     * Falls back to anonymous sign-in if no user is signed in.
+     */
+    private void ensureAuthenticatedThenPost() {
+        if (mAuth.getCurrentUser() != null) {
+            postJobToFirestore();
+            return;
+        }
+
+        // Sign in anonymously for fast testing flows. For production, prefer phone/email auth.
+        mAuth.signInAnonymously()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
+                        postJobToFirestore();
+                    } else {
+                        String err = task.getException() != null ? task.getException().getMessage() : "Anonymous signin failed";
+                        Toast.makeText(PostJobActivity.this, "Auth error: " + err, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    /**
+     * Posts the job document to Firestore using the project's schema.
+     */
     private void postJobToFirestore() {
         String uid = (mAuth.getCurrentUser() != null) ? mAuth.getCurrentUser().getUid() : null;
+        if (uid == null) {
+            Toast.makeText(this, "Authentication required", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Map<String, Object> job = new HashMap<>();
-        // required/important fields per schema:
         job.put("clientUid", uid);
 
-        // title
         String title = etTitle != null ? etTitle.getText().toString().trim() : "";
         if (!TextUtils.isEmpty(title)) job.put("title", title);
 
-        // category from spinner
         String category = spinnerCategory != null && spinnerCategory.getSelectedItem() != null
                 ? spinnerCategory.getSelectedItem().toString()
                 : "";
@@ -281,17 +298,13 @@ public class PostJobActivity extends AppCompatActivity {
         locationMap.put("lng", selectedLng);
         job.put("location", locationMap);
 
-        // startAt / endAt as Firebase Timestamps
         if (startCal != null) {
-            Date sDate = startCal.getTime();
-            job.put("startAt", new Timestamp(sDate));
+            job.put("startAt", new Timestamp(startCal.getTime()));
         }
         if (endCal != null) {
-            Date eDate = endCal.getTime();
-            job.put("endAt", new Timestamp(eDate));
+            job.put("endAt", new Timestamp(endCal.getTime()));
         }
 
-        // wageSuggested numeric
         if (etWageSuggested != null) {
             String wageS = etWageSuggested.getText().toString().trim();
             if (!TextUtils.isEmpty(wageS)) {
@@ -306,11 +319,11 @@ public class PostJobActivity extends AppCompatActivity {
         job.put("description", etDescription.getText().toString().trim());
         job.put("assignedUid", null);
         job.put("status", "OPEN");
-        job.put("createdAt", Timestamp.now());
-        // allow offers flag
         job.put("allowOffers", (switchAllowOffers != null) && switchAllowOffers.isChecked());
 
-        // Write to Firestore jobs collection
+        // Use server timestamp to avoid rules/time issues
+        job.put("createdAt", FieldValue.serverTimestamp());
+
         db.collection("jobs")
                 .add(job)
                 .addOnSuccessListener(docRef -> {
@@ -321,6 +334,7 @@ public class PostJobActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> {
+                    // Likely Firestore rules rejection (permission_denied) or network error
                     Toast.makeText(PostJobActivity.this, "Failed to post job: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
