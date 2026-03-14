@@ -58,6 +58,9 @@
 
         <activity android:name=".ui.MapPickerActivity" />
 
+        <activity android:name=".ui.JobsByCategoryActivity"/>
+        <activity android:name=".ui.JobDetailActivity"/>
+
 
     </application>
 </manifest>

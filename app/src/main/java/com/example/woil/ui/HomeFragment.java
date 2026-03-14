@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.GestureDetector;
@@ -52,12 +53,18 @@ public class HomeFragment extends Fragment {
         categoryList.add(new CategoryModel("Gardening", R.drawable.gardining));
         categoryList.add(new CategoryModel("Carpentry", R.drawable.carpentary));
 
-
-
-
-
         rvCategories.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        CategoryAdapter catAdapter = new CategoryAdapter(categoryList, getContext());
+
+        // --- IMPORTANT: pass the click listener required by the new CategoryAdapter constructor ---
+        CategoryAdapter catAdapter = new CategoryAdapter(categoryList, getContext(), new CategoryAdapter.OnCategoryClickListener() {
+            @Override
+            public void onCategoryClicked(CategoryModel category) {
+                // start JobsByCategoryActivity and pass the category title
+                Intent i = new Intent(requireContext(), JobsByCategoryActivity.class);
+                i.putExtra("category", category.title);
+                startActivity(i);
+            }
+        });
         rvCategories.setAdapter(catAdapter);
 
         // timeline

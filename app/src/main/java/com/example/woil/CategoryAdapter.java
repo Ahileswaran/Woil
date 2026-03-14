@@ -13,12 +13,18 @@ import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.VH> {
 
+    public interface OnCategoryClickListener {
+        void onCategoryClicked(CategoryModel category);
+    }
+
     private final List<CategoryModel> items;
     private final Context ctx;
+    private final OnCategoryClickListener listener;
 
-    public CategoryAdapter(List<CategoryModel> items, Context ctx) {
+    public CategoryAdapter(List<CategoryModel> items, Context ctx, OnCategoryClickListener listener) {
         this.items = items;
         this.ctx = ctx;
+        this.listener = listener;
     }
 
     @NonNull
@@ -33,7 +39,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.VH> {
         CategoryModel c = items.get(position);
         holder.tvCat.setText(c.title != null ? c.title : "");
 
-        // handle icon either as int drawable id or as String url
         if (c.icon instanceof Integer) {
             Glide.with(ctx).load((Integer) c.icon).into(holder.imgCat);
         } else if (c.icon instanceof String) {
@@ -45,8 +50,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.VH> {
         }
 
         holder.itemView.setOnClickListener(v -> {
-            // TODO: handle category click, e.g., open filtered job list
-            // Example: Toast.makeText(ctx, "Clicked: " + c.title, Toast.LENGTH_SHORT).show();
+            if (listener != null) listener.onCategoryClicked(c);
         });
     }
 
