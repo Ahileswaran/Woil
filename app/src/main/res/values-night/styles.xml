@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Keep same parent so Night also has no ActionBar -->
+    <style name="Theme.Woil" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Override any colors for night mode if you want -->
+        <item name="colorPrimary">@color/purple_200</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <!-- other overrides... -->
+    </style>
+</resources>

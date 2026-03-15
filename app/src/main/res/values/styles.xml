@@ -1,8 +1,26 @@
-<resources>
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App theme: No ActionBar for both light and dark (DayNight) -->
+    <style name="Theme.Woil" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Colors (override from colors.xml as needed) -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- window/system bar options -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <!-- false => light status bar icons = disabled, so icons remain light (for dark backgrounds) -->
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- notch support -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="28">shortEdges</item>
+
+        <!-- Safety fallback for older themes (optional) -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 </resources>
