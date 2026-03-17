@@ -23,4 +23,14 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+    <style name="Widget.MediumQuickBox" parent="Widget.MaterialComponents.CardView">
+        <item name="android:background">@drawable/medium_quick_box_bg</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:textColor">#007777</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:layout_margin">6dp</item>
+    </style>
 </resources>
