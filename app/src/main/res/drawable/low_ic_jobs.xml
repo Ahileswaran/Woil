@@ -4,27 +4,30 @@
     android:height="20dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+
     <!-- megaphone body -->
     <path
         android:fillColor="#607D8B"
-        android:pathData="M2,12c0,0 6,-1.5 9,-4l0,8C8,13.5 2,12 2,12z"/>
-    <!-- handle -->
-    <rect
+        android:pathData="M2,12c0,0 6,-1.5 9,-4v8C8,13.5 2,12 2,12z"/>
+
+    <!-- handle (rectangle drawn as path) -->
+    <!-- equivalent to: x=10 y=16 width=2 height=6 -->
+    <path
         android:fillColor="#455A64"
-        android:x="10"
-        android:y="16"
-        android:width="2"
-        android:height="6"/>
+        android:pathData="M10,16h2v6h-2z"/>
+
     <!-- horn -->
     <path
         android:fillColor="#90A4AE"
         android:pathData="M11,6l9,-3v14L11,15V6z"/>
+
     <!-- sound waves -->
     <path
         android:strokeColor="#90A4AE"
         android:strokeWidth="1.2"
         android:fillColor="@android:color/transparent"
         android:pathData="M21.5,4.5c1,1 1,4 -0.5,6.5"/>
+
     <path
         android:strokeColor="#90A4AE"
         android:strokeWidth="1.0"
