@@ -48,337 +48,99 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <!-- FALL ALERT CARD -->
-            <com.google.android.material.card.MaterialCardView
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Woil Guard"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Communication Method"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <RadioGroup
+                android:id="@+id/rgCommunicationMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="6dp">
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <RadioButton
+                    android:id="@+id/rbBluetooth"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:text="Bluetooth"
+                    android:checked="true" />
 
-                    <!-- Red Alert Banner -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_red_gradient"
-                        android:padding="16dp"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="FALL DETECTED!"
-                            android:textColor="@android:color/white"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:gravity="center"/>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Possible Fall or Distress Detected"
-                            android:textColor="@android:color/white"
-                            android:textSize="14sp"
-                            android:gravity="center"/>
-                    </LinearLayout>
-
-                    <!-- Map Preview -->
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="140dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_map_placeholder"/>
-
-                    <!-- Location Info -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="12dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_location"
-                            app:tint="#FF0000"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="Near No 21 Jaffna road"
-                            android:textSize="14sp"
-                            android:layout_marginStart="6dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Accuracy: 20m"
-                            android:textSize="12sp"/>
-                    </LinearLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-
-            <!-- ACTION BUTTONS -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal"
-                android:weightSum="2">
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="55dp"
-                    android:text="CALL GUARDIAN"
-                    android:textColor="@android:color/white"
-                    android:background="@drawable/bg_green_button"/>
-
-                <View
-                    android:layout_width="12dp"
-                    android:layout_height="wrap_content"/>
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="55dp"
-                    android:text="EMERGENCY SOS"
-                    android:textColor="@android:color/white"
-                    android:background="@drawable/bg_red_button"/>
-            </LinearLayout>
-            <!-- ALERT ACTIONS & RECENT LOGS -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <RadioButton
+                    android:id="@+id/rbWifi"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
+                    android:text="Wi-Fi"
+                    android:layout_marginStart="20dp" />
+            </RadioGroup>
 
-                    <!-- Header -->
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Alert Actions"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#37474F"
-                        android:paddingBottom="8dp"/>
-
-                    <!-- Divider -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#E0E0E0"/>
-
-                    <!-- Row 1: Acknowledge Alert (checked) -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingStart="6dp"
-                        android:paddingEnd="6dp">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_check_circle"
-                            android:contentDescription="ack"
-                            app:tint="#1976D2" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="Acknowledge Alert"
-                            android:textSize="14sp"
-                            android:layout_marginStart="12dp"/>
-
-                        <CheckBox
-                            android:id="@+id/chk_acknowledge"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true"/>
-                    </LinearLayout>
-
-                    <!-- Row 2: Escalate to Emergency Services -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingStart="6dp"
-                        android:paddingEnd="6dp">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_escalate"
-                            android:contentDescription="escalate"
-                            app:tint="#455A64" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Escalate to Emergency Services"
-                            android:textSize="14sp"
-                            android:layout_marginStart="12dp"/>
-                    </LinearLayout>
-
-                    <!-- Row 3: Add to incident Log -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="6dp"
-                        android:paddingStart="6dp"
-                        android:paddingEnd="6dp">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_clipboard"
-                            android:contentDescription="log"
-                            app:tint="#455A64" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Add to incident Log"
-                            android:textSize="14sp"
-                            android:layout_marginStart="12dp"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- RECENT LOGS -->
-            <com.google.android.material.card.MaterialCardView
+            <Button
+                android:id="@+id/btnConnectGuard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                android:text="Connect Device"
+                android:layout_marginTop="16dp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Recent Logs"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#37474F"
-                        android:paddingBottom="8dp"/>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#E0E0E0"/>
-
-                    <!-- Log item 1 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingTop="10dp"
-                        android:paddingBottom="10dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Alert Created - "
-                                android:textSize="14sp"
-                                android:textColor="#37474F"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="FALL DETECTED - Location Logged"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:textColor="#263238"/>
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="10:15 AM"
-                            android:textSize="12sp"
-                            android:textColor="#546E7A"/>
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#EEEEEE"/>
-
-                    <!-- Log item 2 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingTop="10dp"
-                        android:paddingBottom="10dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Guardian Contacted via SMS"
-                                android:textSize="14sp"
-                                android:textColor="#263238"/>
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="10:16 AM"
-                            android:textSize="12sp"
-                            android:textColor="#546E7A"/>
-                    </LinearLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- bottom spacing -->
-            <View
+            <Button
+                android:id="@+id/btnReadStatus"
                 android:layout_width="match_parent"
-                android:layout_height="24dp"/>
+                android:layout_height="wrap_content"
+                android:text="Read Status"
+                android:layout_marginTop="10dp" />
+
+            <Button
+                android:id="@+id/btnSendTest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Send Test Command"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:id="@+id/tvConnectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Connection"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp" />
+
+            <TextView
+                android:id="@+id/tvConnectionStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Disconnected"
+                android:paddingTop="8dp"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvDataLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Guard Data"
+                android:textStyle="bold"
+                android:layout_marginTop="20dp" />
+
+            <TextView
+                android:id="@+id/tvGuardData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Demo data: waiting for test connection..."
+                android:paddingTop="8dp"
+                android:textSize="16sp" />
+
         </LinearLayout>
 
 
