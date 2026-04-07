@@ -49,29 +49,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Woil Guard"
-                android:textSize="24sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Communication Method"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:textSize="24sp" />
 
             <RadioGroup
                 android:id="@+id/rgCommunicationMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
 
                 <RadioButton
                     android:id="@+id/rbBluetooth"
@@ -93,54 +86,93 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Connect Device"
-                android:layout_marginTop="16dp" />
-
-            <Button
-                android:id="@+id/btnReadStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Read Status"
-                android:layout_marginTop="10dp" />
-
-            <Button
-                android:id="@+id/btnSendTest"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Send Test Command"
-                android:layout_marginTop="10dp" />
-
-            <TextView
-                android:id="@+id/tvConnectionLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Connection"
-                android:textStyle="bold"
-                android:layout_marginTop="24dp" />
+                android:layout_marginTop="12dp" />
 
             <TextView
                 android:id="@+id/tvConnectionStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Disconnected"
-                android:paddingTop="8dp"
-                android:textSize="16sp" />
+                android:textStyle="bold"
+                android:layout_marginTop="12dp" />
 
             <TextView
-                android:id="@+id/tvDataLabel"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvDeviceState"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Guard Data"
-                android:textStyle="bold"
-                android:layout_marginTop="20dp" />
+                android:text="State: IDLE"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/tvBattery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Battery: --%"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvIncidentType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Incident: NONE"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvMotionScore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Motion score: 0.00"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvAudioScore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Audio score: 0.00"
+                android:layout_marginTop="4dp" />
+
+            <Button
+                android:id="@+id/btnReadStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Read Live Status"
+                android:layout_marginTop="16dp" />
+
+            <Button
+                android:id="@+id/btnSendTest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Send Panic Test"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnConfirmAlert"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Confirm Alert to CCC"
+                android:layout_marginTop="8dp" />
 
             <TextView
                 android:id="@+id/tvGuardData"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Demo data: waiting for test connection..."
-                android:paddingTop="8dp"
-                android:textSize="16sp" />
+                android:text="Waiting for wearable data..."
+                android:layout_marginTop="16dp" />
 
+            <TextView
+                android:id="@+id/tvLogTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Incident Log"
+                android:textStyle="bold"
+                android:layout_marginTop="20dp" />
+
+            <TextView
+                android:id="@+id/tvIncidentLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No incidents yet"
+                android:layout_marginTop="8dp" />
         </LinearLayout>
 
 

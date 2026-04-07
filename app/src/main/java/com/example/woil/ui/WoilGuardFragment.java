@@ -9,9 +9,14 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -22,26 +27,17 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
 import com.example.woil.R;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class WoilGuardFragment extends Fragment {
 
     private static final int REQ_BLE = 1001;
-
     private static final String DEVICE_NAME = "WoilGuard-ESP32";
 
     private static final UUID SERVICE_UUID =
@@ -52,19 +48,34 @@ public class WoilGuardFragment extends Fragment {
             UUID.fromString("12345678-1234-1234-1234-1234567890ad");
 
     private RadioGroup rgMode;
-    private TextView tvConnection;
-    private TextView tvData;
-    private Button btnConnect, btnReadStatus, btnTestCommand;
+    private TextView tvConnectionStatus;
+    private TextView tvGuardData;
+    private TextView tvDeviceState;
+    private TextView tvBattery;
+    private TextView tvIncidentType;
+    private TextView tvMotionScore;
+    private TextView tvAudioScore;
+    private TextView tvIncidentLog;
+    private Button btnConnectGuard;
+    private Button btnReadStatus;
+    private Button btnSendTest;
+    private Button btnConfirmAlert;
 
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothGatt bluetoothGatt;
     private BluetoothGattCharacteristic statusCharacteristic;
     private BluetoothGattCharacteristic cmdCharacteristic;
 
-    private final OkHttpClient httpClient = new OkHttpClient();
+    private final LinkedList<String> incidentLogs = new LinkedList<>();
 
-    // Change this later to your ESP32 local IP
-    private String esp32BaseUrl = "http://192.168.1.100";
+    // latest parsed wearable data
+    private String latestState = "IDLE";
+    private String latestBattery = "--";
+    private String latestIncident = "NONE";
+    private String latestMotion = "0.00";
+    private String latestAudio = "0.00";
+    private String latestTimestamp = "";
+    private String latestRawPayload = "";
 
     public WoilGuardFragment() {
         super(R.layout.fragment_woilgurad);
@@ -82,29 +93,56 @@ public class WoilGuardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        rgMode = view.findViewById(R.id.rgCommunicationMode);
-        tvConnection = view.findViewById(R.id.tvConnectionStatus);
-        tvData = view.findViewById(R.id.tvGuardData);
-        btnConnect = view.findViewById(R.id.btnConnectGuard);
-        btnReadStatus = view.findViewById(R.id.btnReadStatus);
-        btnTestCommand = view.findViewById(R.id.btnSendTest);
+        bindViews(view);
+        setupBluetooth();
+        initializeUi();
+        wireActions();
+    }
 
+    private void bindViews(@NonNull View view) {
+        rgMode = view.findViewById(R.id.rgCommunicationMode);
+        tvConnectionStatus = view.findViewById(R.id.tvConnectionStatus);
+        tvGuardData = view.findViewById(R.id.tvGuardData);
+        tvDeviceState = view.findViewById(R.id.tvDeviceState);
+        tvBattery = view.findViewById(R.id.tvBattery);
+        tvIncidentType = view.findViewById(R.id.tvIncidentType);
+        tvMotionScore = view.findViewById(R.id.tvMotionScore);
+        tvAudioScore = view.findViewById(R.id.tvAudioScore);
+        tvIncidentLog = view.findViewById(R.id.tvIncidentLog);
+
+        btnConnectGuard = view.findViewById(R.id.btnConnectGuard);
+        btnReadStatus = view.findViewById(R.id.btnReadStatus);
+        btnSendTest = view.findViewById(R.id.btnSendTest);
+        btnConfirmAlert = view.findViewById(R.id.btnConfirmAlert);
+    }
+
+    private void setupBluetooth() {
         BluetoothManager bluetoothManager =
                 (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
 
         if (bluetoothManager != null) {
             bluetoothAdapter = bluetoothManager.getAdapter();
         }
+    }
 
-        tvConnection.setText("Disconnected");
-        tvData.setText("Demo data: waiting for test connection...");
+    private void initializeUi() {
+        tvConnectionStatus.setText("Disconnected");
+        tvGuardData.setText("Waiting for wearable data...");
+        tvDeviceState.setText("State: IDLE");
+        tvBattery.setText("Battery: --%");
+        tvIncidentType.setText("Incident: NONE");
+        tvMotionScore.setText("Motion score: 0.00");
+        tvAudioScore.setText("Audio score: 0.00");
+        tvIncidentLog.setText("No incidents yet");
+    }
 
-        btnConnect.setOnClickListener(v -> {
+    private void wireActions() {
+        btnConnectGuard.setOnClickListener(v -> {
             int checkedId = rgMode.getCheckedRadioButtonId();
             if (checkedId == R.id.rbBluetooth) {
                 connectUsingBle();
-            } else if (checkedId == R.id.rbWifi) {
-                connectUsingWifi();
+            } else {
+                toast("Wi-Fi flow can be added later. BLE is primary for now.");
             }
         });
 
@@ -112,23 +150,25 @@ public class WoilGuardFragment extends Fragment {
             int checkedId = rgMode.getCheckedRadioButtonId();
             if (checkedId == R.id.rbBluetooth) {
                 readBleStatus();
-            } else if (checkedId == R.id.rbWifi) {
-                readWifiStatus();
+            } else {
+                toast("Wi-Fi flow can be added later.");
             }
         });
 
-        btnTestCommand.setOnClickListener(v -> {
+        btnSendTest.setOnClickListener(v -> {
             int checkedId = rgMode.getCheckedRadioButtonId();
             if (checkedId == R.id.rbBluetooth) {
                 sendBleCommand("PANIC_TEST");
-            } else if (checkedId == R.id.rbWifi) {
-                sendWifiPanic();
+            } else {
+                toast("Wi-Fi flow can be added later.");
             }
         });
+
+        btnConfirmAlert.setOnClickListener(v -> openCccFlow());
     }
 
     // ----------------------------------------------------
-    // BLE
+    // BLE FLOW
     // ----------------------------------------------------
 
     private void connectUsingBle() {
@@ -138,17 +178,17 @@ public class WoilGuardFragment extends Fragment {
         }
 
         if (bluetoothAdapter == null) {
-            tvConnection.setText("Bluetooth not supported on this phone");
+            tvConnectionStatus.setText("Bluetooth not supported on this phone");
             return;
         }
 
         try {
             if (!bluetoothAdapter.isEnabled()) {
-                tvConnection.setText("Enable Bluetooth first");
+                tvConnectionStatus.setText("Enable Bluetooth first");
                 return;
             }
         } catch (SecurityException e) {
-            tvConnection.setText("Bluetooth permission denied");
+            tvConnectionStatus.setText("Bluetooth permission denied");
             return;
         }
 
@@ -157,12 +197,12 @@ public class WoilGuardFragment extends Fragment {
             return;
         }
 
-        tvConnection.setText("Searching paired BLE devices...");
+        tvConnectionStatus.setText("Searching paired BLE devices...");
 
         try {
             Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
             if (bondedDevices == null || bondedDevices.isEmpty()) {
-                tvConnection.setText("No paired Bluetooth devices found");
+                tvConnectionStatus.setText("No paired Bluetooth devices found");
                 return;
             }
 
@@ -175,7 +215,7 @@ public class WoilGuardFragment extends Fragment {
                     }
                     deviceName = device.getName();
                 } catch (SecurityException e) {
-                    tvConnection.setText("Cannot read Bluetooth device name");
+                    tvConnectionStatus.setText("Cannot read Bluetooth device name");
                     return;
                 }
 
@@ -195,18 +235,18 @@ public class WoilGuardFragment extends Fragment {
                         }
 
                         bluetoothGatt = device.connectGatt(requireContext(), false, gattCallback);
-                        tvConnection.setText("Connecting to " + DEVICE_NAME + "...");
+                        tvConnectionStatus.setText("Connecting to " + DEVICE_NAME + "...");
                         return;
                     } catch (SecurityException e) {
-                        tvConnection.setText("Cannot connect: Bluetooth permission denied");
+                        tvConnectionStatus.setText("Cannot connect: Bluetooth permission denied");
                         return;
                     }
                 }
             }
 
-            tvConnection.setText("WoilGuard-ESP32 not paired yet. Pair device first.");
+            tvConnectionStatus.setText("WoilGuard-ESP32 not paired yet. Pair device first.");
         } catch (SecurityException e) {
-            tvConnection.setText("Bluetooth access denied");
+            tvConnectionStatus.setText("Bluetooth access denied");
         }
     }
 
@@ -217,7 +257,7 @@ public class WoilGuardFragment extends Fragment {
 
             requireActivity().runOnUiThread(() -> {
                 if (newState == BluetoothGatt.STATE_CONNECTED) {
-                    tvConnection.setText("BLE connected");
+                    tvConnectionStatus.setText("BLE connected");
 
                     try {
                         if (!hasBluetoothConnectPermission()) {
@@ -226,15 +266,15 @@ public class WoilGuardFragment extends Fragment {
                         }
                         gatt.discoverServices();
                     } catch (SecurityException e) {
-                        tvConnection.setText("Cannot discover services: permission denied");
+                        tvConnectionStatus.setText("Cannot discover services: permission denied");
                     }
 
                 } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                    tvConnection.setText("BLE disconnected");
+                    tvConnectionStatus.setText("BLE disconnected");
                     statusCharacteristic = null;
                     cmdCharacteristic = null;
                 } else {
-                    tvConnection.setText("BLE status changed: " + newState);
+                    tvConnectionStatus.setText("BLE status changed: " + newState);
                 }
             });
         }
@@ -252,7 +292,7 @@ public class WoilGuardFragment extends Fragment {
                 BluetoothGattService service = gatt.getService(SERVICE_UUID);
                 if (service == null) {
                     requireActivity().runOnUiThread(() ->
-                            tvData.setText("WoilGuard BLE service not found"));
+                            tvGuardData.setText("WoilGuard BLE service not found"));
                     return;
                 }
 
@@ -261,15 +301,15 @@ public class WoilGuardFragment extends Fragment {
 
                 requireActivity().runOnUiThread(() -> {
                     if (statusCharacteristic == null || cmdCharacteristic == null) {
-                        tvData.setText("BLE characteristics not found");
+                        tvGuardData.setText("BLE characteristics not found");
                     } else {
-                        tvData.setText("BLE service discovered. Ready.");
+                        tvGuardData.setText("BLE service discovered. Ready.");
                     }
                 });
 
             } catch (SecurityException e) {
                 requireActivity().runOnUiThread(() ->
-                        tvData.setText("Service discovery failed: permission denied"));
+                        tvGuardData.setText("Service discovery failed: permission denied"));
             }
         }
 
@@ -288,8 +328,7 @@ public class WoilGuardFragment extends Fragment {
                 }
 
                 final String finalValue = value;
-                requireActivity().runOnUiThread(() ->
-                        tvData.setText("Actual data: " + finalValue));
+                requireActivity().runOnUiThread(() -> applyWearablePayload(finalValue));
             }
         }
     };
@@ -308,7 +347,7 @@ public class WoilGuardFragment extends Fragment {
 
             boolean started = bluetoothGatt.readCharacteristic(statusCharacteristic);
             if (!started) {
-                tvData.setText("BLE read could not start");
+                tvGuardData.setText("BLE read could not start");
             }
         } catch (SecurityException e) {
             toast("Read failed: Bluetooth permission denied");
@@ -342,9 +381,9 @@ public class WoilGuardFragment extends Fragment {
             }
 
             if (result) {
-                tvData.setText("Command sent: " + cmd);
+                tvGuardData.setText("Command sent: " + cmd);
             } else {
-                tvData.setText("Failed to send command");
+                tvGuardData.setText("Failed to send command");
             }
 
         } catch (SecurityException e) {
@@ -353,85 +392,115 @@ public class WoilGuardFragment extends Fragment {
     }
 
     // ----------------------------------------------------
-    // Wi-Fi
+    // PAYLOAD PARSING / UI
     // ----------------------------------------------------
 
-    private void connectUsingWifi() {
-        tvConnection.setText("Checking Wi-Fi...");
+    private void applyWearablePayload(String payload) {
+        latestRawPayload = payload;
+        tvGuardData.setText(payload);
 
-        Request request = new Request.Builder()
-                .url(esp32BaseUrl + "/ping")
-                .build();
+        Map<String, String> parsed = parsePayload(payload);
 
-        httpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() ->
-                        tvConnection.setText("Wi-Fi failed: " + e.getMessage()));
-            }
+        latestState = parsed.getOrDefault("STATE", latestState);
+        latestBattery = parsed.getOrDefault("BAT", latestBattery);
+        latestIncident = parsed.getOrDefault("INCIDENT", latestIncident);
+        latestMotion = parsed.getOrDefault("MOTION", latestMotion);
+        latestAudio = parsed.getOrDefault("AUDIO", latestAudio);
+        latestTimestamp = parsed.getOrDefault("TS", latestTimestamp);
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                String result = response.body() != null ? response.body().string() : "";
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() ->
-                        tvConnection.setText("Wi-Fi connected: " + result));
-                response.close();
-            }
-        });
+        tvDeviceState.setText("State: " + latestState);
+        tvBattery.setText("Battery: " + latestBattery + "%");
+        tvIncidentType.setText("Incident: " + latestIncident);
+        tvMotionScore.setText("Motion score: " + latestMotion);
+        tvAudioScore.setText("Audio score: " + latestAudio);
+
+        addIncidentLog(buildIncidentLogLine());
     }
 
-    private void readWifiStatus() {
-        Request request = new Request.Builder()
-                .url(esp32BaseUrl + "/status")
-                .build();
+    private Map<String, String> parsePayload(String payload) {
+        Map<String, String> map = new HashMap<>();
+        if (TextUtils.isEmpty(payload)) return map;
 
-        httpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() ->
-                        tvData.setText("Wi-Fi read failed: " + e.getMessage()));
+        String[] pairs = payload.split(";");
+        for (String pair : pairs) {
+            String[] parts = pair.split("=", 2);
+            if (parts.length == 2) {
+                map.put(parts[0].trim(), parts[1].trim());
             }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                String result = response.body() != null ? response.body().string() : "";
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() ->
-                        tvData.setText("Actual data: " + result));
-                response.close();
-            }
-        });
+        }
+        return map;
     }
 
-    private void sendWifiPanic() {
-        Request request = new Request.Builder()
-                .url(esp32BaseUrl + "/panic")
-                .post(okhttp3.RequestBody.create(new byte[0]))
-                .build();
+    private String buildIncidentLogLine() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(latestIncident);
+        builder.append(" | state=").append(latestState);
+        builder.append(" | motion=").append(latestMotion);
+        builder.append(" | audio=").append(latestAudio);
 
-        httpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() ->
-                        tvData.setText("Wi-Fi command failed: " + e.getMessage()));
-            }
+        if (!TextUtils.isEmpty(latestTimestamp)) {
+            builder.append(" | ts=").append(latestTimestamp);
+        }
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) {
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() ->
-                        tvData.setText("Panic test sent"));
-                response.close();
+        return builder.toString();
+    }
+
+    private void addIncidentLog(String line) {
+        if (TextUtils.isEmpty(line)) return;
+
+        if (incidentLogs.isEmpty() || !line.equals(incidentLogs.getLast())) {
+            if (incidentLogs.size() >= 10) {
+                incidentLogs.removeFirst();
             }
-        });
+            incidentLogs.add(line);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (String item : incidentLogs) {
+            builder.append("• ").append(item).append("\n");
+        }
+
+        tvIncidentLog.setText(builder.toString().trim());
     }
 
     // ----------------------------------------------------
-    // Permissions
+    // CCC FLOW HOOK
+    // ----------------------------------------------------
+
+    private void openCccFlow() {
+        Intent intent = new Intent(requireContext(), CccActivity.class);
+        intent.putExtra("incidentType", latestIncident);
+        intent.putExtra("severity", deriveSeverity(latestIncident, latestMotion, latestAudio));
+        intent.putExtra("state", latestState);
+        intent.putExtra("battery", latestBattery);
+        intent.putExtra("motion", latestMotion);
+        intent.putExtra("audio", latestAudio);
+        startActivity(intent);
+    }
+
+    private String deriveSeverity(String incident, String motion, String audio) {
+        if ("PANIC_BUTTON".equalsIgnoreCase(incident) || "PANIC_TEST".equalsIgnoreCase(incident)) {
+            return "HIGH";
+        }
+
+        float motionValue = safeParseFloat(motion);
+        float audioValue = safeParseFloat(audio);
+
+        if (motionValue >= 0.80f && audioValue >= 0.80f) return "HIGH";
+        if (motionValue >= 0.50f || audioValue >= 0.50f) return "MEDIUM";
+        return "LOW";
+    }
+
+    private float safeParseFloat(String value) {
+        try {
+            return Float.parseFloat(value);
+        } catch (Exception e) {
+            return 0f;
+        }
+    }
+
+    // ----------------------------------------------------
+    // PERMISSIONS
     // ----------------------------------------------------
 
     private boolean hasBluetoothConnectPermission() {
@@ -497,7 +566,7 @@ public class WoilGuardFragment extends Fragment {
                 toast("Bluetooth permission granted");
             } else {
                 toast("Bluetooth permission denied");
-                tvConnection.setText("Bluetooth permission required");
+                tvConnectionStatus.setText("Bluetooth permission required");
             }
         }
     }
