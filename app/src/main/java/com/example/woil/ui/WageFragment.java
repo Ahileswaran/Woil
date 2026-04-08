@@ -19,7 +19,6 @@ import androidx.fragment.app.Fragment;
 
 import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,24 +30,57 @@ import java.util.Map;
 public class WageFragment extends Fragment {
 
     private Spinner spCategory;
-    private Chip chipFastCleaning, chipLaundry, chipNearby, chipOther;
-    private EditText etOtherTask, etDistance, etDurationHours, etHumanHours, etBreakMinutes, etTips, etMaterials;
 
-    private TextView tvName, tvRoleLocation, tvRating;
-    private TextView tvEarned, tvPending, tvTarget, tvProgressHint;
+    private Chip chipFastCleaning, chipLaundry, chipNearby, chipOther;
+
+    private EditText etOtherTask;
+    private EditText etDistance;
+    private EditText etDurationHours;
+    private EditText etHumanHours;
+    private EditText etBreakMinutes;
+    private EditText etTips;
+    private EditText etMaterials;
+
+    private TextView tvName;
+    private TextView tvRoleLocation;
+    private TextView tvRating;
+
+    private TextView tvEarned;
+    private TextView tvPending;
+    private TextView tvEarnedDetail;
+    private TextView tvPendingDetail;
+    private TextView tvTarget;
+    private TextView tvProgressHint;
     private ProgressBar progressTarget;
 
-    private TextView tvMarketRange, tvMarketMedian, tvMarketStatus;
-    private TextView tvBaseAmount, tvExtraAmount, tvTravelAmount, tvTipAmount, tvMaterialAmount, tvTotalWage;
+    private TextView tvHistory1;
+    private TextView tvHistory2;
+    private TextView tvHistory3;
 
-    private MaterialButton btnCalculate, btnSendOffer, btnSaveEstimate;
+    private TextView tvMarketRange;
+    private TextView tvMarketMedian;
+    private TextView tvMarketStatus;
+
+    private TextView tvBaseAmount;
+    private TextView tvExtraAmount;
+    private TextView tvTravelAmount;
+    private TextView tvTipAmount;
+    private TextView tvMaterialAmount;
+    private TextView tvTotalWage;
+
     private ImageButton btnBack;
-    private MaterialCardView cardProgress, cardHistory;
+    private MaterialButton btnCalculate;
+    private MaterialButton btnSendOffer;
+
+    private View layoutEarningsToggle;
+    private View layoutRecentToggle;
+    private View layoutEarningsContent;
+    private View layoutRecentContent;
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
-    private String activeRole = "worker"; // change from Firestore later if needed
+    private String activeRole = "worker"; // later load from Firestore
 
     @Nullable
     @Override
@@ -68,6 +100,7 @@ public class WageFragment extends Fragment {
         bindViews(view);
         setupCategorySpinner();
         setupChips();
+        setupExpandableSections();
         setupButtons();
         loadStaticDemoData();
         applyRoleUi();
@@ -97,9 +130,15 @@ public class WageFragment extends Fragment {
 
         tvEarned = view.findViewById(R.id.tv_earned);
         tvPending = view.findViewById(R.id.tv_pending);
+        tvEarnedDetail = view.findViewById(R.id.tv_earned_detail);
+        tvPendingDetail = view.findViewById(R.id.tv_pending_detail);
         tvTarget = view.findViewById(R.id.tv_target);
         tvProgressHint = view.findViewById(R.id.tv_progress_hint);
         progressTarget = view.findViewById(R.id.progress_target);
+
+        tvHistory1 = view.findViewById(R.id.tv_history_1);
+        tvHistory2 = view.findViewById(R.id.tv_history_2);
+        tvHistory3 = view.findViewById(R.id.tv_history_3);
 
         tvMarketRange = view.findViewById(R.id.tv_market_range);
         tvMarketMedian = view.findViewById(R.id.tv_market_median);
@@ -114,10 +153,11 @@ public class WageFragment extends Fragment {
 
         btnCalculate = view.findViewById(R.id.btn_calculate);
         btnSendOffer = view.findViewById(R.id.btn_send_offer);
-        btnSaveEstimate = view.findViewById(R.id.btn_save_estimate);
 
-        cardProgress = view.findViewById(R.id.card_progress);
-        cardHistory = view.findViewById(R.id.card_history);
+        layoutEarningsToggle = view.findViewById(R.id.layout_earnings_toggle);
+        layoutRecentToggle = view.findViewById(R.id.layout_recent_toggle);
+        layoutEarningsContent = view.findViewById(R.id.layout_earnings_content);
+        layoutRecentContent = view.findViewById(R.id.layout_recent_content);
     }
 
     private void setupCategorySpinner() {
@@ -146,12 +186,30 @@ public class WageFragment extends Fragment {
         });
     }
 
+    private void setupExpandableSections() {
+        layoutEarningsToggle.setOnClickListener(v -> {
+            if (layoutEarningsContent.getVisibility() == View.VISIBLE) {
+                layoutEarningsContent.setVisibility(View.GONE);
+            } else {
+                layoutEarningsContent.setVisibility(View.VISIBLE);
+                layoutRecentContent.setVisibility(View.GONE);
+            }
+        });
+
+        layoutRecentToggle.setOnClickListener(v -> {
+            if (layoutRecentContent.getVisibility() == View.VISIBLE) {
+                layoutRecentContent.setVisibility(View.GONE);
+            } else {
+                layoutRecentContent.setVisibility(View.VISIBLE);
+                layoutEarningsContent.setVisibility(View.GONE);
+            }
+        });
+    }
+
     private void setupButtons() {
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
         btnCalculate.setOnClickListener(v -> calculateWage());
-
-        btnSaveEstimate.setOnClickListener(v -> saveEstimateToFirestore());
 
         btnSendOffer.setOnClickListener(v -> {
             calculateWage();
@@ -166,22 +224,41 @@ public class WageFragment extends Fragment {
 
         tvEarned.setText("Rs. 18,400");
         tvPending.setText("Rs. 3,200");
+
+        tvEarnedDetail.setText("Rs. 18,400");
+        tvPendingDetail.setText("Rs. 3,200");
         tvTarget.setText("Rs. 25,000");
+
         progressTarget.setProgress(74);
         tvProgressHint.setText("You are close to your target");
+
+        tvHistory1.setText("Cleaning • Rs. 1,540 • Yesterday");
+        tvHistory2.setText("Laundry • Rs. 980 • 2 days ago");
+        tvHistory3.setText("Gardening • Rs. 2,200 • 4 days ago");
+
+        tvMarketRange.setText("Rs. 1400 - 1800");
+        tvMarketMedian.setText("Fair: Rs. 1650");
+        tvMarketStatus.setText("WITHIN");
+
+        tvBaseAmount.setText("Rs. 0");
+        tvExtraAmount.setText("Rs. 0");
+        tvTravelAmount.setText("Rs. 0");
+        tvTipAmount.setText("Rs. 0");
+        tvMaterialAmount.setText("Rs. 0");
+        tvTotalWage.setText("Rs. 0");
     }
 
     private void applyRoleUi() {
         if ("client".equalsIgnoreCase(activeRole)) {
-            cardProgress.setVisibility(View.GONE);
-            cardHistory.setVisibility(View.GONE);
+            layoutEarningsToggle.setVisibility(View.GONE);
+            layoutRecentToggle.setVisibility(View.GONE);
+            layoutEarningsContent.setVisibility(View.GONE);
+            layoutRecentContent.setVisibility(View.GONE);
             btnSendOffer.setText("Send offer");
-            btnSaveEstimate.setText("Save draft");
         } else {
-            cardProgress.setVisibility(View.VISIBLE);
-            cardHistory.setVisibility(View.VISIBLE);
+            layoutEarningsToggle.setVisibility(View.VISIBLE);
+            layoutRecentToggle.setVisibility(View.VISIBLE);
             btnSendOffer.setText("Send quotation");
-            btnSaveEstimate.setText("Save estimate");
         }
     }
 
@@ -190,6 +267,7 @@ public class WageFragment extends Fragment {
             etDistance.setError("Enter distance");
             return;
         }
+
         if (TextUtils.isEmpty(etHumanHours.getText().toString().trim())) {
             etHumanHours.setError("Enter work hours");
             return;
@@ -221,39 +299,22 @@ public class WageFragment extends Fragment {
         tvMaterialAmount.setText(formatRs(result.materialAmount));
         tvTotalWage.setText(formatRs(result.totalAmount));
 
-        tvMarketRange.setText(
-                "Market range: " + formatRs(result.marketMin) + " - " + formatRs(result.marketMax)
-        );
-        tvMarketMedian.setText("Suggested fair wage: " + formatRs(result.marketMedian));
-        tvMarketStatus.setText(result.marketStatus);
+        tvMarketRange.setText(formatRs(result.marketMin) + " - " + formatRs(result.marketMax));
+        tvMarketMedian.setText("Fair: " + formatRs(result.marketMedian));
 
         if ("BELOW RANGE".equals(result.marketStatus)) {
+            tvMarketStatus.setText("BELOW");
             tvMarketStatus.setBackgroundResource(R.drawable.bg_badge_below_range);
             tvMarketStatus.setTextColor(0xFF9A6700);
         } else if ("ABOVE RANGE".equals(result.marketStatus)) {
+            tvMarketStatus.setText("ABOVE");
             tvMarketStatus.setBackgroundResource(R.drawable.bg_badge_above_range);
             tvMarketStatus.setTextColor(0xFFC62828);
         } else {
+            tvMarketStatus.setText("WITHIN");
             tvMarketStatus.setBackgroundResource(R.drawable.bg_badge_within_range);
             tvMarketStatus.setTextColor(0xFF1B7F45);
         }
-    }
-
-    private void saveEstimateToFirestore() {
-        if (auth.getCurrentUser() == null) {
-            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Map<String, Object> data = buildQuoteMap();
-        data.put("status", "DRAFT");
-
-        db.collection("calculator_quotes")
-                .add(data)
-                .addOnSuccessListener(documentReference ->
-                        Toast.makeText(requireContext(), "Estimate saved", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(), "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void saveOfferToFirestore() {
@@ -285,15 +346,27 @@ public class WageFragment extends Fragment {
         data.put("breakMinutes", (int) parseDouble(etBreakMinutes.getText().toString()));
         data.put("tips", parseDouble(etTips.getText().toString()));
         data.put("materialsCost", parseDouble(etMaterials.getText().toString()));
+
         data.put("fastCleaning", chipFastCleaning.isChecked());
         data.put("laundry", chipLaundry.isChecked());
         data.put("nearby", chipNearby.isChecked());
         data.put("otherSelected", chipOther.isChecked());
+
         data.put("createdAt", System.currentTimeMillis());
         data.put("workerName", tvName.getText().toString());
         data.put("workerLocation", tvRoleLocation.getText().toString());
+
+        data.put("baseAmount", tvBaseAmount.getText().toString());
+        data.put("extraAmount", tvExtraAmount.getText().toString());
+        data.put("travelAmount", tvTravelAmount.getText().toString());
+        data.put("tipAmount", tvTipAmount.getText().toString());
+        data.put("materialAmount", tvMaterialAmount.getText().toString());
         data.put("totalText", tvTotalWage.getText().toString());
+
+        data.put("marketRange", tvMarketRange.getText().toString());
+        data.put("marketMedian", tvMarketMedian.getText().toString());
         data.put("marketStatus", tvMarketStatus.getText().toString());
+
         return data;
     }
 
