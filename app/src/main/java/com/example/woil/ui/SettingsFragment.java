@@ -2,30 +2,33 @@ package com.example.woil.ui;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.woil.R;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class SettingsFragment extends Fragment {
 
-    private static final String PREFS_NAME = "app_prefs";
+    private static final String APP_PREFS = "app_prefs";
     private static final String KEY_DARK = "pref_dark_mode";
-    private static final String KEY_UI_LEVEL = "pref_ui_level"; // "high" / "medium" / "low"
 
     private MaterialButtonToggleGroup toggleGroup;
     private int previousCheckedId = View.NO_ID;
@@ -41,142 +44,213 @@ public class SettingsFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
-        // ---------- Existing (original) theme card views ----------
         LinearLayout systemExpandable = view.findViewById(R.id.system_expandable);
         RelativeLayout systemMainRow = view.findViewById(R.id.system_main_row);
         ImageView chevron = view.findViewById(R.id.ic_system_chevron);
         SwitchMaterial switchTheme = view.findViewById(R.id.switch_theme);
 
-        // ---------- New System UI Selection card views ----------
         LinearLayout systemUiExpandable = view.findViewById(R.id.system_ui_expandable);
         RelativeLayout systemUiMainRow = view.findViewById(R.id.system_ui_main_row);
         ImageView systemUiChevron = view.findViewById(R.id.ic_system_ui_chevron);
-
-        // ---------- Toggle group (buttons) ----------
         toggleGroup = view.findViewById(R.id.system_ui_toggle_group);
-        MaterialButton btnHigh = view.findViewById(R.id.btn_ui_high);
-        MaterialButton btnMedium = view.findViewById(R.id.btn_ui_medium);
-        MaterialButton btnLow = view.findViewById(R.id.btn_ui_low);
 
-        final SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        boolean isDark = prefs.getBoolean(KEY_DARK, false);
+        View btnBack = view.findViewById(R.id.btn_back);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> goBackToSelectedHome());
+        }
 
-        // Theme switch init + listener
+        final SharedPreferences appPrefs =
+                requireContext().getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE);
+
+        boolean isDark = appPrefs.getBoolean(KEY_DARK, false);
+
         if (switchTheme != null) {
             switchTheme.setChecked(isDark);
             applyTheme(isDark);
+
             switchTheme.setOnCheckedChangeListener((buttonView, checked) -> {
-                prefs.edit().putBoolean(KEY_DARK, checked).apply();
+                appPrefs.edit().putBoolean(KEY_DARK, checked).apply();
                 applyTheme(checked);
             });
         }
 
-        // Toggle original theme expandable
         if (systemMainRow != null && systemExpandable != null && chevron != null) {
             systemMainRow.setOnClickListener(v -> {
-                if (systemExpandable.getVisibility() == View.GONE) {
-                    systemExpandable.setVisibility(View.VISIBLE);
-                    chevron.setRotation(90f);
-                } else {
-                    systemExpandable.setVisibility(View.GONE);
-                    chevron.setRotation(0f);
-                }
+                boolean expand = systemExpandable.getVisibility() == View.GONE;
+                systemExpandable.setVisibility(expand ? View.VISIBLE : View.GONE);
+                chevron.setRotation(expand ? 90f : 0f);
             });
         }
 
-        // Toggle new System UI Selection expandable
         if (systemUiMainRow != null && systemUiExpandable != null && systemUiChevron != null) {
             systemUiMainRow.setOnClickListener(v -> {
-                if (systemUiExpandable.getVisibility() == View.GONE) {
-                    systemUiExpandable.setVisibility(View.VISIBLE);
-                    systemUiChevron.setRotation(90f);
-                } else {
-                    systemUiExpandable.setVisibility(View.GONE);
-                    systemUiChevron.setRotation(0f);
-                }
+                boolean expand = systemUiExpandable.getVisibility() == View.GONE;
+                systemUiExpandable.setVisibility(expand ? View.VISIBLE : View.GONE);
+                systemUiChevron.setRotation(expand ? 90f : 0f);
             });
         }
 
-        // Setup UI level toggle group (persistence + confirmation dialog)
-        String uiLevel = prefs.getString(KEY_UI_LEVEL, UiLevelManager.UI_HIGH); // default HIGH
-        int initialCheckedId = idForLevel(uiLevel);
-        previousCheckedId = initialCheckedId;
-
-        if (toggleGroup != null) {
-            suppressToggleListener = true;
-            toggleGroup.check(initialCheckedId);
-            suppressToggleListener = false;
-
-            toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-                if (suppressToggleListener) return;
-                if (!isChecked) return; // only react on button-checked
-
-                final String clickedLevel = levelForId(checkedId);
-                final String previousLevel = levelForId(previousCheckedId);
-
-                // Confirm when switching away from HIGH to MEDIUM/LOW (restrictive)
-                if (UiLevelManager.UI_HIGH.equals(previousLevel) &&
-                        (UiLevelManager.UI_MEDIUM.equals(clickedLevel) || UiLevelManager.UI_LOW.equals(clickedLevel))) {
-
-                    showConfirmRestrictDialog(clickedLevel, () -> {
-                        // user confirmed
-                        saveUiLevel(clickedLevel, prefs);
-                        previousCheckedId = checkedId;
-                        UiLevelManager.setUiLevel(requireContext(), clickedLevel);
-                    }, () -> {
-                        // user cancelled -> revert toggle selection
-                        suppressToggleListener = true;
-                        toggleGroup.check(previousCheckedId);
-                        suppressToggleListener = false;
-                    });
-
-                } else {
-                    // Normal change (e.g., MEDIUM->HIGH or MEDIUM<->LOW)
-                    saveUiLevel(clickedLevel, prefs);
-                    previousCheckedId = checkedId;
-                    UiLevelManager.setUiLevel(requireContext(), clickedLevel);
-                }
-            });
-        }
+        setupUiLevelToggleGroup();
+        setupSwipeBack(view);
 
         return view;
     }
 
-    private void saveUiLevel(String level, SharedPreferences prefs) {
-        prefs.edit().putString(KEY_UI_LEVEL, level).apply();
+    private void setupUiLevelToggleGroup() {
+        if (toggleGroup == null) return;
+
+        String currentLevel = UiModeManager.getUiLevel(requireContext());
+        int initialCheckedId = idForLevel(currentLevel);
+        previousCheckedId = initialCheckedId;
+
+        suppressToggleListener = true;
+        toggleGroup.check(initialCheckedId);
+        suppressToggleListener = false;
+
+        toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (suppressToggleListener) return;
+            if (!isChecked) return;
+
+            final String clickedLevel = levelForId(checkedId);
+            final String previousLevel = levelForId(previousCheckedId);
+
+            if (clickedLevel.equals(previousLevel)) {
+                return;
+            }
+
+            boolean isRestrictiveChange =
+                    UiModeManager.HIGH.equals(previousLevel)
+                            && (UiModeManager.MEDIUM.equals(clickedLevel)
+                            || UiModeManager.LOW.equals(clickedLevel));
+
+            if (isRestrictiveChange) {
+                showConfirmRestrictDialog(clickedLevel,
+                        () -> applyUiLevelChange(clickedLevel, checkedId),
+                        this::revertUiSelection);
+            } else {
+                applyUiLevelChange(clickedLevel, checkedId);
+            }
+        });
     }
 
-    private void showConfirmRestrictDialog(String targetLevel, Runnable onConfirm, Runnable onCancel) {
-        String message = "Switching to " + labelForLevel(targetLevel) +
-                " will restrict some app features (compact UI). Do you want to proceed?";
+    private void applyUiLevelChange(@NonNull String level, int checkedId) {
+        UiModeManager.setUiLevel(requireContext(), level);
+        previousCheckedId = checkedId;
+
+        Toast.makeText(requireContext(),
+                labelForLevel(level) + " selected",
+                Toast.LENGTH_SHORT).show();
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).reloadHomeForSelectedUi();
+        }
+    }
+
+    private void revertUiSelection() {
+        if (toggleGroup == null) return;
+
+        suppressToggleListener = true;
+        toggleGroup.check(previousCheckedId);
+        suppressToggleListener = false;
+    }
+
+    private void setupSwipeBack(@NonNull View rootView) {
+        final GestureDetector gestureDetector = new GestureDetector(
+                requireContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    private static final int SWIPE_THRESHOLD = 100;
+                    private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onFling(MotionEvent e1, MotionEvent e2,
+                                           float velocityX, float velocityY) {
+                        if (e1 == null || e2 == null) return false;
+
+                        float diffX = e2.getX() - e1.getX();
+                        float diffY = e2.getY() - e1.getY();
+
+                        if (Math.abs(diffX) > Math.abs(diffY)) {
+                            int width = rootView.getWidth();
+                            boolean startedNearLeft = (width == 0) || (e1.getX() < width * 0.4f);
+
+                            if (startedNearLeft
+                                    && diffX > SWIPE_THRESHOLD
+                                    && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                                goBackToSelectedHome();
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                }
+        );
+
+        rootView.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
+    }
+
+    private void goBackToSelectedHome() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).navigateHomeAndSyncNav();
+            return;
+        }
+
+        FragmentTransaction ft = requireActivity().getSupportFragmentManager().beginTransaction();
+
+        try {
+            ft.setCustomAnimations(
+                    R.anim.enter_from_left,
+                    R.anim.exit_to_right,
+                    R.anim.enter_from_right,
+                    R.anim.exit_to_left
+            );
+        } catch (Resources.NotFoundException ignored) { }
+
+        ft.replace(R.id.nav_host_fragment, UiNavigator.getSelectedHomeFragment(requireContext()));
+        ft.commit();
+    }
+
+    private void showConfirmRestrictDialog(@NonNull String targetLevel,
+                                           @NonNull Runnable onConfirm,
+                                           @NonNull Runnable onCancel) {
+        String message = "Switching to " + labelForLevel(targetLevel)
+                + " will use a simpler layout. Do you want to continue?";
+
         new AlertDialog.Builder(requireContext())
                 .setTitle("Confirm UI change")
                 .setMessage(message)
-                .setPositiveButton("Proceed", (d, which) -> onConfirm.run())
-                .setNegativeButton("Cancel", (d, which) -> onCancel.run())
-                .setCancelable(true)
+                .setPositiveButton("Proceed", (dialog, which) -> onConfirm.run())
+                .setNegativeButton("Cancel", (dialog, which) -> onCancel.run())
+                .setOnCancelListener(dialog -> onCancel.run())
                 .show();
     }
 
-    private int idForLevel(String level) {
-        if (UiLevelManager.UI_HIGH.equals(level)) return R.id.btn_ui_high;
-        if (UiLevelManager.UI_MEDIUM.equals(level)) return R.id.btn_ui_medium;
-        if (UiLevelManager.UI_LOW.equals(level)) return R.id.btn_ui_low;
+    private int idForLevel(@Nullable String level) {
+        if (UiModeManager.MEDIUM.equals(level)) return R.id.btn_ui_medium;
+        if (UiModeManager.LOW.equals(level)) return R.id.btn_ui_low;
         return R.id.btn_ui_high;
     }
 
+    @NonNull
     private String levelForId(int id) {
-        if (id == R.id.btn_ui_high) return UiLevelManager.UI_HIGH;
-        if (id == R.id.btn_ui_medium) return UiLevelManager.UI_MEDIUM;
-        if (id == R.id.btn_ui_low) return UiLevelManager.UI_LOW;
-        return UiLevelManager.UI_HIGH;
+        if (id == R.id.btn_ui_medium) return UiModeManager.MEDIUM;
+        if (id == R.id.btn_ui_low) return UiModeManager.LOW;
+        return UiModeManager.HIGH;
     }
 
-    private String labelForLevel(String level) {
+    @NonNull
+    private String labelForLevel(@NonNull String level) {
         switch (level) {
-            case UiLevelManager.UI_MEDIUM: return "Medium Level UI";
-            case UiLevelManager.UI_LOW: return "Low Level UI";
-            default: return "High Level UI (Default)";
+            case UiModeManager.MEDIUM:
+                return "Medium Level UI";
+            case UiModeManager.LOW:
+                return "Low Level UI";
+            default:
+                return "High Level UI";
         }
     }
 
@@ -186,6 +260,5 @@ public class SettingsFragment extends Fragment {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
-        // activities may be recreated by AppCompatDelegate to apply theme
     }
 }

@@ -17,12 +17,12 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -51,27 +51,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Inflate layout (your XML is unchanged)
         setContentView(R.layout.activity_main);
 
-        // Allow content to lay out behind system bars (we will handle insets manually)
+        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         // Controller for system bar appearance
         insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
 
-        // Make status & navigation backgrounds transparent so fragment header can be drawn behind them
+        // Transparent bars so fragment header can draw behind them
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-        // Ensure system bars are visible (we are not using immersive)
         try {
             insetsController.show(WindowInsetsCompat.Type.systemBars());
         } catch (Throwable t) {
             Log.w(TAG, "Could not call insetsController.show(...): " + t);
         }
 
-        // Default icon appearance; fragments can override via HeaderConfig (see below)
         try {
             insetsController.setAppearanceLightStatusBars(true);
             insetsController.setAppearanceLightNavigationBars(true);
@@ -79,13 +76,11 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "setAppearanceLight... not supported: " + t);
         }
 
-        // Setup inset handling.
         applyWindowInsetsPadding();
 
-        // --- existing initialization (bottom nav and fragment handling) ---
         bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Register lifecycle callback to auto-wire any fragment's btn_back (DRY)
+        // Auto-wire btn_back from fragments
         getSupportFragmentManager().registerFragmentLifecycleCallbacks(
                 new FragmentManager.FragmentLifecycleCallbacks() {
                     @Override
@@ -96,31 +91,39 @@ public class MainActivity extends AppCompatActivity {
                         super.onFragmentViewCreated(fm, f, v, savedInstanceState);
                         View btnBack = v.findViewById(R.id.btn_back);
                         if (btnBack != null) {
-                            btnBack.setOnClickListener(view -> {
-                                // route all arrow-backs through MainActivity helper
-                                onFragmentArrowBackToHome();
-                            });
+                            btnBack.setOnClickListener(view -> onFragmentArrowBackToHome());
                         }
                     }
-                }, true);
+                }, true
+        );
 
         if (savedInstanceState != null) {
             currentTag = savedInstanceState.getString("currentTag", "home");
             currentMenuItemId = savedInstanceState.getInt("currentMenuItemId", R.id.navigation_home);
-            if (bottomNav != null) bottomNav.setSelectedItemId(currentMenuItemId);
-            // restore nav visibility if you saved it previously (optional)
-            boolean bottomVisible = savedInstanceState.getBoolean("bottomNavVisible", "home".equals(currentTag));
+
+            if (bottomNav != null) {
+                bottomNav.setSelectedItemId(currentMenuItemId);
+            }
+
+            boolean bottomVisible = savedInstanceState.getBoolean(
+                    "bottomNavVisible",
+                    "home".equals(currentTag)
+            );
             setBottomNavVisibility(bottomVisible);
         } else {
-            // initial fragment: open home -> openFragment will set nav visible
-            openFragment(new HomeFragment(), false, "home");
-            if (bottomNav != null) bottomNav.setSelectedItemId(R.id.navigation_home);
+            // IMPORTANT: open selected home UI, not hardcoded HomeFragment
+            openFragment(getSelectedHomeFragment(), false, "home");
+            if (bottomNav != null) {
+                bottomNav.setSelectedItemId(R.id.navigation_home);
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.nav_bar_black));
         }
-        WindowInsetsControllerCompat wic = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+
+        WindowInsetsControllerCompat wic =
+                new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
         wic.setAppearanceLightNavigationBars(false);
 
         if (bottomNav != null) {
@@ -129,13 +132,13 @@ public class MainActivity extends AppCompatActivity {
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                     int id = item.getItemId();
 
-                    // avoid re-creating the same tab fragment
+                    // avoid re-creating same tab
                     if (id == currentMenuItemId) {
                         return true;
                     }
 
                     if (id == R.id.navigation_home) {
-                        openFragment(new HomeFragment(), false, "home");
+                        openFragment(getSelectedHomeFragment(), false, "home");
                         return true;
                     } else if (id == R.id.navigation_wallet) {
                         openFragment(new WageFragment(), true, "wage");
@@ -155,13 +158,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         } else {
-            Log.w(TAG, "bottom_navigation view not found in layout (id: R.id.bottom_navigation)");
+            Log.w(TAG, "bottom_navigation view not found in layout");
         }
 
-        // When back stack changes we should re-apply insets to the new top fragment
         getSupportFragmentManager().addOnBackStackChangedListener(this::applyInsetsToCurrentFragment);
 
-        // Back handling using OnBackPressedDispatcher
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -177,23 +178,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Optional fragment interface:
-     * Fragments that want to control header icon color can implement this and return whether they
-     * want "light status bar icons" (true => dark icons on a light header).
+     * Return the currently selected home fragment based on saved UI level.
+     * Requires:
+     * - UiModeManager.java
+     * - UiNavigator.java
+     * - HomeHighFragment.java / HomeMediumFragment.java / HomeLowFragment.java
      */
+    private Fragment getSelectedHomeFragment() {
+        return UiNavigator.getSelectedHomeFragment(this);
+    }
+
+    /**
+     * Use this after user changes HIGH / MEDIUM / LOW in Settings.
+     * It clears old screens and opens the selected Home UI only.
+     */
+    public void reloadHomeForSelectedUi() {
+        clearBackStack();
+
+        Fragment selectedHome = getSelectedHomeFragment();
+        openFragment(selectedHome, false, "home");
+
+        if (bottomNav != null) {
+            bottomNav.post(() -> {
+                setBottomNavVisibility(selectedHome instanceof HomeHighFragment);
+                try {
+                    bottomNav.setSelectedItemId(R.id.navigation_home);
+                } catch (Throwable ignored) { }
+                applyBottomNavInsets(lastNavBarInset);
+            });
+        }
+    }
+
     public interface HeaderConfig {
         boolean useLightStatusBarIcons();
     }
 
-    /**
-     * Apply window insets to activity root and to the current fragment if necessary.
-     */
     private void applyWindowInsetsPadding() {
         final View root = findViewById(R.id.root_layout);
         final View mainContent = findViewById(R.id.main_content);
 
         if (root == null || mainContent == null) {
-            Log.w(TAG, "root_layout or main_content not found — skipping insets application");
+            Log.w(TAG, "root_layout or main_content not found — skipping insets");
             return;
         }
 
@@ -210,15 +235,11 @@ public class MainActivity extends AppCompatActivity {
                 bottomInset = insets.getSystemWindowInsetBottom();
             }
 
-            // save to re-use when fragment changes
             lastStatusBarInset = topInset;
             lastNavBarInset = bottomInset;
 
-            // Optional: extra spacing (8dp)
             int extra = dpToPx(8);
 
-            // If the current fragment has R.id.orange_panel we expand & translate it, otherwise
-            // push main_content down by the status bar + extra.
             boolean currentHasOrange = fragmentHasView(R.id.orange_panel);
 
             if (currentHasOrange) {
@@ -228,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
                         mainContent.getPaddingRight(),
                         bottomInset + extra
                 );
-                applyInsetsToCurrentFragment(); // adjust orange panel
+                applyInsetsToCurrentFragment();
             } else {
                 mainContent.setPadding(
                         mainContent.getPaddingLeft(),
@@ -239,7 +260,6 @@ public class MainActivity extends AppCompatActivity {
                 clearOrangePanelAdjustments();
             }
 
-            // bottom nav padding & color sync
             applyBottomNavInsets(bottomInset);
 
             return insets;
@@ -255,12 +275,10 @@ public class MainActivity extends AppCompatActivity {
         return fragView != null && fragView.findViewById(viewId) != null;
     }
 
-    /**
-     * Apply the saved insets to the current fragment's orange_panel (if present).
-     */
     private void applyInsetsToCurrentFragment() {
         Fragment current = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
         if (current == null) return;
+
         View fragView = current.getView();
         if (fragView == null) return;
 
@@ -269,11 +287,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // base height in DP must match what's in your fragment xml (120dp)
         final int baseOrangeDp = 120;
         final int baseOrangePx = dpToPx(baseOrangeDp);
 
-        // set the orange_panel height = base + statusBarInset so it covers the status area
         ViewGroup.LayoutParams lp = orange.getLayoutParams();
         if (lp != null) {
             int desired = baseOrangePx + lastStatusBarInset;
@@ -283,16 +299,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // move it up so the top of the orange_panel sits behind the status bar
         orange.setTranslationY(-lastStatusBarInset);
 
-        // If the fragment implements HeaderConfig, use it to set icon appearance.
-        boolean requestDarkIcons = true; // default (dark icons)
+        boolean requestDarkIcons = true;
         if (current instanceof HeaderConfig) {
             try {
                 requestDarkIcons = ((HeaderConfig) current).useLightStatusBarIcons();
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) { }
         }
+
         try {
             insetsController.setAppearanceLightStatusBars(requestDarkIcons);
         } catch (Throwable t) {
@@ -303,8 +318,10 @@ public class MainActivity extends AppCompatActivity {
     private void clearOrangePanelAdjustments() {
         Fragment prev = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
         if (prev == null) return;
+
         View v = prev.getView();
         if (v == null) return;
+
         View orange = v.findViewById(R.id.orange_panel);
         if (orange != null) {
             orange.setTranslationY(0);
@@ -319,12 +336,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Change Nav bar Color when in the other fragments
     public void setNavigationBarAppearance(@ColorInt int navBarColor, boolean useLightNavIcons) {
         try {
             getWindow().setNavigationBarColor(navBarColor);
             if (insetsController != null) {
-                // true => light navigation bar icons (dark icons); note naming in API is inverted
                 insetsController.setAppearanceLightNavigationBars(useLightNavIcons);
             }
         } catch (Throwable t) {
@@ -332,22 +347,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Set padding on the BottomNavigationView and sync the system navigation bar color.
-     * This method defers sampling the BottomNavigationView background until after layout,
-     * using bottomNav.post(...) so we don't sample a zero-sized drawable and get a black fallback.
-     */
     private void applyBottomNavInsets(int navBarInset) {
         if (bottomNav == null) return;
 
-        // sensible default nav height (fallback for gesture nav or temporary 0 inset)
-        final int defaultNavHeight = dpToPx(56); // typical bottom nav height on many devices
-
-        // if inset is zero, fallback to defaultNavHeight
+        final int defaultNavHeight = dpToPx(56);
         final int effectiveInset = (navBarInset > 0) ? navBarInset : defaultNavHeight;
 
-        // Add bottom padding so BottomNavigationView content isn't under the system nav
-        // Add a small extra top padding so the rounded fragment card doesn't visually overlap nav icons
         int extraTop = dpToPx(4);
         bottomNav.setPadding(
                 bottomNav.getPaddingLeft(),
@@ -356,19 +361,17 @@ public class MainActivity extends AppCompatActivity {
                 effectiveInset
         );
 
-        // Make sure the bottomNav background is opaque so system nav color sampling works
-        // (replace with your desired opaque color if needed)
         try {
             if (bottomNav.getBackground() == null) {
                 bottomNav.setBackgroundColor(ContextCompat.getColor(this, R.color.nav_bar_black));
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) { }
 
-        // Defer sampling of background until after layout, to avoid black fallback or wrong sampling.
         bottomNav.post(() -> {
             try {
                 int bgColor = Color.TRANSPARENT;
                 Drawable bg = bottomNav.getBackground();
+
                 if (bg instanceof ColorDrawable) {
                     bgColor = ((ColorDrawable) bg).getColor();
                 } else if (bg != null) {
@@ -380,39 +383,30 @@ public class MainActivity extends AppCompatActivity {
                     bg.draw(canvas);
                     bgColor = bmp.getPixel(0, 0);
                 } else {
-                    // fallback to a resource color if necessary
                     bgColor = ContextCompat.getColor(this, R.color.nav_bar_black);
                 }
 
-                // final safety: if still transparent, set to solid fallback
                 if (bgColor == Color.TRANSPARENT) {
                     bgColor = ContextCompat.getColor(this, R.color.nav_bar_black);
                 }
 
-                // apply to system nav
                 getWindow().setNavigationBarColor(bgColor);
 
-                // set nav icon appearance depending on whether bg is light/dark
                 boolean useDarkNavIcons = isColorLight(bgColor);
                 try {
                     insetsController.setAppearanceLightNavigationBars(useDarkNavIcons);
-                } catch (Throwable t) { /* ignore */ }
+                } catch (Throwable ignored) { }
 
             } catch (Throwable t) {
-                Log.w(TAG, "applyBottomNavInsets: failed to set nav color: " + t);
+                Log.w(TAG, "applyBottomNavInsets failed: " + t);
             }
         });
     }
 
-    /**
-     * Whether the color is "light" — simple luminance threshold.
-     */
     private boolean isColorLight(@ColorInt int color) {
-        // convert to RGB components
         int r = (color >> 16) & 0xff;
         int g = (color >> 8) & 0xff;
         int b = color & 0xff;
-        // linear luminance approximation (rec. 709)
         double luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0;
         return luminance > 0.5;
     }
@@ -422,10 +416,6 @@ public class MainActivity extends AppCompatActivity {
         return Math.round(dp * density);
     }
 
-    /**
-     * Central navigation method.
-     * Method 1 behavior: bottom nav is visible only when tag == "home".
-     */
     private void openFragment(Fragment fragment, boolean addToBackStack, @NonNull String tag) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.nav_host_fragment, fragment, tag);
@@ -438,16 +428,14 @@ public class MainActivity extends AppCompatActivity {
 
         ft.commit();
 
-        // force immediate execution so we can reliably access fragment.getView()
         try {
             getSupportFragmentManager().executePendingTransactions();
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) { }
 
-        // re-apply insets to the fragment we just created (if it has orange_panel)
         applyInsetsToCurrentFragment();
 
-        // --- NAV VISIBILITY: visible only for "home" tag ---
-        boolean shouldShowNav = "home".equals(tag);
+        // Show bottom nav only for HIGH UI home
+        boolean shouldShowNav = fragment instanceof HomeHighFragment;
         setBottomNavVisibility(shouldShowNav);
 
         currentTag = tag;
@@ -455,35 +443,27 @@ public class MainActivity extends AppCompatActivity {
         else if ("wage".equals(tag)) currentMenuItemId = R.id.navigation_wallet;
         else if ("chat".equals(tag)) currentMenuItemId = R.id.nav_messages;
         else if ("profile".equals(tag)) currentMenuItemId = R.id.navigation_profile;
+        else if ("guard".equals(tag)) currentMenuItemId = R.id.nav_guard;
         else if (bottomNav != null) currentMenuItemId = bottomNav.getSelectedItemId();
     }
 
-    /**
-     * Helper to set bottom nav visibility and re-apply insets properly.
-     * When showing, we wait for layout before forcing selection & insets to avoid visual glitches.
-     */
     private void setBottomNavVisibility(boolean visible) {
         if (bottomNav == null) return;
 
         final View mainContent = findViewById(R.id.main_content);
         int newVis = visible ? View.VISIBLE : View.GONE;
-        if (bottomNav.getVisibility() == newVis) return; // no-op
+        if (bottomNav.getVisibility() == newVis) return;
 
         bottomNav.setVisibility(newVis);
 
         if (visible) {
-            // bring to front + elevation so nav visually sits above fragment content
             bottomNav.bringToFront();
             ViewCompat.setElevation(bottomNav, dpToPx(8));
 
-            // Determine an effective nav inset (use lastNavBarInset if available, otherwise default).
             final int defaultNavHeight = dpToPx(56);
             final int effectiveInset = (lastNavBarInset > 0) ? lastNavBarInset : defaultNavHeight;
-
-            // Safety gap so content cannot overlap (in addition to inset)
             final int safety = dpToPx(6);
 
-            // adjust main content bottom padding immediately so layout doesn't overlap visually
             if (mainContent != null) {
                 mainContent.setPadding(
                         mainContent.getPaddingLeft(),
@@ -493,18 +473,20 @@ public class MainActivity extends AppCompatActivity {
                 );
             }
 
-            // Wait until bottomNav is laid out before forcing selection & re-applying insets (ensures background sampling works)
             bottomNav.post(() -> {
-                try { bottomNav.setSelectedItemId(R.id.navigation_home); } catch (Throwable ignored) {}
-                // Ensure bottom nav has a solid background while visible
-                try { bottomNav.setBackgroundColor(ContextCompat.getColor(this, R.color.nav_bar_black)); } catch (Throwable ignored) {}
-                // Re-apply insets using the effective inset (this will also set system nav color)
+                try {
+                    bottomNav.setSelectedItemId(R.id.navigation_home);
+                } catch (Throwable ignored) { }
+
+                try {
+                    bottomNav.setBackgroundColor(ContextCompat.getColor(this, R.color.nav_bar_black));
+                } catch (Throwable ignored) { }
+
                 applyBottomNavInsets(effectiveInset);
                 bottomNav.requestLayout();
                 bottomNav.invalidate();
             });
         } else {
-            // remove extra bottom padding when nav hidden
             if (mainContent != null) {
                 mainContent.setPadding(
                         mainContent.getPaddingLeft(),
@@ -513,59 +495,49 @@ public class MainActivity extends AppCompatActivity {
                         0
                 );
             }
-            // apply zero inset (system nav will fallback to default color handled in applyBottomNavInsets)
             applyBottomNavInsets(0);
         }
     }
 
-    // call this from fragments when you want to go back to Home and guarantee nav is synced
     public void navigateHomeAndSyncNav() {
-        // Use existing openFragment to replace fragment and update internal tag/menu id
-        openFragment(new HomeFragment(), false, "home");
+        Fragment selectedHome = getSelectedHomeFragment();
+        openFragment(selectedHome, false, "home");
 
         if (bottomNav == null) return;
 
-        // Ensure the bottomNav becomes visible and its selection + insets are applied after layout.
         bottomNav.post(() -> {
-            setBottomNavVisibility(true);
+            setBottomNavVisibility(selectedHome instanceof HomeHighFragment);
             try {
                 bottomNav.setSelectedItemId(R.id.navigation_home);
-            } catch (Throwable ignored) {}
-            // apply bottom nav insets (will also set system nav color)
+            } catch (Throwable ignored) { }
             applyBottomNavInsets(lastNavBarInset);
         });
     }
 
-    /**
-     * Generic helper so fragments don't need to know how MainActivity manages nav.
-     * Use this whenever a fragment back-arrow should always return to Home and show BottomNav.
-     */
     public void onFragmentArrowBackToHome() {
         navigateHomeAndSyncNav();
     }
 
-    /**
-     * Called after a popBackStack to ensure the bottom nav matches the new top fragment.
-     * With method 1: show only for HomeFragment; hide otherwise.
-     */
     private void updateBottomNavVisibilityAfterPop() {
         Fragment top = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        if (top instanceof HomeFragment) {
+
+        if (top instanceof HomeHighFragment) {
             setBottomNavVisibility(true);
             if (bottomNav != null) bottomNav.setSelectedItemId(R.id.navigation_home);
         } else {
             setBottomNavVisibility(false);
+
             if (top instanceof WageFragment && bottomNav != null) {
-                // keep menu selection consistent if you want
                 bottomNav.setSelectedItemId(R.id.navigation_wallet);
             } else if (top instanceof ChatFragment && bottomNav != null) {
                 bottomNav.setSelectedItemId(R.id.nav_messages);
             } else if (top instanceof ProfileFragment && bottomNav != null) {
                 bottomNav.setSelectedItemId(R.id.navigation_profile);
+            } else if (top instanceof WoilGuardFragment && bottomNav != null) {
+                bottomNav.setSelectedItemId(R.id.nav_guard);
             }
         }
 
-        // re-apply insets to the new top fragment
         applyInsetsToCurrentFragment();
     }
 
@@ -576,7 +548,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Public helper for fragments to request navigation via MainActivity's openFragment logic
     public void navigateToFragment(Fragment fragment, boolean addToBackStack, @NonNull String tag) {
         openFragment(fragment, addToBackStack, tag);
     }
@@ -586,6 +557,9 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putString("currentTag", currentTag);
         outState.putInt("currentMenuItemId", currentMenuItemId);
-        outState.putBoolean("bottomNavVisible", bottomNav != null && bottomNav.getVisibility() == View.VISIBLE);
+        outState.putBoolean(
+                "bottomNavVisible",
+                bottomNav != null && bottomNav.getVisibility() == View.VISIBLE
+        );
     }
 }

@@ -74,8 +74,7 @@
         <activity android:name=".ui.JobsByCategoryActivity"/>
         <activity android:name=".ui.JobDetailActivity"/>
 
-        <activity android:name=".ui.MediumUiActivity" />
-        <activity android:name=".ui.LowUiActivity" />
+
 
 
     </application>
