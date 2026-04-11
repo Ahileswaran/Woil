@@ -4,24 +4,26 @@
     android:id="@+id/root_frame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="#F6F7FB">
 
-    <!-- ORANGE HEADER (full-width gradient) -->
+    <!-- Header -->
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="84dp"
         android:background="@drawable/medium_bg_orange_gradient" />
 
-    <!-- MAIN CONTENT — overlaps the header by using marginTop -->
+    <!-- Main content -->
     <ScrollView
         android:id="@+id/scroll_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="52dp"
         android:fillViewport="true"
         android:paddingStart="12dp"
-        android:paddingEnd="12dp">
+        android:paddingEnd="12dp"
+        android:paddingBottom="110dp"
+        android:overScrollMode="never">
 
         <LinearLayout
             android:id="@+id/main_content"
@@ -29,44 +31,42 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- ==== Profile Card (medium) ==== -->
+            <!-- Profile Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_profile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="22dp"
                 app:cardElevation="6dp"
-                android:padding="0dp">
+                app:strokeColor="#E7D6C8"
+                app:strokeWidth="1dp">
 
-                <!-- large orange panel inside card -->
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="220dp"
+                    android:layout_height="210dp"
                     android:background="@drawable/medium_info_panel_bg"
                     android:padding="16dp">
 
-                    <!-- circular avatar on left -->
                     <ImageView
                         android:id="@+id/iv_avatar"
-                        android:layout_width="76dp"
-                        android:layout_height="76dp"
-                        android:src="@drawable/medium_profile_icon"
-                        android:scaleType="centerInside"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
                         android:layout_alignParentStart="true"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:background="@drawable/medium_circle_white_ring"
-                        android:padding="8dp" />
+                        android:padding="8dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/medium_profile_icon" />
 
-                    <!-- name & role -->
                     <LinearLayout
                         android:id="@+id/ll_name_block"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
+                        android:layout_alignTop="@id/iv_avatar"
                         android:layout_toEndOf="@id/iv_avatar"
                         android:layout_marginStart="12dp"
-                        android:layout_alignTop="@id/iv_avatar">
+                        android:orientation="vertical">
 
                         <TextView
                             android:id="@+id/tv_name_medium"
@@ -75,19 +75,21 @@
                             android:text="Kavitha Kanthasawamy"
                             android:textColor="@android:color/white"
                             android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-black" />
 
                         <TextView
                             android:id="@+id/tv_role_medium"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
                             android:text="Worker"
-                            android:textColor="@android:color/white"
+                            android:textColor="#FFF3CC"
                             android:textSize="13sp"
-                            android:layout_marginTop="2dp"/>
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
 
-                    <!-- quick info grid (4 boxes) -->
                     <GridLayout
                         android:id="@+id/grid_quick_info"
                         android:layout_width="wrap_content"
@@ -102,113 +104,138 @@
                         <TextView
                             android:id="@+id/box_wage"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Wage Balance\nLKR 2600.00" />
+                            android:text="Wage\nLKR 2600" />
 
                         <TextView
                             android:id="@+id/box_job_done"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Job Done\n12" />
+                            android:text="Done\n12" />
 
                         <TextView
                             android:id="@+id/box_next"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Next Job\nCleaning" />
+                            android:text="Next\nCleaning" />
 
                         <TextView
                             android:id="@+id/box_find"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Find Job\n●" />
+                            android:text="Alerts\n3" />
                     </GridLayout>
 
-                    <!-- panic btn (floating) -->
                     <ImageButton
                         android:id="@+id/btn_panic_medium"
-                        android:layout_width="72dp"
-                        android:layout_height="72dp"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
                         android:layout_alignParentBottom="true"
                         android:layout_marginEnd="12dp"
                         android:layout_toStartOf="@id/grid_quick_info"
                         android:background="@drawable/medium_panic_button"
+                        android:scaleType="centerInside"
                         android:src="@drawable/medium_ic_panic"
-                        android:scaleType="centerInside"/>
-
+                        android:contentDescription="panic" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ===== Accordion Sections ===== -->
-            <!-- Each header has an id header_xxx and the hidden content is content_xxx (visibility gone) -->
-
-            <!-- 1) User Profile Section -->
+            <!-- User Profile -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_user_profile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardBackgroundColor="#FFF3EA"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#F3D7BF"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- header -->
                     <LinearLayout
                         android:id="@+id/header_user_profile"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:onClick="onSectionHeaderClick">
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
 
                         <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
                             android:src="@drawable/medium_ic_user"
-                            android:contentDescription="icon" />
+                            android:contentDescription="profile" />
 
                         <TextView
                             android:layout_width="0dp"
-                            android:layout_weight="1"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
                             android:text="User Profile"
-                            android:textSize="16sp"
-                            android:layout_marginStart="12dp"/>
+                            android:textColor="#5A2D0C"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-black" />
 
                         <ImageView
                             android:id="@+id/chev_user_profile"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             android:src="@drawable/medium_ic_chev_down" />
                     </LinearLayout>
 
-                    <!-- hidden content -->
                     <LinearLayout
                         android:id="@+id/content_user_profile"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="12dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="14dp"
                         android:visibility="gone">
 
-                        <!-- Example expanded content -->
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:text="Profile details, contact info, last jobs and settings go here."
-                            android:textSize="14sp" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Phone: 077 XXX XXXX"
+                            android:textColor="#5F3B24"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Area: Colombo"
+                            android:textColor="#5F3B24"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Preferred jobs: Cleaning, Laundry"
+                            android:textColor="#5F3B24"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 2) Job Alerts -->
+            <!-- Job Alerts -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_job_alerts"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardBackgroundColor="#EEF5FF"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#D5E6FF"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -219,29 +246,32 @@
                         android:id="@+id/header_job_alerts"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:onClick="onSectionHeaderClick">
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
 
                         <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/medium_ic_jobs" />
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/medium_ic_jobs"
+                            android:contentDescription="jobs" />
 
                         <TextView
                             android:layout_width="0dp"
-                            android:layout_weight="1"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
                             android:text="Job Alerts"
-                            android:textSize="16sp"
-                            android:layout_marginStart="12dp"/>
+                            android:textColor="#163A63"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-black" />
 
                         <ImageView
                             android:id="@+id/chev_job_alerts"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             android:src="@drawable/medium_ic_chev_down" />
                     </LinearLayout>
 
@@ -250,31 +280,106 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="12dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="14dp"
                         android:visibility="gone">
 
-                        <!-- Sample list of alerts (replace with RecyclerView later) -->
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:text="• Maid work Near Jaffna — LKR 1800\n• Cleaning Near Colombo — LKR 1500"
-                            android:textSize="14sp" />
-                        <Button android:id="@+id/btn_call_alerts" android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:text="Call the Client"
-                            android:background="@drawable/medium_green_call_button"
-                            android:textAllCaps="false"
-                            android:layout_marginTop="8dp"/>
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#FFFFFF"
+                            app:cardCornerRadius="14dp"
+                            app:cardElevation="0dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Maid work near Jaffna"
+                                    android:textColor="#163A63"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="sans-serif-medium" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="Rs. 1800"
+                                    android:textColor="#2563EB"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="sans-serif-black" />
+
+                                <Button
+                                    android:id="@+id/btn_call_alerts"
+                                    android:layout_width="110dp"
+                                    android:layout_height="34dp"
+                                    android:layout_marginTop="8dp"
+                                    android:backgroundTint="#22C55E"
+                                    android:text="Call"
+                                    android:textAllCaps="false"
+                                    android:textColor="#FFFFFF"
+                                    android:textStyle="bold"
+                                    android:fontFamily="sans-serif-medium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            app:cardBackgroundColor="#FFFFFF"
+                            app:cardCornerRadius="14dp"
+                            app:cardElevation="0dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Cleaning near Colombo"
+                                    android:textColor="#163A63"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="sans-serif-medium" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="Rs. 1500"
+                                    android:textColor="#2563EB"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="sans-serif-black" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 3) Wage Calculator -->
+            <!-- Wage Calculator -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_wage_calc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardBackgroundColor="#FFF7E8"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#F4D9A6"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -285,29 +390,32 @@
                         android:id="@+id/header_wage_calc"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:onClick="onSectionHeaderClick">
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
 
                         <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/medium_ic_wallet" />
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/medium_ic_wallet"
+                            android:contentDescription="wallet" />
 
                         <TextView
                             android:layout_width="0dp"
-                            android:layout_weight="1"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
                             android:text="Wage Calculator"
-                            android:textSize="16sp"
-                            android:layout_marginStart="12dp"/>
+                            android:textColor="#6D4C0D"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-black" />
 
                         <ImageView
                             android:id="@+id/chev_wage_calc"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             android:src="@drawable/medium_ic_chev_down" />
                     </LinearLayout>
 
@@ -316,36 +424,65 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="12dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="14dp"
                         android:visibility="gone">
 
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:text="Wage Balance: LKR 2600.00" android:textSize="14sp"/>
-                        <Spinner android:id="@+id/spinner_medium_jobtype" android:layout_width="match_parent"
+                        <TextView
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:text="Balance: LKR 2600"
+                            android:textColor="#C2410C"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <Spinner
+                            android:id="@+id/spinner_medium_jobtype"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
                             android:layout_marginTop="8dp"
-                            android:background="@drawable/medium_rounded_input"/>
-                        <EditText android:id="@+id/et_medium_hours" android:layout_width="match_parent"
-                            android:layout_height="wrap_content" android:hint="Enter Hours"
-                            android:inputType="number" android:background="@drawable/medium_rounded_input"
-                            android:layout_marginTop="8dp"/>
-                        <Button android:id="@+id/btn_calc_medium" android:layout_width="match_parent"
-                            android:layout_height="40dp" android:text="Calculate"
-                            android:background="@drawable/medium_pill_button" android:textAllCaps="false"
-                            android:layout_marginTop="8dp"/>
+                            android:background="@drawable/medium_rounded_input" />
+
+                        <EditText
+                            android:id="@+id/et_medium_hours"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/medium_rounded_input"
+                            android:hint="Hours"
+                            android:inputType="number"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp" />
+
+                        <Button
+                            android:id="@+id/btn_calc_medium"
+                            android:layout_width="match_parent"
+                            android:layout_height="38dp"
+                            android:layout_marginTop="8dp"
+                            android:backgroundTint="#F59E0B"
+                            android:text="Calculate"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 4) Woil Guard -->
+            <!-- Woil Guard -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_woil_guard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="20dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                android:layout_marginBottom="10dp"
+                app:cardBackgroundColor="#EEF8F1"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#CFE8D7"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -356,29 +493,32 @@
                         android:id="@+id/header_woil_guard"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:onClick="onSectionHeaderClick">
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
 
                         <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/medium_ic_shield" />
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/medium_ic_shield"
+                            android:contentDescription="guard" />
 
                         <TextView
                             android:layout_width="0dp"
-                            android:layout_weight="1"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
                             android:text="Woil Guard"
-                            android:textSize="16sp"
-                            android:layout_marginStart="12dp"/>
+                            android:textColor="#14532D"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-black" />
 
                         <ImageView
                             android:id="@+id/chev_woil_guard"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             android:src="@drawable/medium_ic_chev_down" />
                     </LinearLayout>
 
@@ -387,57 +527,157 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="12dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="14dp"
                         android:visibility="gone">
 
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:text="Warning: None\nPrevious Incidents: Fell from steps\nResolution: Medical costs covered by client"
-                            android:textSize="14sp" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Status: Safe"
+                            android:textColor="#15803D"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Battery: 82%"
+                            android:textColor="#202020"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif-medium" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Incident: None"
+                            android:textColor="#202020"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <View android:layout_width="match_parent" android:layout_height="24dp"/>
         </LinearLayout>
     </ScrollView>
 
-    <!-- Bottom navigation floating bar -->
-    <LinearLayout
-        android:id="@+id/bottom_bar"
+    <!-- Floating bottom actions above system nav -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="96dp"
         android:layout_gravity="bottom"
-        android:gravity="center"
-        android:padding="12dp"
-        android:background="@drawable/medium_bottom_nav_bg">
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="14dp">
 
-        <ImageButton
-            android:id="@+id/btn_phone"
-            android:layout_width="68dp"
-            android:layout_height="68dp"
-            android:src="@drawable/medium_ic_phone"
-            android:background="@drawable/medium_bottom_round_button"
-            android:scaleType="centerInside"/>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/bottom_bar"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_gravity="bottom"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="26dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#EAEAEA"
+            app:strokeWidth="1dp">
 
-        <Space android:layout_width="24dp" android:layout_height="match_parent"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp">
 
-        <ImageButton
-            android:id="@+id/btn_message"
-            android:layout_width="68dp"
-            android:layout_height="68dp"
-            android:src="@drawable/medium_ic_message"
-            android:background="@drawable/medium_bottom_round_button"
-            android:scaleType="centerInside"/>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
 
-        <Space android:layout_width="24dp" android:layout_height="match_parent"/>
+                    <ImageButton
+                        android:id="@+id/btn_phone"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:background="@drawable/medium_bottom_round_button"
+                        android:backgroundTint="#EAF1FF"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/medium_ic_phone"
+                        android:contentDescription="phone" />
 
-        <ImageButton
-            android:id="@+id/btn_video"
-            android:layout_width="68dp"
-            android:layout_height="68dp"
-            android:src="@drawable/medium_ic_video"
-            android:background="@drawable/medium_bottom_round_button"
-            android:scaleType="centerInside"/>
-    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Call"
+                        android:textColor="#4B5B7C"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/btn_message"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:background="@drawable/medium_bottom_round_button"
+                        android:backgroundTint="#EAF1FF"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/medium_ic_message"
+                        android:contentDescription="message" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Chat"
+                        android:textColor="#4B5B7C"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/btn_video"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:background="@drawable/medium_bottom_round_button"
+                        android:backgroundTint="#EAF1FF"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/medium_ic_video"
+                        android:contentDescription="video" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Video"
+                        android:textColor="#4B5B7C"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
 </FrameLayout>

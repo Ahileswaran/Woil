@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,6 +32,7 @@ public class HomeMediumFragment extends Fragment {
         View view = inflater.inflate(R.layout.activity_dashboard_medium, container, false);
 
         bindActions(view);
+        setupExpandableSections(view);
         setupSwipeToSettings(view);
 
         return view;
@@ -67,27 +69,27 @@ public class HomeMediumFragment extends Fragment {
         }
 
         if (jobAlertsCard != null) {
-            jobAlertsCard.setOnClickListener(v ->
-                    Toast.makeText(requireContext(), "Job alerts opened", Toast.LENGTH_SHORT).show()
-            );
+            jobAlertsCard.setOnClickListener(v -> toggleSection(
+                    view,
+                    R.id.content_job_alerts,
+                    R.id.chev_job_alerts
+            ));
         }
 
         if (wageCard != null) {
-            wageCard.setOnClickListener(v -> {
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) requireActivity())
-                            .navigateToFragment(new WageFragment(), true, "wage");
-                }
-            });
+            wageCard.setOnClickListener(v -> toggleSection(
+                    view,
+                    R.id.content_wage_calc,
+                    R.id.chev_wage_calc
+            ));
         }
 
         if (guardCard != null) {
-            guardCard.setOnClickListener(v -> {
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) requireActivity())
-                            .navigateToFragment(new WoilGuardFragment(), true, "guard");
-                }
-            });
+            guardCard.setOnClickListener(v -> toggleSection(
+                    view,
+                    R.id.content_woil_guard,
+                    R.id.chev_woil_guard
+            ));
         }
 
         if (btnCallAlerts != null) {
@@ -125,6 +127,65 @@ public class HomeMediumFragment extends Fragment {
                     Toast.makeText(requireContext(), "Video action", Toast.LENGTH_SHORT).show()
             );
         }
+    }
+
+    private void setupExpandableSections(@NonNull View view) {
+        bindExpandable(
+                view,
+                R.id.header_user_profile,
+                R.id.content_user_profile,
+                R.id.chev_user_profile
+        );
+
+        bindExpandable(
+                view,
+                R.id.header_job_alerts,
+                R.id.content_job_alerts,
+                R.id.chev_job_alerts
+        );
+
+        bindExpandable(
+                view,
+                R.id.header_wage_calc,
+                R.id.content_wage_calc,
+                R.id.chev_wage_calc
+        );
+
+        bindExpandable(
+                view,
+                R.id.header_woil_guard,
+                R.id.content_woil_guard,
+                R.id.chev_woil_guard
+        );
+    }
+
+    private void bindExpandable(@NonNull View root,
+                                int headerId,
+                                int contentId,
+                                int chevronId) {
+
+        View header = root.findViewById(headerId);
+        View content = root.findViewById(contentId);
+        ImageView chevron = root.findViewById(chevronId);
+
+        if (header == null || content == null || chevron == null) return;
+
+        header.setOnClickListener(v -> {
+            boolean expand = content.getVisibility() == View.GONE;
+            content.setVisibility(expand ? View.VISIBLE : View.GONE);
+            chevron.animate().rotation(expand ? 180f : 0f).setDuration(180).start();
+        });
+    }
+
+    private void toggleSection(@NonNull View root, int contentId, int chevronId) {
+        View content = root.findViewById(contentId);
+        ImageView chevron = root.findViewById(chevronId);
+
+        if (content == null || chevron == null) return;
+
+        boolean expand = content.getVisibility() == View.GONE;
+        content.setVisibility(expand ? View.VISIBLE : View.GONE);
+        chevron.animate().rotation(expand ? 180f : 0f).setDuration(180).start();
     }
 
     private void setupSwipeToSettings(@NonNull View rootView) {
