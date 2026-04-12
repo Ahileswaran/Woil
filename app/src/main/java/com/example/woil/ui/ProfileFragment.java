@@ -1,18 +1,16 @@
 package com.example.woil.ui;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,11 +33,10 @@ import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-
-import androidx.core.content.ContextCompat;
-import android.graphics.Color;
-
 public class ProfileFragment extends Fragment {
+
+    private static final String PREFS_NAME = "woil_prefs";
+    private static final String KEY_ACTIVE_ROLE = "active_role";
 
     private CircleImageView ivProfile;
     private TextView tvUsername, tvSubtitle, tvRatingValue, tvJobsValue, tvMemberSince;
@@ -48,33 +45,29 @@ public class ProfileFragment extends Fragment {
     private ImageButton btnBack;
     private TextView tvPending;
 
-    // Accessibility UI
     private SwitchMaterial switchDigital, switchVoice, switchSimplified;
     private SeekBar seekTextSize;
     private TextView tvTextSizeValue;
 
-    // Firebase
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private ListenerRegistration profileListener;
 
-    public ProfileFragment() { /* required empty constructor */ }
+    public ProfileFragment() {
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // make sure you're inflating the layout that matches the IDs you provided
         return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // init firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // find views (IDs matched to your XML)
         ivProfile = view.findViewById(R.id.profile_image_main);
         tvUsername = view.findViewById(R.id.username);
         tvSubtitle = view.findViewById(R.id.subtitle);
@@ -92,17 +85,11 @@ public class ProfileFragment extends Fragment {
         btnBack = view.findViewById(R.id.btn_back);
         tvPending = view.findViewById(R.id.tv_pending);
 
-        // accessibility controls (IDs as in layout)
-        //switchDigital = view.findViewById(R.id.switch_digital);
-        //switchVoice = view.findViewById(R.id.switch_voice);
-        //switchSimplified = view.findViewById(R.id.switch_simple);
         seekTextSize = view.findViewById(R.id.seek_text_size);
         tvTextSizeValue = view.findViewById(R.id.tv_text_size_value);
 
-        // set placeholders while loading
         setPlaceholders();
 
-        // wire buttons
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> {
                 if (requireActivity() instanceof MainActivity) {
@@ -115,28 +102,24 @@ public class ProfileFragment extends Fragment {
 
         Button btnClient = view.findViewById(R.id.btn_client);
         if (btnClient != null) {
-            btnClient.setOnClickListener(v -> {
-                try {
-                    startActivity(new Intent(requireContext(), Class.forName("com.example.woil.ui.ClientActivity")));
-                } catch (ClassNotFoundException e) {
-                    Toast.makeText(requireContext(), "Client view not available", Toast.LENGTH_SHORT).show();
-                }
-            });
+            btnClient.setOnClickListener(v -> switchToClientProfile());
+        }
+
+        Button btnWorker = view.findViewById(R.id.btn_worker);
+        if (btnWorker != null) {
+            btnWorker.setOnClickListener(v -> switchToWorkerHome());
         }
 
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {
-                // Launch ProfileSetupActivity (ensure it exists in your app)
                 try {
                     startActivity(new Intent(requireContext(), Class.forName("com.example.woil.ui.ProfileSetupActivity")));
                 } catch (ClassNotFoundException e) {
-                    // fallback toast if activity isn't present
                     Toast.makeText(requireContext(), "Profile editor not available", Toast.LENGTH_SHORT).show();
                 }
             });
         }
 
-        // accessibility defaults and listeners
         if (switchDigital != null) switchDigital.setChecked(true);
         if (switchVoice != null) switchVoice.setChecked(false);
         if (switchSimplified != null) switchSimplified.setChecked(false);
@@ -146,14 +129,75 @@ public class ProfileFragment extends Fragment {
             seekTextSize.setProgress(50);
             updateTextSizeLabel(50);
             seekTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { updateTextSizeLabel(progress); }
-                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    updateTextSizeLabel(progress);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
             });
         }
 
-        // attach Firestore listener
         attachProfileListener();
+    }
+
+    private void switchToClientProfile() {
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String uid = mAuth.getCurrentUser().getUid();
+
+        db.collection("users").document(uid)
+                .update("role", "client")
+                .addOnSuccessListener(aVoid -> {
+                    saveActiveRole("client");
+                    Toast.makeText(requireContext(), "Switched to Client", Toast.LENGTH_SHORT).show();
+
+                    try {
+                        startActivity(new Intent(requireContext(), ClientActivity.class));
+                    } catch (Exception e) {
+                        Toast.makeText(requireContext(), "Client profile not available", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(), "Role switch failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+
+    private void switchToWorkerHome() {
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String uid = mAuth.getCurrentUser().getUid();
+
+        db.collection("users").document(uid)
+                .update("role", "worker")
+                .addOnSuccessListener(aVoid -> {
+                    saveActiveRole("worker");
+                    Toast.makeText(requireContext(), "Switched to Worker", Toast.LENGTH_SHORT).show();
+
+                    if (requireActivity() instanceof MainActivity) {
+                        ((MainActivity) requireActivity()).reloadHomeForRole("worker");
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(), "Role switch failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+
+    private void saveActiveRole(String role) {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, 0);
+        prefs.edit().putString(KEY_ACTIVE_ROLE, role).apply();
     }
 
     private void setPlaceholders() {
@@ -175,14 +219,12 @@ public class ProfileFragment extends Fragment {
 
     private void attachProfileListener() {
         if (mAuth.getCurrentUser() == null) return;
+
         String uid = mAuth.getCurrentUser().getUid();
 
         profileListener = db.collection("users").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) {
-                        // optional: log the error
-                        return;
-                    }
+                    if (e != null) return;
                     if (snap != null && snap.exists()) {
                         populateUIFromSnapshot(snap);
                     }
@@ -190,10 +232,9 @@ public class ProfileFragment extends Fragment {
     }
 
     private void populateUIFromSnapshot(DocumentSnapshot snap) {
-        // --- NAME / USERNAME / SUBTITLE ---
         String first = snap.getString("firstName");
-        String last  = snap.getString("lastName");
-        String displayName = snap.getString("displayName"); // optional
+        String last = snap.getString("lastName");
+        String displayName = snap.getString("displayName");
 
         String fullName = (displayName != null && !displayName.isEmpty())
                 ? displayName
@@ -201,25 +242,30 @@ public class ProfileFragment extends Fragment {
 
         if (tvFullName != null) tvFullName.setText(fullName.isEmpty() ? "—" : fullName);
 
-        // header username (handle) - try "handle" then @displayName fallback
         String handle = snap.getString("handle");
         if (handle == null || handle.isEmpty()) {
-            handle = fullName.isEmpty() ? ("@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user")) : ("@" + fullName.replaceAll("\\s+", ""));
+            handle = fullName.isEmpty()
+                    ? ("@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user"))
+                    : ("@" + fullName.replaceAll("\\s+", ""));
         }
         if (tvUsername != null) tvUsername.setText(handle);
 
-        // role + location in subtitle
         String role = snap.getString("role");
         String address = snap.getString("address");
-        String subtitle = (role != null ? capitalize(role) : "Worker") + (address != null && !address.isEmpty() ? " · " + address : "");
+        String subtitle = (role != null ? capitalize(role) : "Worker")
+                + (address != null && !address.isEmpty() ? " · " + address : "");
         if (tvSubtitle != null) tvSubtitle.setText(subtitle);
 
-        // --- CONTACTS FROM AUTH (canonical) ---
         if (mAuth.getCurrentUser() != null) {
             String phone = mAuth.getCurrentUser().getPhoneNumber();
             String email = mAuth.getCurrentUser().getEmail();
-            if (tvPhone != null) tvPhone.setText(phone != null ? phone : (snap.getString("phone") != null ? snap.getString("phone") : ""));
-            if (tvEmail != null) tvEmail.setText(email != null ? email : (snap.getString("email") != null ? snap.getString("email") : ""));
+
+            if (tvPhone != null) {
+                tvPhone.setText(phone != null ? phone : (snap.getString("phone") != null ? snap.getString("phone") : ""));
+            }
+            if (tvEmail != null) {
+                tvEmail.setText(email != null ? email : (snap.getString("email") != null ? snap.getString("email") : ""));
+            }
         } else {
             if (tvPhone != null) tvPhone.setText(snap.getString("phone") != null ? snap.getString("phone") : "");
             if (tvEmail != null) tvEmail.setText(snap.getString("email") != null ? snap.getString("email") : "");
@@ -227,16 +273,24 @@ public class ProfileFragment extends Fragment {
 
         if (tvLocation != null) tvLocation.setText(address != null ? address : "—");
 
-        // --- RATING / JOBS / MEMBER SINCE ---
         Object ratingObj = snap.get("rating");
         if (ratingObj != null && tvRatingValue != null) {
             try {
                 double rating = Double.parseDouble(ratingObj.toString());
                 tvRatingValue.setText("★ " + new DecimalFormat("#0.0").format(rating));
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) {
+            }
         }
 
-        Object jobsObj = snap.get("jobsCompleted");
+        Object jobsObj;
+        if ("client".equalsIgnoreCase(role)) {
+            jobsObj = snap.get("jobsPosted");
+            if (jobsObj == null) jobsObj = snap.get("jobs");
+        } else {
+            jobsObj = snap.get("jobsCompleted");
+            if (jobsObj == null) jobsObj = snap.get("jobs");
+        }
+
         if (jobsObj != null && tvJobsValue != null) {
             tvJobsValue.setText(String.valueOf(jobsObj));
         }
@@ -248,7 +302,6 @@ public class ProfileFragment extends Fragment {
             c.setTime(d);
             tvMemberSince.setText(String.valueOf(c.get(Calendar.YEAR)));
         } else {
-            // fallback to millis or year field
             Object msMillis = snap.get("memberSinceMillis");
             if (msMillis instanceof Number && tvMemberSince != null) {
                 long millis = ((Number) msMillis).longValue();
@@ -260,18 +313,15 @@ public class ProfileFragment extends Fragment {
             }
         }
 
-        // --- VERIFIED / PENDING --- (toggle UI)
         Boolean verified = snap.getBoolean("isVerified");
         if (verified != null && verified && tvPending != null) {
             tvPending.setText("✔ Verified");
-            tvPending.setTextColor(Color.parseColor("#2E7D32")); // green
+            tvPending.setTextColor(Color.parseColor("#2E7D32"));
         } else if (tvPending != null) {
             tvPending.setText("⏱ Pending");
             tvPending.setTextColor(Color.parseColor("#6B4B00"));
         }
 
-        // --- PROFILE IMAGE ---
-        // try common fields (photoUrl, photo, nicImageUri)
         String photoUrl = snap.getString("photoUrl");
         if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("photo");
         if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("nicImageUri");
@@ -286,8 +336,10 @@ public class ProfileFragment extends Fragment {
                             .error(R.drawable.photo_placeholder)
                             .into(ivProfile);
                 } catch (Exception ex) {
-                    // fallback to Uri
-                    try { ivProfile.setImageURI(Uri.parse(photoUrl)); } catch (Exception ignored) {}
+                    try {
+                        ivProfile.setImageURI(Uri.parse(photoUrl));
+                    } catch (Exception ignored) {
+                    }
                 }
             }
         } else {
@@ -296,14 +348,14 @@ public class ProfileFragment extends Fragment {
     }
 
     private void updateTextSizeLabel(int progress) {
-        double val = 0.8 + (progress / 100.0); // 0.8 .. 1.8
+        double val = 0.8 + (progress / 100.0);
         DecimalFormat df = new DecimalFormat("0.0");
         if (tvTextSizeValue != null) tvTextSizeValue.setText(df.format(val) + "x");
     }
 
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
-        return s.substring(0,1).toUpperCase() + s.substring(1);
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
     @Override

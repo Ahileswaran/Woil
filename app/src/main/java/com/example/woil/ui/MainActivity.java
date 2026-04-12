@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -33,17 +34,16 @@ import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    private static final String PREFS_NAME = "woil_prefs";
+    private static final String KEY_ACTIVE_ROLE = "active_role";
 
     private BottomNavigationView bottomNav;
 
-    // Keep track of the "current" fragment tag / menu id
     private String currentTag = "home";
     private int currentMenuItemId = R.id.navigation_home;
 
-    // Insets controller for system bars control
     private WindowInsetsControllerCompat insetsController;
 
-    // store latest insets so we can re-apply after fragment changes
     private int lastStatusBarInset = 0;
     private int lastNavBarInset = 0;
 
@@ -53,13 +53,10 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-        // Controller for system bar appearance
         insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
 
-        // Transparent bars so fragment header can draw behind them
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
@@ -80,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Auto-wire btn_back from fragments
         getSupportFragmentManager().registerFragmentLifecycleCallbacks(
                 new FragmentManager.FragmentLifecycleCallbacks() {
                     @Override
@@ -107,15 +103,16 @@ public class MainActivity extends AppCompatActivity {
 
             boolean bottomVisible = savedInstanceState.getBoolean(
                     "bottomNavVisible",
-                    "home".equals(currentTag)
+                    shouldShowBottomNavForFragmentTag(currentTag)
             );
             setBottomNavVisibility(bottomVisible);
+            updateRoleAwareBottomNavUi(getCurrentRoleLocal());
         } else {
-            // IMPORTANT: open selected home UI, not hardcoded HomeFragment
             openFragment(getSelectedHomeFragment(), false, "home");
             if (bottomNav != null) {
                 bottomNav.setSelectedItemId(R.id.navigation_home);
             }
+            updateRoleAwareBottomNavUi(getCurrentRoleLocal());
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -132,10 +129,11 @@ public class MainActivity extends AppCompatActivity {
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                     int id = item.getItemId();
 
-                    // avoid re-creating same tab
                     if (id == currentMenuItemId) {
                         return true;
                     }
+
+                    String role = getCurrentRoleLocal();
 
                     if (id == R.id.navigation_home) {
                         openFragment(getSelectedHomeFragment(), false, "home");
@@ -150,7 +148,11 @@ public class MainActivity extends AppCompatActivity {
                         openFragment(new ProfileFragment(), false, "profile");
                         return true;
                     } else if (id == R.id.nav_guard) {
-                        openFragment(new WoilGuardFragment(), false, "guard");
+                        if ("client".equalsIgnoreCase(role)) {
+                            openFragment(new ClientJobMatchingFragment(), false, "matching");
+                        } else {
+                            openFragment(new WoilGuardFragment(), false, "guard");
+                        }
                         return true;
                     }
 
@@ -177,21 +179,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Return the currently selected home fragment based on saved UI level.
-     * Requires:
-     * - UiModeManager.java
-     * - UiNavigator.java
-     * - HomeHighFragment.java / HomeMediumFragment.java / HomeLowFragment.java
-     */
     private Fragment getSelectedHomeFragment() {
+        String role = getCurrentRoleLocal();
+        if ("client".equalsIgnoreCase(role)) {
+            return new ClientHomeFragment();
+        }
         return UiNavigator.getSelectedHomeFragment(this);
     }
 
-    /**
-     * Use this after user changes HIGH / MEDIUM / LOW in Settings.
-     * It clears old screens and opens the selected Home UI only.
-     */
     public void reloadHomeForSelectedUi() {
         clearBackStack();
 
@@ -200,12 +195,66 @@ public class MainActivity extends AppCompatActivity {
 
         if (bottomNav != null) {
             bottomNav.post(() -> {
-                setBottomNavVisibility(selectedHome instanceof HomeHighFragment);
+                setBottomNavVisibility(shouldShowBottomNavForFragment(selectedHome));
                 try {
                     bottomNav.setSelectedItemId(R.id.navigation_home);
-                } catch (Throwable ignored) { }
+                } catch (Throwable ignored) {
+                }
+                updateRoleAwareBottomNavUi(getCurrentRoleLocal());
                 applyBottomNavInsets(lastNavBarInset);
             });
+        }
+    }
+
+    public void reloadHomeForRole(@NonNull String role) {
+        saveActiveRoleLocal(role);
+        clearBackStack();
+
+        Fragment home = "client".equalsIgnoreCase(role)
+                ? new ClientHomeFragment()
+                : UiNavigator.getSelectedHomeFragment(this);
+
+        openFragment(home, false, "home");
+
+        if (bottomNav != null) {
+            bottomNav.post(() -> {
+                try {
+                    bottomNav.setSelectedItemId(R.id.navigation_home);
+                } catch (Throwable ignored) {
+                }
+                updateRoleAwareBottomNavUi(role);
+                setBottomNavVisibility(shouldShowBottomNavForFragment(home));
+                applyBottomNavInsets(lastNavBarInset);
+            });
+        }
+    }
+
+    private String getCurrentRoleLocal() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return prefs.getString(KEY_ACTIVE_ROLE, "worker");
+    }
+
+    private void saveActiveRoleLocal(String role) {
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putString(KEY_ACTIVE_ROLE, role)
+                .apply();
+    }
+
+    private void updateRoleAwareBottomNavUi(String role) {
+        if (bottomNav == null) return;
+
+        try {
+            MenuItem guardItem = bottomNav.getMenu().findItem(R.id.nav_guard);
+            if (guardItem != null) {
+                if ("client".equalsIgnoreCase(role)) {
+                    guardItem.setTitle("Matching");
+                } else {
+                    guardItem.setTitle("Woil Guard");
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed to update bottom nav labels", t);
         }
     }
 
@@ -306,7 +355,8 @@ public class MainActivity extends AppCompatActivity {
         if (current instanceof HeaderConfig) {
             try {
                 requestDarkIcons = ((HeaderConfig) current).useLightStatusBarIcons();
-            } catch (Throwable ignored) { }
+            } catch (Throwable ignored) {
+            }
         }
 
         try {
@@ -366,7 +416,8 @@ public class MainActivity extends AppCompatActivity {
             if (bottomNav.getBackground() == null) {
                 bottomNav.setBackgroundColor(ContextCompat.getColor(this, R.color.nav_bar_black));
             }
-        } catch (Throwable ignored) { }
+        } catch (Throwable ignored) {
+        }
 
         bottomNav.post(() -> {
             try {
@@ -396,7 +447,8 @@ public class MainActivity extends AppCompatActivity {
                 boolean useDarkNavIcons = isColorLight(bgColor);
                 try {
                     insetsController.setAppearanceLightNavigationBars(useDarkNavIcons);
-                } catch (Throwable ignored) { }
+                } catch (Throwable ignored) {
+                }
 
             } catch (Throwable t) {
                 Log.w(TAG, "applyBottomNavInsets failed: " + t);
@@ -431,12 +483,12 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             getSupportFragmentManager().executePendingTransactions();
-        } catch (Throwable ignored) { }
+        } catch (Throwable ignored) {
+        }
 
         applyInsetsToCurrentFragment();
 
-        // Show bottom nav only for HIGH UI home
-        boolean shouldShowNav = fragment instanceof HomeHighFragment;
+        boolean shouldShowNav = shouldShowBottomNavForFragment(fragment);
         setBottomNavVisibility(shouldShowNav);
 
         currentTag = tag;
@@ -444,8 +496,19 @@ public class MainActivity extends AppCompatActivity {
         else if ("wage".equals(tag)) currentMenuItemId = R.id.navigation_wallet;
         else if ("chat".equals(tag)) currentMenuItemId = R.id.nav_messages;
         else if ("profile".equals(tag)) currentMenuItemId = R.id.navigation_profile;
-        else if ("guard".equals(tag)) currentMenuItemId = R.id.nav_guard;
+        else if ("guard".equals(tag) || "matching".equals(tag)) currentMenuItemId = R.id.nav_guard;
         else if (bottomNav != null) currentMenuItemId = bottomNav.getSelectedItemId();
+
+        updateRoleAwareBottomNavUi(getCurrentRoleLocal());
+    }
+
+    private boolean shouldShowBottomNavForFragment(Fragment fragment) {
+        return fragment instanceof HomeHighFragment
+                || fragment instanceof ClientHomeFragment;
+    }
+
+    private boolean shouldShowBottomNavForFragmentTag(String tag) {
+        return "home".equals(tag);
     }
 
     private void setBottomNavVisibility(boolean visible) {
@@ -476,12 +539,14 @@ public class MainActivity extends AppCompatActivity {
 
             bottomNav.post(() -> {
                 try {
-                    bottomNav.setSelectedItemId(R.id.navigation_home);
-                } catch (Throwable ignored) { }
+                    bottomNav.setSelectedItemId(currentMenuItemId);
+                } catch (Throwable ignored) {
+                }
 
                 try {
                     bottomNav.setBackgroundColor(ContextCompat.getColor(this, R.color.nav_bar_black));
-                } catch (Throwable ignored) { }
+                } catch (Throwable ignored) {
+                }
 
                 applyBottomNavInsets(effectiveInset);
                 bottomNav.requestLayout();
@@ -507,10 +572,12 @@ public class MainActivity extends AppCompatActivity {
         if (bottomNav == null) return;
 
         bottomNav.post(() -> {
-            setBottomNavVisibility(selectedHome instanceof HomeHighFragment);
+            setBottomNavVisibility(shouldShowBottomNavForFragment(selectedHome));
             try {
                 bottomNav.setSelectedItemId(R.id.navigation_home);
-            } catch (Throwable ignored) { }
+            } catch (Throwable ignored) {
+            }
+            updateRoleAwareBottomNavUi(getCurrentRoleLocal());
             applyBottomNavInsets(lastNavBarInset);
         });
     }
@@ -522,23 +589,13 @@ public class MainActivity extends AppCompatActivity {
     private void updateBottomNavVisibilityAfterPop() {
         Fragment top = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
 
-        if (top instanceof HomeHighFragment) {
-            setBottomNavVisibility(true);
-            if (bottomNav != null) bottomNav.setSelectedItemId(R.id.navigation_home);
-        } else {
-            setBottomNavVisibility(false);
+        setBottomNavVisibility(shouldShowBottomNavForFragment(top));
 
-            if (top instanceof WageFragment && bottomNav != null) {
-                bottomNav.setSelectedItemId(R.id.navigation_wallet);
-            } else if (top instanceof ChatFragment && bottomNav != null) {
-                bottomNav.setSelectedItemId(R.id.nav_messages);
-            } else if (top instanceof ProfileFragment && bottomNav != null) {
-                bottomNav.setSelectedItemId(R.id.navigation_profile);
-            } else if (top instanceof WoilGuardFragment && bottomNav != null) {
-                bottomNav.setSelectedItemId(R.id.nav_guard);
-            }
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.navigation_home);
         }
 
+        updateRoleAwareBottomNavUi(getCurrentRoleLocal());
         applyInsetsToCurrentFragment();
     }
 
