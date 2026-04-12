@@ -240,7 +240,8 @@ public class MainActivity extends AppCompatActivity {
 
             int extra = dpToPx(8);
 
-            boolean currentHasOrange = fragmentHasView(R.id.orange_panel);
+            boolean currentHasOrange =
+                    fragmentHasView(R.id.orange_panel) || fragmentHasView(R.id.header_bg);
 
             if (currentHasOrange) {
                 mainContent.setPadding(

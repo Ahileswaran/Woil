@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
@@ -73,6 +75,15 @@ public class PostJobActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        // Allow content to lay out behind system bars
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+
+        // Transparent bars so fragment header can draw behind them
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
 
         // find views
         btnPostJob = findViewById(R.id.btn_post_job);

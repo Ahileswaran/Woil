@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.bumptech.glide.Glide;
 import com.example.woil.R;
@@ -57,6 +58,15 @@ public class ClientActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         // Replace with the actual layout filename you saved for the client layout
         setContentView(R.layout.activity_client);
+
+        // Allow content to lay out behind system bars
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+
+        // Transparent bars so fragment header can draw behind them
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
 
         // init firebase
         mAuth = FirebaseAuth.getInstance();

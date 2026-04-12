@@ -1,6 +1,7 @@
 package com.example.woil.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -49,6 +51,15 @@ public class JobsByCategoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_jobs_by_category);
+
+        // Allow content to lay out behind system bars
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+
+        // Transparent bars so fragment header can draw behind them
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
 
         tvCategoryTitle = findViewById(R.id.tv_category_title);
         tvResultsInfo = findViewById(R.id.tv_results_info);

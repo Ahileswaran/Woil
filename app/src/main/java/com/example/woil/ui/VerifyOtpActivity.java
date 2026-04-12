@@ -1,6 +1,7 @@
 package com.example.woil.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.EditText;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
@@ -46,6 +48,15 @@ public class VerifyOtpActivity extends AppCompatActivity {
         etOtp = findViewById(R.id.etOtp);
         btnVerify = findViewById(R.id.btnVerifyOtp);
         tvResend = findViewById(R.id.tvResend);
+
+        // Allow content to lay out behind system bars
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+
+        // Transparent bars so fragment header can draw behind them
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();

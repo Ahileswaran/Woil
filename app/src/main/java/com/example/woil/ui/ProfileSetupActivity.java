@@ -3,6 +3,7 @@ package com.example.woil.ui;
 import android.app.DatePickerDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -22,6 +23,8 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+
 import com.google.android.material.button.MaterialButton;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -72,6 +75,15 @@ public class ProfileSetupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_setup);
+
+        // Allow content to lay out behind system bars
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+
+        // Transparent bars so fragment header can draw behind them
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
 
         // UI refs
         etFirstName = findViewById(R.id.etFirstName);
