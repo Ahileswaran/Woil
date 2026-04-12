@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -27,15 +30,16 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Date;
 
 public class PostJobActivity extends AppCompatActivity {
 
+    private static final String TAG = "POST_JOB";
     private static final int REQ_PICK_LOCATION = 1001;
 
     private MaterialButton btnPostJob;
@@ -45,6 +49,7 @@ public class PostJobActivity extends AppCompatActivity {
     private Spinner spinnerCategory;
     private EditText etWageSuggested;
     private TextView tvSetLocation;
+    private TextView tvLocationName;
     private ImageView imgMap;
     private TextView tvDate;
     private TextView tvTimeRange;
@@ -55,6 +60,7 @@ public class PostJobActivity extends AppCompatActivity {
     private String selectedAddress = "";
     private Double selectedLat = null;
     private Double selectedLng = null;
+    private String selectedSnapshotPath = "";
 
     // date/time state
     private final Calendar startCal = Calendar.getInstance();
@@ -76,14 +82,9 @@ public class PostJobActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-
-        // Transparent bars so fragment header can draw behind them
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
-
 
         // find views
         btnPostJob = findViewById(R.id.btn_post_job);
@@ -93,6 +94,7 @@ public class PostJobActivity extends AppCompatActivity {
         spinnerCategory = findViewById(R.id.spinner_category);
         etWageSuggested = findViewById(R.id.et_wage_suggested);
         tvSetLocation = findViewById(R.id.tv_set_location);
+        tvLocationName = findViewById(R.id.tv_location_name);
         imgMap = findViewById(R.id.img_map);
         tvDate = findViewById(R.id.tv_date);
         tvTimeRange = findViewById(R.id.tv_time_range);
@@ -120,7 +122,7 @@ public class PostJobActivity extends AppCompatActivity {
         );
         spinnerCategory.setAdapter(catAdapter);
 
-        // Initialize date/time defaults (start = now rounded to next half-hour, end = start + 2 hours)
+        // Initialize date/time defaults
         setDefaultStartEndTimes();
         refreshDateTimeText();
 
@@ -133,18 +135,21 @@ public class PostJobActivity extends AppCompatActivity {
 
         tvSetLocation.setOnClickListener(openMapPicker);
         imgMap.setOnClickListener(openMapPicker);
+        if (tvLocationName != null) {
+            tvLocationName.setOnClickListener(openMapPicker);
+        }
 
         // Date picker
         tvDate.setOnClickListener(v -> {
             int y = startCal.get(Calendar.YEAR);
             int m = startCal.get(Calendar.MONTH);
             int d = startCal.get(Calendar.DAY_OF_MONTH);
+
             DatePickerDialog dp = new DatePickerDialog(PostJobActivity.this, (view, year, month, dayOfMonth) -> {
                 startCal.set(Calendar.YEAR, year);
                 startCal.set(Calendar.MONTH, month);
                 startCal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-                // also move endCal to same day (keep times)
                 endCal.set(Calendar.YEAR, year);
                 endCal.set(Calendar.MONTH, month);
                 endCal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
@@ -154,7 +159,7 @@ public class PostJobActivity extends AppCompatActivity {
             dp.show();
         });
 
-        // Time range picker (start then end)
+        // Time range picker
         tvTimeRange.setOnClickListener(v -> pickStartTime());
 
         btnPostJob.setOnClickListener(v -> {
@@ -175,7 +180,6 @@ public class PostJobActivity extends AppCompatActivity {
                 return;
             }
 
-            // Ensure authenticated user (falls back to anonymous sign-in for testing)
             ensureAuthenticatedThenPost();
         });
     }
@@ -192,6 +196,7 @@ public class PostJobActivity extends AppCompatActivity {
             now.add(Calendar.HOUR_OF_DAY, 1);
             now.set(Calendar.MINUTE, 0);
         }
+
         now.set(Calendar.SECOND, 0);
         now.set(Calendar.MILLISECOND, 0);
 
@@ -209,6 +214,7 @@ public class PostJobActivity extends AppCompatActivity {
         int hour = startCal.get(Calendar.HOUR_OF_DAY);
         int minute = startCal.get(Calendar.MINUTE);
         boolean is24 = false;
+
         TimePickerDialog tpd = new TimePickerDialog(PostJobActivity.this, (view, hourOfDay, minute1) -> {
             startCal.set(Calendar.HOUR_OF_DAY, hourOfDay);
             startCal.set(Calendar.MINUTE, minute1);
@@ -223,6 +229,7 @@ public class PostJobActivity extends AppCompatActivity {
             pickEndTime();
             refreshDateTimeText();
         }, hour, minute, is24);
+
         tpd.show();
     }
 
@@ -230,6 +237,7 @@ public class PostJobActivity extends AppCompatActivity {
         int hour = endCal.get(Calendar.HOUR_OF_DAY);
         int minute = endCal.get(Calendar.MINUTE);
         boolean is24 = false;
+
         TimePickerDialog tpd = new TimePickerDialog(PostJobActivity.this, (view, hourOfDay, minute1) -> {
             endCal.set(Calendar.HOUR_OF_DAY, hourOfDay);
             endCal.set(Calendar.MINUTE, minute1);
@@ -244,46 +252,81 @@ public class PostJobActivity extends AppCompatActivity {
 
             refreshDateTimeText();
         }, hour, minute, is24);
+
         tpd.show();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == REQ_PICK_LOCATION && resultCode == Activity.RESULT_OK && data != null) {
             selectedAddress = data.getStringExtra("address");
             selectedLat = data.getDoubleExtra("lat", 0.0);
             selectedLng = data.getDoubleExtra("lng", 0.0);
+            selectedSnapshotPath = data.getStringExtra("snapshot_path");
 
-            tvSetLocation.setText(selectedAddress != null ? selectedAddress : "Selected location");
+            Log.d(TAG, "selectedAddress = " + selectedAddress);
+            Log.d(TAG, "selectedLat = " + selectedLat);
+            Log.d(TAG, "selectedLng = " + selectedLng);
+            Log.d(TAG, "selectedSnapshotPath = " + selectedSnapshotPath);
+
+            if (TextUtils.isEmpty(selectedAddress)) {
+                selectedAddress = selectedLat + ", " + selectedLng;
+            }
+
+            updateSelectedLocationPreview();
         }
     }
 
-    /**
-     * Ensure there's an authenticated Firebase user, then call postJobToFirestore().
-     * Falls back to anonymous sign-in if no user is signed in.
-     */
+    private void updateSelectedLocationPreview() {
+        if (tvSetLocation != null) {
+            tvSetLocation.setText("Change location");
+        }
+
+        if (tvLocationName != null) {
+            tvLocationName.setText(!TextUtils.isEmpty(selectedAddress)
+                    ? selectedAddress
+                    : "Selected location");
+        }
+
+        if (!TextUtils.isEmpty(selectedSnapshotPath)) {
+            File file = new File(selectedSnapshotPath);
+            Log.d(TAG, "snapshot exists = " + file.exists());
+
+            if (file.exists()) {
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                if (bitmap != null) {
+                    imgMap.setImageBitmap(bitmap);
+                    return;
+                } else {
+                    Log.e(TAG, "BitmapFactory.decodeFile returned null");
+                }
+            }
+        }
+
+        imgMap.setImageResource(R.drawable.ic_map_placeholder);
+    }
+
     private void ensureAuthenticatedThenPost() {
         if (mAuth.getCurrentUser() != null) {
             postJobToFirestore();
             return;
         }
 
-        // Sign in anonymously for fast testing flows. For production, prefer phone/email auth.
         mAuth.signInAnonymously()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         postJobToFirestore();
                     } else {
-                        String err = task.getException() != null ? task.getException().getMessage() : "Anonymous signin failed";
+                        String err = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "Anonymous signin failed";
                         Toast.makeText(PostJobActivity.this, "Auth error: " + err, Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
-    /**
-     * Posts the job document to Firestore using the project's schema.
-     */
     private void postJobToFirestore() {
         String uid = (mAuth.getCurrentUser() != null) ? mAuth.getCurrentUser().getUid() : null;
         if (uid == null) {
@@ -295,12 +338,16 @@ public class PostJobActivity extends AppCompatActivity {
         job.put("clientUid", uid);
 
         String title = etTitle != null ? etTitle.getText().toString().trim() : "";
-        if (!TextUtils.isEmpty(title)) job.put("title", title);
+        if (!TextUtils.isEmpty(title)) {
+            job.put("title", title);
+        }
 
         String category = spinnerCategory != null && spinnerCategory.getSelectedItem() != null
                 ? spinnerCategory.getSelectedItem().toString()
                 : "";
-        if (!TextUtils.isEmpty(category)) job.put("category", category);
+        if (!TextUtils.isEmpty(category)) {
+            job.put("category", category);
+        }
 
         job.put("locationText", selectedAddress);
 
@@ -309,12 +356,8 @@ public class PostJobActivity extends AppCompatActivity {
         locationMap.put("lng", selectedLng);
         job.put("location", locationMap);
 
-        if (startCal != null) {
-            job.put("startAt", new Timestamp(startCal.getTime()));
-        }
-        if (endCal != null) {
-            job.put("endAt", new Timestamp(endCal.getTime()));
-        }
+        job.put("startAt", new Timestamp(startCal.getTime()));
+        job.put("endAt", new Timestamp(endCal.getTime()));
 
         if (etWageSuggested != null) {
             String wageS = etWageSuggested.getText().toString().trim();
@@ -323,16 +366,15 @@ public class PostJobActivity extends AppCompatActivity {
                     double wage = Double.parseDouble(wageS);
                     job.put("wageSuggested", wage);
                     job.put("wageSuggestedText", "Rs. " + wageS);
-                } catch (NumberFormatException ignored) { }
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
 
         job.put("description", etDescription.getText().toString().trim());
         job.put("assignedUid", null);
         job.put("status", "OPEN");
-        job.put("allowOffers", (switchAllowOffers != null) && switchAllowOffers.isChecked());
-
-        // Use server timestamp to avoid rules/time issues
+        job.put("allowOffers", switchAllowOffers != null && switchAllowOffers.isChecked());
         job.put("createdAt", FieldValue.serverTimestamp());
 
         db.collection("jobs")
@@ -344,9 +386,8 @@ public class PostJobActivity extends AppCompatActivity {
                     setResult(Activity.RESULT_OK, result);
                     finish();
                 })
-                .addOnFailureListener(e -> {
-                    // Likely Firestore rules rejection (permission_denied) or network error
-                    Toast.makeText(PostJobActivity.this, "Failed to post job: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(PostJobActivity.this, "Failed to post job: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
     }
 }

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -27,6 +28,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -45,7 +48,9 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 if (granted) {
-                    if (mMap != null) tryEnableMyLocation();
+                    if (mMap != null) {
+                        tryEnableMyLocation();
+                    }
                 } else {
                     Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
                 }
@@ -56,18 +61,10 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_picker);
 
-        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-
-        // Transparent bars so fragment header can draw behind them
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-
-        // -----------------------
-        // DEBUG: print runtime API key
-        // -----------------------
         try {
             String apiKey = getPackageManager()
                     .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
@@ -76,26 +73,45 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
         } catch (Exception e) {
             Log.e(TAG, "Couldn't read API key: " + e.getMessage(), e);
         }
-        // -----------------------
 
         tvAddress = findViewById(R.id.tv_selected_address);
         btnConfirm = findViewById(R.id.btn_confirm_location);
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        if (mapFragment != null) mapFragment.getMapAsync(this);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
 
         btnConfirm.setOnClickListener(v -> {
             if (selectedLatLng == null) {
                 Toast.makeText(this, "Tap map to select a location", Toast.LENGTH_SHORT).show();
                 return;
             }
-            Intent result = new Intent();
-            result.putExtra("lat", selectedLatLng.latitude);
-            result.putExtra("lng", selectedLatLng.longitude);
-            result.putExtra("address", selectedAddress != null ? selectedAddress : "");
-            setResult(Activity.RESULT_OK, result);
-            finish();
+
+            if (mMap == null) {
+                Intent result = new Intent();
+                result.putExtra("lat", selectedLatLng.latitude);
+                result.putExtra("lng", selectedLatLng.longitude);
+                result.putExtra("address", selectedAddress != null ? selectedAddress : "");
+                setResult(Activity.RESULT_OK, result);
+                finish();
+                return;
+            }
+
+            mMap.snapshot(bitmap -> {
+                Intent result = new Intent();
+                result.putExtra("lat", selectedLatLng.latitude);
+                result.putExtra("lng", selectedLatLng.longitude);
+                result.putExtra("address", selectedAddress != null ? selectedAddress : "");
+
+                String snapshotPath = saveBitmapToCache(bitmap);
+                Log.d(TAG, "snapshot saved path = " + snapshotPath);
+
+                result.putExtra("snapshot_path", snapshotPath != null ? snapshotPath : "");
+                setResult(Activity.RESULT_OK, result);
+                finish();
+            });
         });
     }
 
@@ -103,7 +119,6 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Center on Colombo by default (change as needed)
         LatLng defaultCity = new LatLng(6.9271, 79.8612);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultCity, 12f));
 
@@ -114,15 +129,22 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
             mMap.addMarker(new MarkerOptions().position(latLng));
             selectedLatLng = latLng;
             selectedAddress = reverseGeocode(latLng.latitude, latLng.longitude);
-            tvAddress.setText(selectedAddress != null && !selectedAddress.isEmpty() ? selectedAddress :
-                    String.format(Locale.getDefault(), "%.6f, %.6f", latLng.latitude, latLng.longitude));
+
+            String displayText = (selectedAddress != null && !selectedAddress.isEmpty())
+                    ? selectedAddress
+                    : String.format(Locale.getDefault(), "%.6f, %.6f", latLng.latitude, latLng.longitude);
+
+            tvAddress.setText(displayText);
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         });
     }
 
     private void tryEnableMyLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            if (mMap != null) mMap.setMyLocationEnabled(true);
+            if (mMap != null) {
+                mMap.setMyLocationEnabled(true);
+            }
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
         }
@@ -135,18 +157,46 @@ public class MapPickerActivity extends AppCompatActivity implements OnMapReadyCa
             if (addresses != null && !addresses.isEmpty()) {
                 Address a = addresses.get(0);
                 StringBuilder sb = new StringBuilder();
+
                 if (a.getThoroughfare() != null) sb.append(a.getThoroughfare()).append(", ");
                 if (a.getSubLocality() != null) sb.append(a.getSubLocality()).append(", ");
                 if (a.getLocality() != null) sb.append(a.getLocality()).append(", ");
                 if (a.getAdminArea() != null) sb.append(a.getAdminArea()).append(", ");
                 if (a.getCountryName() != null) sb.append(a.getCountryName());
-                return sb.toString();
+
+                String value = sb.toString().trim();
+                if (value.endsWith(",")) {
+                    value = value.substring(0, value.length() - 1).trim();
+                }
+                return value;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "reverseGeocode failed", e);
         }
         return "";
-
     }
 
+    private String saveBitmapToCache(Bitmap bitmap) {
+        if (bitmap == null) return null;
+
+        File file = new File(getCacheDir(), "selected_map_snapshot.png");
+        FileOutputStream out = null;
+
+        try {
+            out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            return file.getAbsolutePath();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save map snapshot", e);
+            return null;
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+    }
 }

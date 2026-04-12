@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/white">
 
-    <!-- ORANGE HEADER -->
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
@@ -17,27 +16,26 @@
             android:id="@+id/btn_back"
             android:layout_width="44dp"
             android:layout_height="44dp"
+            android:layout_alignParentStart="true"
             android:layout_marginStart="12dp"
             android:layout_marginTop="24dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
-            android:layout_alignParentStart="true"
             app:tint="@android:color/white" />
 
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="30dp"
             android:text="Post a Job"
             android:textColor="@android:color/white"
             android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="30dp"/>
+            android:textStyle="bold" />
     </RelativeLayout>
 
-    <!-- MAIN CONTENT -->
     <ScrollView
         android:id="@+id/scroll_main"
         android:layout_width="match_parent"
@@ -54,63 +52,60 @@
             android:paddingEnd="16dp"
             android:paddingBottom="28dp">
 
-            <!-- Card container with rounded background like screenshot -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="6dp"
                 android:layout_marginTop="8dp"
-                android:padding="14dp">
+                android:padding="14dp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="6dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Job title (now an input box) -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         android:paddingBottom="12dp">
 
                         <ImageView
                             android:layout_width="28dp"
                             android:layout_height="28dp"
-                            android:src="@drawable/ic_chef"
                             android:contentDescription="job icon"
+                            android:src="@drawable/ic_chef"
                             app:tint="#37474F" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="   Job title"
-                            android:textSize="15sp"
                             android:textColor="#37474F"
-                            android:textStyle="bold"/>
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <EditText
                         android:id="@+id/et_title"
                         android:layout_width="match_parent"
                         android:layout_height="44dp"
+                        android:layout_marginBottom="16dp"
                         android:background="@drawable/bg_field"
-                        android:paddingStart="14dp"
                         android:gravity="center_vertical"
                         android:hint="e.g. Cook for a family"
+                        android:inputType="textCapWords"
+                        android:paddingStart="14dp"
                         android:textColor="#424242"
-                        android:textSize="15sp"
-                        android:layout_marginBottom="16dp"
-                        android:inputType="textCapWords"/>
+                        android:textSize="15sp" />
 
-                    <!-- Category (dropdown spinner) -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         android:paddingBottom="12dp">
 
                         <ImageView
@@ -123,9 +118,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="   Category"
+                            android:textColor="#37474F"
                             android:textSize="15sp"
-                            android:textStyle="bold"
-                            android:textColor="#37474F"/>
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <Spinner
@@ -135,14 +130,13 @@
                         android:layout_marginBottom="16dp"
                         android:background="@drawable/bg_field"
                         android:paddingStart="12dp"
-                        android:paddingEnd="12dp"/>
+                        android:paddingEnd="12dp" />
 
-                    <!-- LOCATION -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         android:paddingBottom="8dp">
 
                         <ImageView
@@ -153,12 +147,12 @@
 
                         <TextView
                             android:layout_width="0dp"
-                            android:layout_weight="1"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:text="   Location"
+                            android:textColor="#37474F"
                             android:textSize="15sp"
-                            android:textStyle="bold"
-                            android:textColor="#37474F"/>
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tv_set_location"
@@ -166,40 +160,41 @@
                             android:layout_height="wrap_content"
                             android:text="Set location"
                             android:textColor="#7B1FA2"
-                            android:textSize="13sp"/>
+                            android:textSize="13sp" />
                     </LinearLayout>
 
-                    <!-- Map preview -->
                     <ImageView
                         android:id="@+id/img_map"
                         android:layout_width="match_parent"
                         android:layout_height="140dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_map_placeholder"
+                        android:layout_marginBottom="8dp"
+                        android:adjustViewBounds="true"
                         android:background="@drawable/bg_map_card"
                         android:contentDescription="map"
-                        android:layout_marginBottom="8dp"/>
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_map_placeholder" />
 
                     <TextView
+                        android:id="@+id/tv_location_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Colombo 5"
-                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp"
+                        android:text="No location selected"
+                        android:textColor="#757575"
                         android:textSize="15sp"
-                        android:layout_marginBottom="12dp"/>
+                        android:textStyle="bold" />
 
-                    <!-- DATE & TIME -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="12dp"
+                        android:orientation="vertical">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
                             <ImageView
                                 android:layout_width="28dp"
@@ -211,12 +206,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="   Date and Time"
+                                android:textColor="#37474F"
                                 android:textSize="15sp"
-                                android:textStyle="bold"
-                                android:textColor="#37474F"/>
+                                android:textStyle="bold" />
                         </LinearLayout>
 
-                        <!-- date field (clickable) -->
                         <TextView
                             android:id="@+id/tv_date"
                             android:layout_width="match_parent"
@@ -226,10 +220,9 @@
                             android:gravity="center_vertical"
                             android:paddingStart="12dp"
                             android:text="  Apr 26, 2024"
-                            android:textSize="14sp"
-                            android:textColor="#616161"/>
+                            android:textColor="#616161"
+                            android:textSize="14sp" />
 
-                        <!-- time range field (clickable) -->
                         <TextView
                             android:id="@+id/tv_time_range"
                             android:layout_width="match_parent"
@@ -239,22 +232,21 @@
                             android:gravity="center_vertical"
                             android:paddingStart="12dp"
                             android:text="  02:00 PM - 04:30 PM"
-                            android:textSize="14sp"
-                            android:textColor="#616161"/>
+                            android:textColor="#616161"
+                            android:textSize="14sp" />
                     </LinearLayout>
 
-                    <!-- WAGE -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="12dp"
+                        android:orientation="vertical">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
                             <ImageView
                                 android:layout_width="28dp"
@@ -266,56 +258,53 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="   Wage"
+                                android:textColor="#37474F"
                                 android:textSize="15sp"
-                                android:textStyle="bold"
-                                android:textColor="#37474F"/>
+                                android:textStyle="bold" />
                         </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:orientation="horizontal"
+                            android:layout_marginTop="8dp"
                             android:gravity="center_vertical"
-                            android:layout_marginTop="8dp">
+                            android:orientation="horizontal">
 
-                            <!-- editable wage input -->
                             <EditText
                                 android:id="@+id/et_wage_suggested"
                                 android:layout_width="0dp"
-                                android:layout_weight="1"
                                 android:layout_height="match_parent"
+                                android:layout_weight="1"
                                 android:background="@drawable/bg_field"
-                                android:hint="Rs. 1500"
                                 android:gravity="center_vertical"
-                                android:textSize="14sp"
-                                android:textColor="#616161"
+                                android:hint="Rs. 1500"
+                                android:inputType="numberDecimal"
                                 android:paddingStart="12dp"
-                                android:inputType="numberDecimal"/>
+                                android:textColor="#616161"
+                                android:textSize="14sp" />
 
-                            <!-- existing badge (keeps showing the range) -->
                             <TextView
                                 android:id="@+id/tv_wage_range_badge"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
                                 android:background="@drawable/bg_badge_purple"
                                 android:paddingLeft="10dp"
-                                android:paddingRight="10dp"
                                 android:paddingTop="8dp"
+                                android:paddingRight="10dp"
                                 android:paddingBottom="8dp"
                                 android:text="Rs. 1200 - 1800/hr"
-                                android:textSize="12sp"
                                 android:textColor="#6A1B9A"
-                                android:layout_marginStart="12dp"/>
+                                android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Allow offers -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="28dp"
@@ -325,60 +314,56 @@
 
                         <TextView
                             android:layout_width="0dp"
-                            android:layout_weight="1"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:text="   Allow offers"
+                            android:textColor="#37474F"
                             android:textSize="15sp"
-                            android:textStyle="bold"
-                            android:textColor="#37474F"/>
+                            android:textStyle="bold" />
 
                         <Switch
                             android:id="@+id/switch_allow_offers"
                             android:layout_width="56dp"
                             android:layout_height="32dp"
-                            android:checked="true"/>
+                            android:checked="true" />
                     </LinearLayout>
 
-                    <!-- Job description -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
                         android:text="Job description"
-                        android:textSize="13sp"
                         android:textColor="#9E9E9E"
-                        android:layout_marginBottom="6dp"/>
+                        android:textSize="13sp" />
 
                     <EditText
                         android:id="@+id/et_description"
                         android:layout_width="match_parent"
                         android:layout_height="90dp"
                         android:background="@drawable/bg_field"
-                        android:padding="12dp"
                         android:gravity="top"
-                        android:hint=""
+                        android:padding="12dp"
                         android:textColor="#424242"
-                        android:textSize="14sp"/>
+                        android:textSize="14sp" />
 
-                    <!-- Spacer before button -->
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="18dp"/>
+                        android:layout_height="18dp" />
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Post Job Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_post_job"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="18dp"
+                android:background="@drawable/bg_post_button_gradient"
                 android:text="Post Job"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                app:backgroundTint="@null"
-                android:background="@drawable/bg_post_button_gradient"/>
+                app:backgroundTint="@null" />
 
         </LinearLayout>
     </ScrollView>
