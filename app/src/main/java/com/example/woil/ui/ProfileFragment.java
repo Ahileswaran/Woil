@@ -61,12 +61,21 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_profile, container, false);
+
     }
+
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        TextView txtViewSkillDetails = view.findViewById(R.id.txt_view_skill_details);
+        txtViewSkillDetails.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), SkillShowcaseActivity.class);
+            startActivity(intent);
+        });
 
         ivProfile = view.findViewById(R.id.profile_image_main);
         tvUsername = view.findViewById(R.id.username);
