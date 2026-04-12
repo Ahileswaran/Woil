@@ -26,11 +26,12 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
         tvEta = findViewById(R.id.tv_eta);
         tvDistance = findViewById(R.id.tv_distance);
 
-        // TODO: load worker location + client job location + route/eta
+        tvEta.setText("ETA: calculating...");
+        tvDistance.setText("Distance: calculating...");
     }
 
     @Override
     public void onMapReady(com.google.android.gms.maps.GoogleMap googleMap) {
-        // TODO: add worker marker, client marker, optional polyline
+        // TODO add worker/client markers and route polyline later
     }
 }

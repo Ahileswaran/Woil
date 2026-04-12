@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -149,7 +150,9 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     } else if (id == R.id.nav_guard) {
                         if ("client".equalsIgnoreCase(role)) {
-                            openFragment(new ClientJobMatchingFragment(), false, "matching");
+                            currentMenuItemId = R.id.nav_guard;
+                            currentTag = "matching";
+                            startActivity(new Intent(MainActivity.this, ClientJobMatchingActivity.class));
                         } else {
                             openFragment(new WoilGuardFragment(), false, "guard");
                         }
@@ -249,12 +252,14 @@ public class MainActivity extends AppCompatActivity {
             if (guardItem != null) {
                 if ("client".equalsIgnoreCase(role)) {
                     guardItem.setTitle("Matching");
+                    guardItem.setIcon(R.drawable.ic_matching_hands);
                 } else {
                     guardItem.setTitle("Woil Guard");
+                    guardItem.setIcon(R.drawable.ic_woil_guard);
                 }
             }
         } catch (Throwable t) {
-            Log.w(TAG, "Failed to update bottom nav labels", t);
+            Log.w(TAG, "Failed to update bottom nav labels/icons", t);
         }
     }
 

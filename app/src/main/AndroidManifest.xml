@@ -69,10 +69,15 @@
 
         <activity android:name=".ui.ClientJobApplicationsActivity" />
         <activity android:name=".ui.NotificationsActivity" />
-        <activity android:name=".ui.AssignedJobMapActivity" />
         <activity android:name=".ui.PaymentActivity" />
         <activity android:name=".ui.PaymentSuccessActivity" />
         <activity android:name=".ui.FeedbackActivity" />
+
+
+        <activity android:name=".ui.ClientJobMatchingActivity" />
+        <activity android:name=".ui.ClientWorkerSelectionActivity" />
+        <activity android:name=".ui.MatchingResultActivity" />
+        <activity android:name=".ui.AssignedJobMapActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
