@@ -14,7 +14,8 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def mapsApiKey = localProperties.getProperty("MAPS_API_KEY", "")
+def androidMapsKey = localProperties.getProperty("MAPS_API_KEY", "")
+def staticMapsKey = localProperties.getProperty("STATIC_MAPS_API_KEY", "")
 
 android {
     namespace 'com.example.woil'
@@ -29,17 +30,20 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        manifestPlaceholders = [MAPS_API_KEY: mapsApiKey]
+        manifestPlaceholders = [MAPS_API_KEY: androidMapsKey]
+        resValue "string", "static_maps_api_key", staticMapsKey
     }
 
     buildTypes {
         debug {
-            manifestPlaceholders = [MAPS_API_KEY: mapsApiKey]
+            manifestPlaceholders = [MAPS_API_KEY: androidMapsKey]
+            resValue "string", "static_maps_api_key", staticMapsKey
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            manifestPlaceholders = [MAPS_API_KEY: mapsApiKey]
+            manifestPlaceholders = [MAPS_API_KEY: androidMapsKey]
+            resValue "string", "static_maps_api_key", staticMapsKey
         }
     }
 

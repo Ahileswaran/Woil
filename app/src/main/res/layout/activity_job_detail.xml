@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="#F8F8F8">
 
-    <!-- HEADER -->
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
@@ -68,7 +67,6 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- SCROLL CONTENT -->
     <ScrollView
         android:id="@+id/scroll_content"
         android:layout_width="match_parent"
@@ -84,7 +82,6 @@
             android:orientation="vertical"
             android:padding="14dp">
 
-            <!-- hero card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -239,7 +236,21 @@
                             android:textColor="#9E9E9E"
                             android:textSize="13sp" />
 
-                        <!-- action row -->
+                        <TextView
+                            android:id="@+id/tv_assignment_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_chip_verified"
+                            android:paddingStart="10dp"
+                            android:paddingTop="6dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="6dp"
+                            android:text="Open job"
+                            android:textColor="#2E7D32"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -299,7 +310,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- description -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -329,14 +339,26 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:lineSpacingExtra="2dp"
-                        android:text="Need an experienced house cleaner for a 3-bedroom home. General cleaning, bathroom cleaning, mopping, and dusting required."
+                        android:text="Need an experienced house cleaner for a 3-bedroom home."
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- requirements -->
             <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#ECECEC"
+                app:strokeWidth="1dp">
+
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_location_preview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
@@ -354,46 +376,37 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Requirements"
+                        android:text="Location Preview"
                         android:textColor="#1E1E1E"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
+                    <ImageView
+                        android:id="@+id/img_location_preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="170dp"
+                        android:layout_marginTop="12dp"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/bg_map_card"
+                        android:contentDescription="Job location preview"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_map_placeholder" />
+
                     <TextView
-                        android:id="@+id/tv_req_1"
+                        android:id="@+id/tv_location_preview_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="• Previous cleaning experience"
-                        android:textColor="#5F5F5F"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:id="@+id/tv_req_2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="• Female worker preferred"
-                        android:textColor="#5F5F5F"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:id="@+id/tv_req_3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="• NIC verification required"
+                        android:text="No location available"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- extra details -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:layout_marginBottom="10dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="2dp"
                 app:strokeColor="#ECECEC"
@@ -421,40 +434,69 @@
                         android:text="Duration: 3 hours"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_assignment_travel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#ECECEC"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <TextView
-                        android:id="@+id/tv_payment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Payment Method: Cash / App"
+                        android:text="Worker Travel Info"
+                        android:textColor="#1E1E1E"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_worker_distance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Distance: 2.4 km"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
 
                     <TextView
-                        android:id="@+id/tv_tips"
+                        android:id="@+id/tv_worker_eta"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Tips: Meals included"
+                        android:text="ETA: 9 min"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
 
-                    <TextView
-                        android:id="@+id/tv_safety"
+                    <ImageView
+                        android:id="@+id/img_route_preview"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Safety: Verified home address"
-                        android:textColor="#5F5F5F"
-                        android:textSize="15sp" />
+                        android:layout_height="170dp"
+                        android:layout_marginTop="12dp"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/bg_map_card"
+                        android:contentDescription="Route preview"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_map_placeholder" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- sticky bottom action bar -->
     <LinearLayout
         android:id="@+id/bottom_action_bar"
         android:layout_width="match_parent"
@@ -505,7 +547,6 @@
             app:cornerRadius="16dp"
             app:icon="@drawable/ic_apply"
             app:iconPadding="8dp" />
-
     </LinearLayout>
 
 </FrameLayout>

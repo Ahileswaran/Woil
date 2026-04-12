@@ -65,6 +65,8 @@
         <activity android:name=".ui.PostJobActivity"
             android:exported="false" />
 
+        <activity android:name=".ui.ApplyJobActivity" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
