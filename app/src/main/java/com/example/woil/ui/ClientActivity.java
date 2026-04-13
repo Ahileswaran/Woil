@@ -127,7 +127,7 @@ public class ClientActivity extends AppCompatActivity {
         }
 
 
-        MaterialButton btnAddJob = findViewById(R.id.btn_add_job);
+        MaterialButton btnAddJob = findViewById(R.id.btn_add_job_floating);
 
         if (btnAddJob != null) {
             btnAddJob.setOnClickListener(v -> {
