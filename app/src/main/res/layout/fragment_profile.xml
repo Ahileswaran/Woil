@@ -1,279 +1,275 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_scroll"
+    android:id="@+id/root_frame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:clipToPadding="false"
-    android:fitsSystemWindows="false"
     android:background="#F5F1F6"
-    android:paddingBottom="24dp"
     tools:context=".ui.ProfileFragment">
 
-    <LinearLayout
+    <!-- FIXED HEADER -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:clipToPadding="false"
-        android:paddingBottom="36dp">
+        android:layout_height="332dp"
+        android:background="@drawable/bg_orange_gradient"
+        android:paddingTop="12dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/header_bg"
-            android:layout_width="match_parent"
-            android:layout_height="332dp"
-            android:background="@drawable/bg_orange_gradient"
-            android:paddingTop="12dp">
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Back"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_arrow_back_white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageButton
-                android:id="@+id/btn_back"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Back"
-                android:padding="8dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_arrow_back_white"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile_image_main"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="34dp"
-                android:src="@drawable/photo_placeholder"
-                app:civ_border_color="#FFFFFFFF"
-                app:civ_border_width="3dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="MissingClass" />
-
-            <LinearLayout
-                android:id="@+id/username_row"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/profile_image_main">
-
-                <TextView
-                    android:id="@+id/username"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@Kavitha Dissanayake"
-                    android:textColor="#FFFFFF"
-                    android:textSize="26sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/verified_badge"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_marginStart="8dp"
-                    android:contentDescription="verified"
-                    android:src="@drawable/ic_verified" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/subtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Worker · Colombo 5"
-                android:textColor="#FFF7F7"
-                android:textSize="16sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/username_row" />
-
-            <LinearLayout
-                android:id="@+id/info_card"
-                android:layout_width="0dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="22dp"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/info_card_bg"
-                android:elevation="6dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/subtitle">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/rating_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="★ 4.6"
-                        android:textColor="#333333"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Rating"
-                        android:textColor="#666666"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="52dp"
-                    android:background="#E6E6E6" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/jobs_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="24"
-                        android:textColor="#333333"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Jobs completed"
-                        android:textColor="#666666"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="52dp"
-                    android:background="#E6E6E6" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/member_since_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="2021"
-                        android:textColor="#333333"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Member since"
-                        android:textColor="#666666"
-                        android:textSize="16sp" />
-                </LinearLayout>
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- gap between rating card and action bar -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="16dp" />
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image_main"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="34dp"
+            android:src="@drawable/photo_placeholder"
+            app:civ_border_color="#FFFFFFFF"
+            app:civ_border_width="3dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="MissingClass" />
 
         <LinearLayout
-            android:id="@+id/top_white_container"
-            android:layout_width="match_parent"
+            android:id="@+id/username_row"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/white_card_top_rounded"
-            android:elevation="8dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/profile_image_main">
+
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@Jhonedoe"
+                android:textColor="#FFFFFF"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/verified_badge"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="verified"
+                android:src="@drawable/ic_verified" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Client · Colombo"
+            android:textColor="#FFF7F7"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/username_row" />
+
+        <LinearLayout
+            android:id="@+id/info_card"
+            android:layout_width="0dp"
+            android:layout_height="62dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/info_card_bg"
+            android:elevation="6dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="6dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/subtitle">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/rating_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="★ —"
+                    android:textColor="#333333"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Rating"
+                    android:textColor="#666666"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="48dp"
+                android:background="#E6E6E6" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/jobs_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="#333333"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Jobs completed"
+                    android:textColor="#666666"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="48dp"
+                android:background="#E6E6E6" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/member_since_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="—"
+                    android:textColor="#333333"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Member since"
+                    android:textColor="#666666"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- OVERLAPPING WHITE ACTION BAR -->
+    <LinearLayout
+        android:id="@+id/top_white_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="296dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/white_card_top_rounded"
+        android:elevation="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/btn_edit_profile"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_purple_gradient_pill"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="0dp"
+            android:text="Edit profile"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/toggle_group"
+            android:layout_width="190dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_toggle_purple_outline"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="10dp">
+            android:padding="3dp">
 
             <Button
-                android:id="@+id/btn_edit_profile"
+                android:id="@+id/btn_client"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_marginEnd="10dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/bg_purple_gradient_pill"
+                android:background="@drawable/bg_toggle_unselected"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:minHeight="0dp"
-                android:text="Edit profile"
+                android:text="Client"
                 android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textColor="#222222"
+                android:textSize="12sp"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:id="@+id/toggle_group"
-                android:layout_width="190dp"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_toggle_purple_outline"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="3dp">
-
-                <Button
-                    android:id="@+id/btn_client"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_toggle_selected"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:minHeight="0dp"
-                    android:text="Client"
-                    android:textAllCaps="false"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <Button
-                    android:id="@+id/btn_worker"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_toggle_unselected"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:minHeight="0dp"
-                    android:text="Worker"
-                    android:textAllCaps="false"
-                    android:textColor="#222222"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <Button
+                android:id="@+id/btn_worker"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="0dp"
+                android:text="Worker"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
+    </LinearLayout>
+
+    <!-- ONLY THIS PART SCROLLS -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/root_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="382dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="24dp">
 
         <LinearLayout
             android:id="@+id/main_content"
@@ -283,7 +279,7 @@
             android:paddingStart="16dp"
             android:paddingTop="16dp"
             android:paddingEnd="16dp"
-            android:paddingBottom="56dp">
+            android:paddingBottom="140dp">
 
             <LinearLayout
                 android:id="@+id/card_account_info"
@@ -301,7 +297,7 @@
                     android:layout_height="wrap_content"
                     android:text="Account Info"
                     android:textColor="#333333"
-                    android:textSize="20sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
@@ -322,7 +318,7 @@
                         android:layout_marginStart="14dp"
                         android:text="Kavitha Dissanayake"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <View
@@ -348,7 +344,7 @@
                         android:layout_marginStart="14dp"
                         android:text="+91-8129999999"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
 
                     <ImageView
                         android:layout_width="18dp"
@@ -380,7 +376,7 @@
                         android:layout_marginStart="14dp"
                         android:text="kavitha.d@gmail.com"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <View
@@ -406,7 +402,7 @@
                         android:layout_marginStart="14dp"
                         android:text="Colombo 5"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -433,7 +429,7 @@
                         android:layout_weight="1"
                         android:text="Verification"
                         android:textColor="#333333"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -473,7 +469,7 @@
                             android:layout_height="wrap_content"
                             android:text="ID Parsed DOB"
                             android:textColor="#444444"
-                            android:textSize="16sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -481,7 +477,7 @@
                             android:layout_marginTop="10dp"
                             android:text="ID data match:"
                             android:textColor="#444444"
-                            android:textSize="16sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -489,7 +485,7 @@
                             android:layout_marginTop="10dp"
                             android:text="Yes (Auto-Matched)"
                             android:textColor="#444444"
-                            android:textSize="16sp" />
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -509,7 +505,7 @@
                             android:layout_height="wrap_content"
                             android:text="Gender: Female"
                             android:textColor="#444444"
-                            android:textSize="16sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -517,7 +513,7 @@
                             android:layout_marginTop="10dp"
                             android:text="Yes (Auto-Matched)"
                             android:textColor="#444444"
-                            android:textSize="16sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -525,7 +521,7 @@
                             android:layout_marginTop="10dp"
                             android:text="Given v1.0"
                             android:textColor="#444444"
-                            android:textSize="16sp" />
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -556,7 +552,7 @@
                             android:layout_height="wrap_content"
                             android:text="Mopping demo"
                             android:textColor="#222222"
-                            android:textSize="16sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -597,7 +593,7 @@
                     android:layout_height="wrap_content"
                     android:text="Accessibility / UI"
                     android:textColor="#333333"
-                    android:textSize="20sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
@@ -613,7 +609,7 @@
                         android:layout_weight="1"
                         android:text="Digital proficiency"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:layout_width="52dp"
@@ -650,7 +646,7 @@
                         android:layout_weight="1"
                         android:text="Voice guidance"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switch_voice"
@@ -676,7 +672,7 @@
                         android:layout_weight="1"
                         android:text="Simplified layout (large buttons)"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switch_simple"
@@ -701,7 +697,7 @@
                         android:layout_height="wrap_content"
                         android:text="Text size"
                         android:textColor="#222222"
-                        android:textSize="16sp" />
+                        android:textSize="12sp" />
 
                     <SeekBar
                         android:id="@+id/seek_text_size"
@@ -727,5 +723,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="28dp" />
         </LinearLayout>
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+</FrameLayout>
