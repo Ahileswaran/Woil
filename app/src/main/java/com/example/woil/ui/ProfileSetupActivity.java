@@ -4,9 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -17,7 +15,7 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.example.woil.R;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -25,21 +23,20 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 
+import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
-
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class ProfileSetupActivity extends AppCompatActivity {
-
-    private static final int REQ_IMAGE = 100;
 
     private EditText etFirstName, etLastName, etAddress, etNic, etDob;
     private TextView tvSelectLocation, tvSkipNic, tvSkillsLabel;
@@ -49,24 +46,48 @@ public class ProfileSetupActivity extends AppCompatActivity {
     private Spinner spinnerSkills;
     private MaterialButton btnSubmit;
 
-    private String nicImageUriString = null;
-    private String role = "worker"; // default
+    private String role = "worker";
+
+    private String nicFrontUriString = null;
+    private String nicBackUriString = null;
+    private String nicParsedDob = null;
+    private String nicParsedGender = null;
+    private boolean nicMatch = false;
+    private boolean nicDobMatch = false;
+    private boolean nicGenderMatch = false;
+    private String nicVerificationStatus = "NOT_PROVIDED";
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
-    // modern activity result launcher for picking images
-    private final ActivityResultLauncher<Intent> pickImageLauncher =
+    private final ActivityResultLauncher<Intent> nicVerificationLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     new ActivityResultCallback<ActivityResult>() {
                         @Override
                         public void onActivityResult(ActivityResult result) {
                             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                                Uri selected = result.getData().getData();
-                                if (selected != null) {
-                                    nicImageUriString = selected.toString();
-                                    Toast.makeText(ProfileSetupActivity.this, "NIC photo selected", Toast.LENGTH_SHORT).show();
+                                Intent data = result.getData();
+
+                                nicFrontUriString = data.getStringExtra("nicFrontUri");
+                                nicBackUriString = data.getStringExtra("nicBackUri");
+
+                                String detectedNic = data.getStringExtra("nicNumber");
+                                nicParsedDob = data.getStringExtra("nicParsedDob");
+                                nicParsedGender = data.getStringExtra("nicParsedGender");
+                                nicMatch = data.getBooleanExtra("nicMatch", false);
+                                nicDobMatch = data.getBooleanExtra("nicDobMatch", false);
+                                nicGenderMatch = data.getBooleanExtra("nicGenderMatch", false);
+                                nicVerificationStatus = data.getStringExtra("nicVerificationStatus");
+
+                                if (!TextUtils.isEmpty(detectedNic)) {
+                                    etNic.setText(detectedNic);
                                 }
+
+                                Toast.makeText(
+                                        ProfileSetupActivity.this,
+                                        "NIC processed: " + (nicVerificationStatus == null ? "UNKNOWN" : nicVerificationStatus),
+                                        Toast.LENGTH_LONG
+                                ).show();
                             }
                         }
                     });
@@ -76,16 +97,10 @@ public class ProfileSetupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_setup);
 
-        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-
-        // Transparent bars so fragment header can draw behind them
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-
-        // UI refs
         etFirstName = findViewById(R.id.etFirstName);
         etLastName = findViewById(R.id.etLastName);
         etAddress = findViewById(R.id.etAddress);
@@ -101,16 +116,16 @@ public class ProfileSetupActivity extends AppCompatActivity {
         tvSkillsLabel = findViewById(R.id.tvSkillsLabel);
         btnSubmit = findViewById(R.id.btnSubmitProfile);
 
-        // Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // read role from intent (if passed)
         if (getIntent() != null && getIntent().hasExtra("role")) {
-            role = getIntent().getStringExtra("role");
+            String incomingRole = getIntent().getStringExtra("role");
+            if (!TextUtils.isEmpty(incomingRole)) {
+                role = incomingRole;
+            }
         }
 
-        // Show/hide skills for workers only
         if (!"worker".equalsIgnoreCase(role)) {
             spinnerSkills.setVisibility(View.GONE);
             tvSkillsLabel.setVisibility(View.GONE);
@@ -119,49 +134,81 @@ public class ProfileSetupActivity extends AppCompatActivity {
             tvSkillsLabel.setVisibility(View.VISIBLE);
         }
 
-        // populate skills spinner
         ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item,
-                new String[]{"Cleaning", "Cooking", "Driving", "Construction", "Electrical", "Other"});
+                this,
+                android.R.layout.simple_spinner_item,
+                new String[]{"Cleaning", "Cooking", "Driving", "Construction", "Electrical", "Other"}
+        );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSkills.setAdapter(adapter);
 
-        // upload NIC image (just pick and store URI string for tests)
-        btnUploadNic.setOnClickListener(v -> {
-            Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-            i.setType("image/*");
-            i.addCategory(Intent.CATEGORY_OPENABLE);
-            try {
-                pickImageLauncher.launch(Intent.createChooser(i, "Select NIC photo"));
-            } catch (ActivityNotFoundException ex) {
-                Toast.makeText(this, "No app found to pick image", Toast.LENGTH_SHORT).show();
-            }
-        });
+        btnUploadNic.setOnClickListener(v -> openNicVerification());
 
         tvSkipNic.setOnClickListener(v -> {
-            nicImageUriString = null;
+            nicFrontUriString = null;
+            nicBackUriString = null;
+            nicParsedDob = null;
+            nicParsedGender = null;
+            nicMatch = false;
+            nicDobMatch = false;
+            nicGenderMatch = false;
+            nicVerificationStatus = "NOT_PROVIDED";
+            etNic.setText("");
             Toast.makeText(this, "NIC skipped", Toast.LENGTH_SHORT).show();
         });
 
-        // select location (open maps search)
         tvSelectLocation.setOnClickListener(v -> {
-            String q = etAddress.getText().toString().trim();
+            String q = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
             if (TextUtils.isEmpty(q)) q = "my location";
-            android.net.Uri gmmIntentUri = android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode(q));
+
+            android.net.Uri gmmIntentUri =
+                    android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode(q));
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
             try {
                 startActivity(mapIntent);
             } catch (ActivityNotFoundException e) {
-                Intent alt = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/maps/search/?api=1&query=" + android.net.Uri.encode(q)));
+                Intent alt = new Intent(
+                        Intent.ACTION_VIEW,
+                        android.net.Uri.parse(
+                                "https://www.google.com/maps/search/?api=1&query=" +
+                                        android.net.Uri.encode(q)
+                        )
+                );
                 startActivity(alt);
             }
         });
 
-        // date picker for DOB
         etDob.setOnClickListener(v -> showDatePicker());
 
         btnSubmit.setOnClickListener(v -> submitProfile());
+    }
+
+    private void openNicVerification() {
+        String dob = etDob.getText() != null ? etDob.getText().toString().trim() : "";
+        int checkedId = rgGender.getCheckedRadioButtonId();
+
+        String gender = "";
+        if (checkedId == R.id.rbMale) {
+            gender = "M";
+        } else if (checkedId == R.id.rbFemale) {
+            gender = "F";
+        }
+
+        if (TextUtils.isEmpty(dob)) {
+            Toast.makeText(this, "Please select DOB first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(gender)) {
+            Toast.makeText(this, "Please select gender first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(ProfileSetupActivity.this, NicVerificationActivity.class);
+        intent.putExtra(NicVerificationActivity.EXTRA_ENTERED_DOB, dob);
+        intent.putExtra(NicVerificationActivity.EXTRA_ENTERED_GENDER, gender);
+        nicVerificationLauncher.launch(intent);
     }
 
     private void showDatePicker() {
@@ -171,7 +218,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         int d = c.get(Calendar.DAY_OF_MONTH);
 
         DatePickerDialog dpd = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            String chosen = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year);
+            String chosen = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth);
             etDob.setText(chosen);
         }, y, m, d);
 
@@ -179,20 +226,26 @@ public class ProfileSetupActivity extends AppCompatActivity {
     }
 
     private void submitProfile() {
-        String first = etFirstName.getText().toString().trim();
-        String last = etLastName.getText().toString().trim();
-        String address = etAddress.getText().toString().trim();
-        String nic = etNic.getText().toString().trim();
-        String dob = etDob.getText().toString().trim();
+        final String first = etFirstName.getText() != null ? etFirstName.getText().toString().trim() : "";
+        final String last = etLastName.getText() != null ? etLastName.getText().toString().trim() : "";
+        final String address = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
+        final String nic = etNic.getText() != null ? etNic.getText().toString().trim() : "";
+        final String dob = etDob.getText() != null ? etDob.getText().toString().trim() : "";
 
-        int selectedGenderId = rgGender.getCheckedRadioButtonId();
-        String gender = null;
-        if (selectedGenderId == R.id.rbMale) gender = "male";
-        else if (selectedGenderId == R.id.rbFemale) gender = "female";
+        final int selectedGenderId = rgGender.getCheckedRadioButtonId();
+        final String gender;
+        if (selectedGenderId == R.id.rbMale) {
+            gender = "M";
+        } else if (selectedGenderId == R.id.rbFemale) {
+            gender = "F";
+        } else {
+            gender = null;
+        }
 
-        String skill = spinnerSkills.getSelectedItem() != null ? spinnerSkills.getSelectedItem().toString() : "";
+        final String skill = spinnerSkills.getSelectedItem() != null
+                ? spinnerSkills.getSelectedItem().toString().trim()
+                : "";
 
-        // Basic validation
         if (TextUtils.isEmpty(first)) {
             etFirstName.setError("Enter first name");
             etFirstName.requestFocus();
@@ -217,19 +270,19 @@ public class ProfileSetupActivity extends AppCompatActivity {
             Toast.makeText(this, "Select gender", Toast.LENGTH_SHORT).show();
             return;
         }
-        if ("worker".equalsIgnoreCase(role) && (skill == null || skill.isEmpty())) {
+        if ("worker".equalsIgnoreCase(role) && TextUtils.isEmpty(skill)) {
             Toast.makeText(this, "Please choose at least one skill", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Ensure we have an authenticated user (uid). For testing with bypassed OTP we expect anonymous or phone user.
         if (mAuth.getCurrentUser() == null) {
-            // fallback: sign in anonymously to get a uid for test flow
             mAuth.signInAnonymously().addOnCompleteListener(task -> {
                 if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                    writeProfileToFirestore(first, last, address, nic, dob, null, skill);
+                    writeProfileToFirestore(first, last, address, nic, dob, gender, skill);
                 } else {
-                    String err = task.getException() != null ? task.getException().getMessage() : "Anonymous signin failed";
+                    String err = task.getException() != null
+                            ? task.getException().getMessage()
+                            : "Anonymous signin failed";
                     Toast.makeText(ProfileSetupActivity.this, "Auth error: " + err, Toast.LENGTH_LONG).show();
                 }
             });
@@ -246,36 +299,73 @@ public class ProfileSetupActivity extends AppCompatActivity {
             return;
         }
 
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("firstName", first);
-        updates.put("lastName", last);
-        updates.put("address", address);
-        updates.put("nic", nic);
-        updates.put("dob", dob);
-        updates.put("gender", gender);
-        updates.put("role", role);
-        if ("worker".equalsIgnoreCase(role)) updates.put("skill", skill);
-        updates.put("nicImageUri", nicImageUriString); // stores the selected URI string for testing
-        updates.put("profileCompleted", true);
-        updates.put("lastSeenAt", FieldValue.serverTimestamp());
+        Map<String, Object> userDoc = new HashMap<>();
+        userDoc.put("uid", uid);
+        userDoc.put("role", role);
+        userDoc.put("nicVerified", false);
+        userDoc.put("lastSeenAt", FieldValue.serverTimestamp());
 
-        // Merge so we don't overwrite existing fields such as phone/nicVerified that were set earlier
+        Map<String, Object> nicProcessingConsent = new HashMap<>();
+        nicProcessingConsent.put("given", !TextUtils.isEmpty(nic));
+        nicProcessingConsent.put("version", "v1.0");
+        nicProcessingConsent.put("at", FieldValue.serverTimestamp());
+
+        Map<String, Object> consent = new HashMap<>();
+        consent.put("nicProcessing", nicProcessingConsent);
+
+        Map<String, Object> profileDoc = new HashMap<>();
+        profileDoc.put("uid", uid);
+        profileDoc.put("firstName", first);
+        profileDoc.put("lastName", last);
+        profileDoc.put("displayName", (first + " " + last).trim());
+        profileDoc.put("locationText", address);
+        profileDoc.put("address", address);
+        profileDoc.put("role", role);
+        profileDoc.put("isWorker", "worker".equalsIgnoreCase(role));
+
+        profileDoc.put("dob", dob);
+        profileDoc.put("gender", gender);
+
+        profileDoc.put("nicNumber", nic);
+        profileDoc.put("nicFrontUri", nicFrontUriString);
+        profileDoc.put("nicBackUri", nicBackUriString);
+        profileDoc.put("nicParsedDob", nicParsedDob);
+        profileDoc.put("nicParsedGender", nicParsedGender);
+        profileDoc.put("nicMatch", nicMatch);
+        profileDoc.put("nicDobMatch", nicDobMatch);
+        profileDoc.put("nicGenderMatch", nicGenderMatch);
+        profileDoc.put("nicVerificationStatus",
+                TextUtils.isEmpty(nic) ? "NOT_PROVIDED" : nicVerificationStatus);
+        profileDoc.put("nicVerified", false);
+        profileDoc.put("nicParsedAt", FieldValue.serverTimestamp());
+
+        profileDoc.put("consent", consent);
+        profileDoc.put("profileCompleted", true);
+        profileDoc.put("createdAt", FieldValue.serverTimestamp());
+        profileDoc.put("memberSince", FieldValue.serverTimestamp());
+
+        if ("worker".equalsIgnoreCase(role)) {
+            profileDoc.put("skills", Collections.singletonList(skill.toLowerCase(Locale.US)));
+            profileDoc.put("skill", skill);
+        }
+
         db.collection("users").document(uid)
-                .set(updates, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(ProfileSetupActivity.this, "Profile saved successfully", Toast.LENGTH_SHORT).show();
+                .set(userDoc, SetOptions.merge())
+                .continueWithTask(task -> db.collection("profiles").document(uid)
+                        .set(profileDoc, SetOptions.merge()))
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(ProfileSetupActivity.this,
+                            "Profile saved successfully", Toast.LENGTH_SHORT).show();
 
-                    // Start MainActivity and ask it to open ProfileFragment
                     Intent intent = new Intent(ProfileSetupActivity.this, MainActivity.class);
                     intent.putExtra("openProfile", true);
-                    // clear back stack so user cannot go back to setup
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                     finish();
                 })
-
                 .addOnFailureListener(e -> {
-                    Toast.makeText(ProfileSetupActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ProfileSetupActivity.this,
+                            "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 }

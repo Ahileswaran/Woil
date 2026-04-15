@@ -8,7 +8,6 @@
     android:background="#F5F1F6"
     tools:context=".ui.ProfileFragment">
 
-    <!-- FIXED HEADER -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
@@ -190,7 +189,6 @@
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- OVERLAPPING WHITE ACTION BAR -->
     <LinearLayout
         android:id="@+id/top_white_container"
         android:layout_width="match_parent"
@@ -261,7 +259,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ONLY THIS PART SCROLLS -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/root_scroll"
         android:layout_width="match_parent"
@@ -445,6 +442,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/tv_verification_subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -465,25 +463,19 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tv_id_parsed_dob"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ID Parsed DOB"
+                            android:text="ID Parsed DOB: -"
                             android:textColor="#444444"
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tv_id_match"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="ID data match:"
-                            android:textColor="#444444"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:text="Yes (Auto-Matched)"
+                            android:text="ID data match: -"
                             android:textColor="#444444"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -501,25 +493,19 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tv_id_parsed_gender"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gender: Female"
+                            android:text="Gender: -"
                             android:textColor="#444444"
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tv_id_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="Yes (Auto-Matched)"
-                            android:textColor="#444444"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:text="Given v1.0"
+                            android:text="Status: -"
                             android:textColor="#444444"
                             android:textSize="12sp" />
                     </LinearLayout>

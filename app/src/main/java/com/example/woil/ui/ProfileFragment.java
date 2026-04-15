@@ -5,8 +5,9 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -45,12 +46,20 @@ public class ProfileFragment extends Fragment {
     private ImageButton btnBack;
     private TextView tvPending;
 
+    private TextView tvVerificationSubtitle;
+    private TextView tvIdParsedDob;
+    private TextView tvIdParsedGender;
+    private TextView tvIdMatch;
+    private TextView tvIdStatus;
+
     private SwitchMaterial switchDigital, switchVoice, switchSimplified;
     private SeekBar seekTextSize;
     private TextView tvTextSizeValue;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+
+    private ListenerRegistration userListener;
     private ListenerRegistration profileListener;
 
     public ProfileFragment() {
@@ -61,10 +70,7 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_profile, container, false);
-
     }
-
-
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -80,11 +86,9 @@ public class ProfileFragment extends Fragment {
         ivProfile = view.findViewById(R.id.profile_image_main);
         tvUsername = view.findViewById(R.id.username);
         tvSubtitle = view.findViewById(R.id.subtitle);
-
         tvRatingValue = view.findViewById(R.id.rating_value);
         tvJobsValue = view.findViewById(R.id.jobs_value);
         tvMemberSince = view.findViewById(R.id.member_since_value);
-
         tvFullName = view.findViewById(R.id.tv_name);
         tvPhone = view.findViewById(R.id.tv_phone);
         tvEmail = view.findViewById(R.id.tv_email);
@@ -94,6 +98,15 @@ public class ProfileFragment extends Fragment {
         btnBack = view.findViewById(R.id.btn_back);
         tvPending = view.findViewById(R.id.tv_pending);
 
+        tvVerificationSubtitle = view.findViewById(R.id.tv_verification_subtitle);
+        tvIdParsedDob = view.findViewById(R.id.tv_id_parsed_dob);
+        tvIdParsedGender = view.findViewById(R.id.tv_id_parsed_gender);
+        tvIdMatch = view.findViewById(R.id.tv_id_match);
+        tvIdStatus = view.findViewById(R.id.tv_id_status);
+
+        switchDigital = view.findViewById(R.id.switch_digital);
+        switchVoice = view.findViewById(R.id.switch_voice);
+        switchSimplified = view.findViewById(R.id.switch_simple);
         seekTextSize = view.findViewById(R.id.seek_text_size);
         tvTextSizeValue = view.findViewById(R.id.tv_text_size_value);
 
@@ -153,7 +166,7 @@ public class ProfileFragment extends Fragment {
             });
         }
 
-        attachProfileListener();
+        attachListeners();
     }
 
     private void switchToClientProfile() {
@@ -221,66 +234,101 @@ public class ProfileFragment extends Fragment {
         if (tvEmail != null) tvEmail.setText("");
         if (tvLocation != null) tvLocation.setText("—");
 
+        if (tvVerificationSubtitle != null) tvVerificationSubtitle.setText("Awaiting admin review");
+        if (tvIdParsedDob != null) tvIdParsedDob.setText("ID Parsed DOB: -");
+        if (tvIdParsedGender != null) tvIdParsedGender.setText("Gender: -");
+        if (tvIdMatch != null) tvIdMatch.setText("ID data match: -");
+        if (tvIdStatus != null) tvIdStatus.setText("Status: -");
+
         if (ivProfile != null) ivProfile.setImageResource(R.drawable.photo_placeholder);
 
-        if (tvPending != null) tvPending.setText("⏱ Pending");
+        if (tvPending != null) {
+            tvPending.setText("⏱ Pending");
+            tvPending.setTextColor(Color.parseColor("#6B4B00"));
+        }
     }
 
-    private void attachProfileListener() {
+    private void attachListeners() {
         if (mAuth.getCurrentUser() == null) return;
-
         String uid = mAuth.getCurrentUser().getUid();
 
-        profileListener = db.collection("users").document(uid)
+        userListener = db.collection("users").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) return;
-                    if (snap != null && snap.exists()) {
-                        populateUIFromSnapshot(snap);
-                    }
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromUserSnapshot(snap);
+                });
+
+        profileListener = db.collection("profiles").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromProfileSnapshot(snap);
                 });
     }
 
-    private void populateUIFromSnapshot(DocumentSnapshot snap) {
-        String first = snap.getString("firstName");
-        String last = snap.getString("lastName");
-        String displayName = snap.getString("displayName");
-
-        String fullName = (displayName != null && !displayName.isEmpty())
-                ? displayName
-                : ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
-
-        if (tvFullName != null) tvFullName.setText(fullName.isEmpty() ? "—" : fullName);
-
-        String handle = snap.getString("handle");
-        if (handle == null || handle.isEmpty()) {
-            handle = fullName.isEmpty()
-                    ? ("@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user"))
-                    : ("@" + fullName.replaceAll("\\s+", ""));
-        }
-        if (tvUsername != null) tvUsername.setText(handle);
-
+    private void populateFromUserSnapshot(DocumentSnapshot snap) {
         String role = snap.getString("role");
-        String address = snap.getString("address");
-        String subtitle = (role != null ? capitalize(role) : "Worker")
-                + (address != null && !address.isEmpty() ? " · " + address : "");
-        if (tvSubtitle != null) tvSubtitle.setText(subtitle);
+        String phoneFromDoc = snap.getString("phone");
+        String emailFromDoc = snap.getString("email");
+        Boolean userNicVerified = snap.getBoolean("nicVerified");
 
         if (mAuth.getCurrentUser() != null) {
             String phone = mAuth.getCurrentUser().getPhoneNumber();
             String email = mAuth.getCurrentUser().getEmail();
 
             if (tvPhone != null) {
-                tvPhone.setText(phone != null ? phone : (snap.getString("phone") != null ? snap.getString("phone") : ""));
+                tvPhone.setText(!TextUtils.isEmpty(phone) ? phone : safe(phoneFromDoc));
             }
             if (tvEmail != null) {
-                tvEmail.setText(email != null ? email : (snap.getString("email") != null ? snap.getString("email") : ""));
+                tvEmail.setText(!TextUtils.isEmpty(email) ? email : safe(emailFromDoc));
             }
         } else {
-            if (tvPhone != null) tvPhone.setText(snap.getString("phone") != null ? snap.getString("phone") : "");
-            if (tvEmail != null) tvEmail.setText(snap.getString("email") != null ? snap.getString("email") : "");
+            if (tvPhone != null) tvPhone.setText(safe(phoneFromDoc));
+            if (tvEmail != null) tvEmail.setText(safe(emailFromDoc));
         }
 
-        if (tvLocation != null) tvLocation.setText(address != null ? address : "—");
+        if (Boolean.TRUE.equals(userNicVerified) && tvPending != null) {
+            tvPending.setText("✔ Verified");
+            tvPending.setTextColor(Color.parseColor("#2E7D32"));
+        }
+
+        if (tvSubtitle != null && !TextUtils.isEmpty(role) && tvSubtitle.getText() != null) {
+            String current = tvSubtitle.getText().toString();
+            if (current.contains(" · ")) {
+                String suffix = current.substring(current.indexOf(" · "));
+                tvSubtitle.setText(capitalize(role) + suffix);
+            } else {
+                tvSubtitle.setText(capitalize(role));
+            }
+        }
+    }
+
+    private void populateFromProfileSnapshot(DocumentSnapshot snap) {
+        String first = snap.getString("firstName");
+        String last = snap.getString("lastName");
+        String displayName = snap.getString("displayName");
+        String locationText = snap.getString("locationText");
+        if (TextUtils.isEmpty(locationText)) locationText = snap.getString("address");
+
+        String fullName = !TextUtils.isEmpty(displayName)
+                ? displayName
+                : ((safe(first) + " " + safe(last)).trim());
+
+        if (TextUtils.isEmpty(fullName)) fullName = "—";
+
+        if (tvFullName != null) tvFullName.setText(fullName);
+
+        String handle = "@" + fullName.replaceAll("\\s+", "");
+        if ("@".equals(handle)) {
+            handle = "@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user");
+        }
+        if (tvUsername != null) tvUsername.setText(handle);
+
+        String role = snap.getString("role");
+        String subtitle = (TextUtils.isEmpty(role) ? "Worker" : capitalize(role))
+                + (!TextUtils.isEmpty(locationText) ? " · " + locationText : " · —");
+        if (tvSubtitle != null) tvSubtitle.setText(subtitle);
+
+        if (tvLocation != null) tvLocation.setText(!TextUtils.isEmpty(locationText) ? locationText : "—");
 
         Object ratingObj = snap.get("rating");
         if (ratingObj != null && tvRatingValue != null) {
@@ -296,10 +344,10 @@ public class ProfileFragment extends Fragment {
             jobsObj = snap.get("jobsPosted");
             if (jobsObj == null) jobsObj = snap.get("jobs");
         } else {
-            jobsObj = snap.get("jobsCompleted");
+            jobsObj = snap.get("completedJobs");
+            if (jobsObj == null) jobsObj = snap.get("jobsCompleted");
             if (jobsObj == null) jobsObj = snap.get("jobs");
         }
-
         if (jobsObj != null && tvJobsValue != null) {
             tvJobsValue.setText(String.valueOf(jobsObj));
         }
@@ -319,40 +367,96 @@ public class ProfileFragment extends Fragment {
                 tvMemberSince.setText(String.valueOf(c.get(Calendar.YEAR)));
             } else if (snap.getString("memberSinceYear") != null && tvMemberSince != null) {
                 tvMemberSince.setText(snap.getString("memberSinceYear"));
+            } else if (snap.getTimestamp("createdAt") != null && tvMemberSince != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(snap.getTimestamp("createdAt").toDate());
+                tvMemberSince.setText(String.valueOf(c.get(Calendar.YEAR)));
             }
         }
 
-        Boolean verified = snap.getBoolean("isVerified");
-        if (verified != null && verified && tvPending != null) {
-            tvPending.setText("✔ Verified");
-            tvPending.setTextColor(Color.parseColor("#2E7D32"));
-        } else if (tvPending != null) {
-            tvPending.setText("⏱ Pending");
-            tvPending.setTextColor(Color.parseColor("#6B4B00"));
+        String nicParsedDob = snap.getString("nicParsedDob");
+        String nicParsedGender = snap.getString("nicParsedGender");
+        Boolean nicMatch = snap.getBoolean("nicMatch");
+        String nicVerificationStatus = snap.getString("nicVerificationStatus");
+        Boolean nicVerified = snap.getBoolean("nicVerified");
+
+        if (tvIdParsedDob != null) {
+            tvIdParsedDob.setText("ID Parsed DOB: " + (!TextUtils.isEmpty(nicParsedDob) ? nicParsedDob : "-"));
+        }
+
+        if (tvIdParsedGender != null) {
+            String genderLabel;
+            if ("M".equalsIgnoreCase(nicParsedGender)) genderLabel = "Male";
+            else if ("F".equalsIgnoreCase(nicParsedGender)) genderLabel = "Female";
+            else genderLabel = "-";
+            tvIdParsedGender.setText("Gender: " + genderLabel);
+        }
+
+        if (tvIdMatch != null) {
+            tvIdMatch.setText("ID data match: " +
+                    (nicMatch != null ? (nicMatch ? "Yes" : "No") : "-"));
+        }
+
+        if (tvIdStatus != null) {
+            tvIdStatus.setText("Status: " +
+                    (!TextUtils.isEmpty(nicVerificationStatus) ? nicVerificationStatus : "-"));
+        }
+
+        if (Boolean.TRUE.equals(nicVerified)) {
+            if (tvPending != null) {
+                tvPending.setText("✔ Verified");
+                tvPending.setTextColor(Color.parseColor("#2E7D32"));
+            }
+            if (tvVerificationSubtitle != null) {
+                tvVerificationSubtitle.setText("NIC manually approved");
+            }
+        } else if ("AUTO_MATCHED_PENDING_ADMIN".equals(nicVerificationStatus)) {
+            if (tvPending != null) {
+                tvPending.setText("⏱ Pending");
+                tvPending.setTextColor(Color.parseColor("#6B4B00"));
+            }
+            if (tvVerificationSubtitle != null) {
+                tvVerificationSubtitle.setText("Auto-matched. Awaiting admin review");
+            }
+        } else if ("MISMATCH".equals(nicVerificationStatus)) {
+            if (tvPending != null) {
+                tvPending.setText("⚠ Mismatch");
+                tvPending.setTextColor(Color.parseColor("#C62828"));
+            }
+            if (tvVerificationSubtitle != null) {
+                tvVerificationSubtitle.setText("Entered details do not match NIC data");
+            }
+        } else if ("NOT_PROVIDED".equals(nicVerificationStatus) || TextUtils.isEmpty(nicVerificationStatus)) {
+            if (tvPending != null) {
+                tvPending.setText("— Not provided");
+                tvPending.setTextColor(Color.parseColor("#666666"));
+            }
+            if (tvVerificationSubtitle != null) {
+                tvVerificationSubtitle.setText("NIC not submitted");
+            }
         }
 
         String photoUrl = snap.getString("photoUrl");
-        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("photo");
-        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("nicImageUri");
-        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("avatar");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("photo");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("nicFrontUri");
 
-        if (photoUrl != null && !photoUrl.isEmpty()) {
-            if (ivProfile != null) {
+        if (!TextUtils.isEmpty(photoUrl)) {
+            try {
+                Glide.with(this)
+                        .load(photoUrl)
+                        .placeholder(R.drawable.photo_placeholder)
+                        .error(R.drawable.photo_placeholder)
+                        .into(ivProfile);
+            } catch (Exception ex) {
                 try {
-                    Glide.with(this)
-                            .load(photoUrl)
-                            .placeholder(R.drawable.photo_placeholder)
-                            .error(R.drawable.photo_placeholder)
-                            .into(ivProfile);
-                } catch (Exception ex) {
-                    try {
-                        ivProfile.setImageURI(Uri.parse(photoUrl));
-                    } catch (Exception ignored) {
-                    }
+                    ivProfile.setImageURI(Uri.parse(photoUrl));
+                } catch (Exception ignored) {
+                    ivProfile.setImageResource(R.drawable.photo_placeholder);
                 }
             }
         } else {
-            if (ivProfile != null) ivProfile.setImageResource(R.drawable.photo_placeholder);
+            ivProfile.setImageResource(R.drawable.photo_placeholder);
         }
     }
 
@@ -363,13 +467,21 @@ public class ProfileFragment extends Fragment {
     }
 
     private String capitalize(String s) {
-        if (s == null || s.isEmpty()) return s;
+        if (TextUtils.isEmpty(s)) return s;
         return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (userListener != null) {
+            userListener.remove();
+            userListener = null;
+        }
         if (profileListener != null) {
             profileListener.remove();
             profileListener = null;
