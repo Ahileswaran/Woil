@@ -1,118 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F6F7FB">
+    android:background="@color/white">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <!-- ORANGE HEADER -->
+    <RelativeLayout
+        android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:title="NIC Verification"
-        android:backgroundTint="#FF8A00"
-        android:titleTextColor="@android:color/white" />
+        android:layout_height="70dp"
+        android:background="@drawable/bg_orange_gradient">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        <ImageButton
+            android:id="@+id/btn_back_arrow_settings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_arrow_back"
+            android:layout_alignParentStart="true"
+            app:tint="@android:color/white" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/settings_title"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:text="name "
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="28dp"/>
+    </RelativeLayout>
 
-            <TextView
-                android:id="@+id/tvStep"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Step 1 of 2 - Capture NIC front side"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#111827" />
 
-            <androidx.camera.view.PreviewView
-                android:id="@+id/previewView"
-                android:layout_width="match_parent"
-                android:layout_height="260dp"
-                android:layout_marginTop="12dp" />
+    <!-- MAIN CONTENT -->
+    <ScrollView
+        android:id="@+id/scroll_wage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:fillViewport="true"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:overScrollMode="never">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCapture"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Capture Side" />
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="16dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <ImageView
-                    android:id="@+id/ivFront"
-                    android:layout_width="0dp"
-                    android:layout_height="160dp"
-                    android:layout_weight="1"
-                    android:scaleType="centerCrop"
-                    android:background="#E5E7EB" />
+                <TextView
+                    android:id="@+id/tvStep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Step 1 of 2 - Capture NIC front side"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#111827" />
 
-                <Space
-                    android:layout_width="12dp"
-                    android:layout_height="wrap_content" />
+                <androidx.camera.view.PreviewView
+                    android:id="@+id/previewView"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp"
+                    android:layout_marginTop="12dp" />
 
-                <ImageView
-                    android:id="@+id/ivBack"
-                    android:layout_width="0dp"
-                    android:layout_height="160dp"
-                    android:layout_weight="1"
-                    android:scaleType="centerCrop"
-                    android:background="#E5E7EB" />
-            </LinearLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etDetectedNic"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCapture"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Detected NIC"
+                    android:layout_marginTop="12dp"
+                    android:text="Capture Side" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivFront"
+                        android:layout_width="0dp"
+                        android:layout_height="160dp"
+                        android:layout_weight="1"
+                        android:scaleType="centerCrop"
+                        android:background="#E5E7EB" />
+
+                    <Space
+                        android:layout_width="12dp"
+                        android:layout_height="wrap_content" />
+
+                    <ImageView
+                        android:id="@+id/ivBack"
+                        android:layout_width="0dp"
+                        android:layout_height="160dp"
+                        android:layout_weight="1"
+                        android:scaleType="centerCrop"
+                        android:background="#E5E7EB" />
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDetectedNic"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Detected NIC"
+                        android:enabled="false" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tvParsedDob"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="DOB: -" />
+
+                <TextView
+                    android:id="@+id/tvParsedGender"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gender: -" />
+
+                <TextView
+                    android:id="@+id/tvOcrStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="OCR status: waiting" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConfirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Use This Result"
                     android:enabled="false" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <TextView
-                android:id="@+id/tvParsedDob"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="DOB: -" />
-
-            <TextView
-                android:id="@+id/tvParsedGender"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Gender: -" />
-
-            <TextView
-                android:id="@+id/tvOcrStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="OCR status: waiting" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnConfirm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Use This Result"
-                android:enabled="false" />
-        </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
     </ScrollView>
-</LinearLayout>
+
+</FrameLayout>

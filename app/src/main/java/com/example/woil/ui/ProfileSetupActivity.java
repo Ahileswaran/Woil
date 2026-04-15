@@ -212,15 +212,52 @@ public class ProfileSetupActivity extends AppCompatActivity {
     }
 
     private void showDatePicker() {
-        final Calendar c = Calendar.getInstance();
-        int y = c.get(Calendar.YEAR);
-        int m = c.get(Calendar.MONTH);
-        int d = c.get(Calendar.DAY_OF_MONTH);
+        final Calendar today = Calendar.getInstance();
 
-        DatePickerDialog dpd = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            String chosen = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth);
-            etDob.setText(chosen);
-        }, y, m, d);
+        // Default picker year for DOB selection
+        int year = 2000;
+        int month = Calendar.JANUARY;
+        int day = 1;
+
+        // If DOB already selected, reopen on that date
+        String currentDob = etDob.getText() != null ? etDob.getText().toString().trim() : "";
+        if (!TextUtils.isEmpty(currentDob) && currentDob.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            try {
+                String[] parts = currentDob.split("-");
+                year = Integer.parseInt(parts[0]);
+                month = Integer.parseInt(parts[1]) - 1;
+                day = Integer.parseInt(parts[2]);
+            } catch (Exception ignored) {
+            }
+        }
+
+        DatePickerDialog dpd = new DatePickerDialog(
+                this,
+                (view, selectedYear, selectedMonth, selectedDayOfMonth) -> {
+                    String chosen = String.format(
+                            Locale.US,
+                            "%04d-%02d-%02d",
+                            selectedYear,
+                            selectedMonth + 1,
+                            selectedDayOfMonth
+                    );
+                    etDob.setText(chosen);
+                    etDob.setError(null);
+                },
+                year,
+                month,
+                day
+        );
+
+        // Prevent future dates
+        dpd.getDatePicker().setMaxDate(today.getTimeInMillis());
+
+        // Make year/month/day easier with spinner style
+        try {
+            dpd.getDatePicker().setCalendarViewShown(false);
+            dpd.getDatePicker().setSpinnersShown(true);
+        } catch (Exception ignored) {
+        }
 
         dpd.show();
     }

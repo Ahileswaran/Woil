@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,15 +30,20 @@ import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mlkit.vision.text.Text;
 
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class NicVerificationActivity extends AppCompatActivity {
 
     public static final String EXTRA_ENTERED_DOB = "entered_dob";
     public static final String EXTRA_ENTERED_GENDER = "entered_gender";
+
+    private static final String TAG = "NicVerification";
 
     private PreviewView previewView;
     private ImageView ivFront, ivBack;
@@ -85,6 +91,7 @@ public class NicVerificationActivity extends AppCompatActivity {
 
         btnCapture.setOnClickListener(v -> captureSide());
         btnConfirm.setOnClickListener(v -> returnResult());
+        btnConfirm.setEnabled(false);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -123,7 +130,9 @@ public class NicVerificationActivity extends AppCompatActivity {
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME,
-                capturingFront ? "nic_front_" + System.currentTimeMillis() : "nic_back_" + System.currentTimeMillis());
+                capturingFront
+                        ? "nic_front_" + System.currentTimeMillis()
+                        : "nic_back_" + System.currentTimeMillis());
         values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
 
         ImageCapture.OutputFileOptions options =
@@ -133,7 +142,9 @@ public class NicVerificationActivity extends AppCompatActivity {
                         values
                 ).build();
 
-        imageCapture.takePicture(options, ContextCompat.getMainExecutor(this),
+        imageCapture.takePicture(
+                options,
+                ContextCompat.getMainExecutor(this),
                 new ImageCapture.OnImageSavedCallback() {
                     @Override
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
@@ -160,64 +171,167 @@ public class NicVerificationActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(@NonNull ImageCaptureException exception) {
-                        Toast.makeText(NicVerificationActivity.this,
+                        Toast.makeText(
+                                NicVerificationActivity.this,
                                 "Capture failed: " + exception.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                                Toast.LENGTH_LONG
+                        ).show();
                     }
-                });
+                }
+        );
     }
 
     private void runOcrOnCapturedImages() {
         tvOcrStatus.setText("OCR status: processing...");
+        btnConfirm.setEnabled(false);
 
-        cameraExecutor.execute(() -> {
-            try {
-                NicOcrHelper helper = new NicOcrHelper(this);
+        NicMlKitHelper helper = new NicMlKitHelper(this);
 
-                StringBuilder merged = new StringBuilder();
+        try {
+            Bitmap frontBitmap = frontUri != null ? uriToBitmap(frontUri) : null;
+            Bitmap backBitmap = backUri != null ? uriToBitmap(backUri) : null;
 
-                if (frontUri != null) {
-                    Bitmap frontBitmap = uriToBitmap(frontUri);
-                    merged.append(helper.runOcr(frontBitmap)).append("\n");
-                }
+            final StringBuilder merged = new StringBuilder();
 
-                if (backUri != null) {
-                    Bitmap backBitmap = uriToBitmap(backUri);
-                    merged.append(helper.runOcr(backBitmap));
-                }
+            if (frontBitmap != null) {
+                helper.runOcr(frontBitmap)
+                        .addOnSuccessListener(frontText -> {
+                            if (frontText != null && frontText.getText() != null) {
+                                merged.append(frontText.getText()).append("\n");
+                            }
 
-                String nicCandidate = helper.extractNicCandidate(merged.toString());
-                NicParser.NicParseResult parseResult = NicParser.parse(nicCandidate);
-
-                runOnUiThread(() -> {
-                    if (parseResult.valid) {
-                        detectedNic = parseResult.normalizedNic;
-                        parsedDob = parseResult.dobIso;
-                        parsedGender = parseResult.gender;
-
-                        etDetectedNic.setText(detectedNic);
-                        tvParsedDob.setText("DOB: " + parsedDob);
-                        tvParsedGender.setText("Gender: " + ("M".equals(parsedGender) ? "Male" : "Female"));
-                        tvOcrStatus.setText("OCR status: success");
-                        btnConfirm.setEnabled(true);
-                    } else {
-                        tvOcrStatus.setText("OCR status: failed - " + parseResult.error);
-                        Toast.makeText(this, "NIC detection failed. Retake clearer photos.", Toast.LENGTH_LONG).show();
-                    }
-                });
-
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    tvOcrStatus.setText("OCR status: failed");
-                    Toast.makeText(this, "OCR error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+                            if (backBitmap != null) {
+                                helper.runOcr(backBitmap)
+                                        .addOnSuccessListener(backText -> {
+                                            if (backText != null && backText.getText() != null) {
+                                                merged.append(backText.getText()).append("\n");
+                                            }
+                                            handleMlKitOcrResult(helper, merged.toString());
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            helper.close();
+                                            tvOcrStatus.setText("OCR status: failed");
+                                            Toast.makeText(
+                                                    NicVerificationActivity.this,
+                                                    "Back OCR failed: " + e.getMessage(),
+                                                    Toast.LENGTH_LONG
+                                            ).show();
+                                        });
+                            } else {
+                                handleMlKitOcrResult(helper, merged.toString());
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            helper.close();
+                            tvOcrStatus.setText("OCR status: failed");
+                            Toast.makeText(
+                                    NicVerificationActivity.this,
+                                    "Front OCR failed: " + e.getMessage(),
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        });
+            } else if (backBitmap != null) {
+                helper.runOcr(backBitmap)
+                        .addOnSuccessListener(backText -> {
+                            if (backText != null && backText.getText() != null) {
+                                merged.append(backText.getText()).append("\n");
+                            }
+                            handleMlKitOcrResult(helper, merged.toString());
+                        })
+                        .addOnFailureListener(e -> {
+                            helper.close();
+                            tvOcrStatus.setText("OCR status: failed");
+                            Toast.makeText(
+                                    NicVerificationActivity.this,
+                                    "Back OCR failed: " + e.getMessage(),
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        });
+            } else {
+                helper.close();
+                tvOcrStatus.setText("OCR status: failed - no image");
             }
-        });
+        } catch (Exception e) {
+            helper.close();
+            tvOcrStatus.setText("OCR status: failed");
+            Toast.makeText(
+                    NicVerificationActivity.this,
+                    "OCR error: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void handleMlKitOcrResult(NicMlKitHelper helper, String rawOcr) {
+        try {
+            Log.d(TAG, "OCR raw text: " + rawOcr);
+
+            if (rawOcr == null || rawOcr.trim().isEmpty()) {
+                helper.close();
+                etDetectedNic.setText("");
+                tvParsedDob.setText("DOB: -");
+                tvParsedGender.setText("Gender: -");
+                tvOcrStatus.setText("OCR status: failed - no text detected");
+                Toast.makeText(
+                        this,
+                        "No readable text found. Retake clearer NIC photos.",
+                        Toast.LENGTH_LONG
+                ).show();
+                return;
+            }
+
+            String nicCandidate = helper.extractNicCandidate(rawOcr);
+            Log.d(TAG, "OCR NIC candidate: " + nicCandidate);
+
+            if (nicCandidate == null) {
+                helper.close();
+                etDetectedNic.setText("");
+                tvParsedDob.setText("DOB: -");
+                tvParsedGender.setText("Gender: -");
+                tvOcrStatus.setText("OCR status: failed - NIC not found");
+                Toast.makeText(
+                        this,
+                        "NIC number not detected. Retake clearer photos.",
+                        Toast.LENGTH_LONG
+                ).show();
+                return;
+            }
+
+            NicParser.NicParseResult parseResult = NicParser.parse(nicCandidate);
+
+            if (parseResult.valid) {
+                detectedNic = parseResult.normalizedNic;
+                parsedDob = parseResult.dobIso;
+                parsedGender = parseResult.gender;
+
+                etDetectedNic.setText(detectedNic);
+                tvParsedDob.setText("DOB: " + parsedDob);
+                tvParsedGender.setText("Gender: " + ("M".equals(parsedGender) ? "Male" : "Female"));
+                tvOcrStatus.setText("OCR status: success");
+                btnConfirm.setEnabled(true);
+            } else {
+                etDetectedNic.setText(nicCandidate);
+                tvParsedDob.setText("DOB: -");
+                tvParsedGender.setText("Gender: -");
+                tvOcrStatus.setText("OCR status: failed - " + parseResult.error);
+                Toast.makeText(
+                        this,
+                        "Detected text is not a valid NIC. Retake clearer photos.",
+                        Toast.LENGTH_LONG
+                ).show();
+            }
+        } finally {
+            helper.close();
+        }
     }
 
     private Bitmap uriToBitmap(Uri uri) throws Exception {
         try (InputStream is = getContentResolver().openInputStream(uri)) {
-            return BitmapFactory.decodeStream(is);
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
+            if (bitmap == null) {
+                throw new Exception("Failed to decode bitmap from URI");
+            }
+            return bitmap;
         }
     }
 
