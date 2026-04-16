@@ -60,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:text="@Ravikumar Rajes"
                 android:textColor="#FFFFFF"
-                android:textSize="26sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <ImageView
@@ -79,7 +79,7 @@
             android:layout_marginTop="6dp"
             android:text="Client · Colombo 5"
             android:textColor="#FFF7F7"
-            android:textSize="16sp"
+            android:textSize="10sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/username_row" />
@@ -87,10 +87,10 @@
         <LinearLayout
             android:id="@+id/info_card"
             android:layout_width="0dp"
-            android:layout_height="62dp"
-            android:layout_marginStart="20dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="44dp"
             android:layout_marginTop="1dp"
-            android:layout_marginEnd="20dp"
+            android:layout_marginEnd="44dp"
             android:background="@drawable/info_card_bg"
             android:elevation="6dp"
             android:gravity="center"
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:text="★ 4.6"
                     android:textColor="#333333"
-                    android:textSize="18sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -125,7 +125,7 @@
                     android:layout_marginTop="2dp"
                     android:text="Rating"
                     android:textColor="#666666"
-                    android:textSize="12sp" />
+                    android:textSize="10sp" />
             </LinearLayout>
 
             <View
@@ -146,7 +146,7 @@
                     android:layout_height="wrap_content"
                     android:text="12"
                     android:textColor="#333333"
-                    android:textSize="18sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -155,7 +155,7 @@
                     android:layout_marginTop="2dp"
                     android:text="Jobs Posted"
                     android:textColor="#666666"
-                    android:textSize="12sp" />
+                    android:textSize="10sp" />
             </LinearLayout>
 
             <View
@@ -176,7 +176,7 @@
                     android:layout_height="wrap_content"
                     android:text="2024"
                     android:textColor="#333333"
-                    android:textSize="18sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -185,7 +185,7 @@
                     android:layout_marginTop="2dp"
                     android:text="Member since"
                     android:textColor="#666666"
-                    android:textSize="12sp" />
+                    android:textSize="10sp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -378,26 +378,6 @@
                     android:layout_height="1dp"
                     android:background="#EFEFEF" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="26dp"
-                        android:layout_height="26dp"
-                        android:src="@drawable/ic_email" />
-
-                    <TextView
-                        android:id="@+id/tv_email"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:text="raj23@hotmail.com"
-                        android:textColor="#222222"
-                        android:textSize="12sp" />
-                </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
@@ -640,8 +620,8 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_add_job_floating"
-        android:layout_width="88dp"
-        android:layout_height="88dp"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="96dp"

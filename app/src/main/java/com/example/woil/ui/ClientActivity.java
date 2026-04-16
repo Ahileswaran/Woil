@@ -83,7 +83,6 @@ public class ClientActivity extends AppCompatActivity {
 
         tvFullName = findViewById(R.id.tv_name);
         tvPhone = findViewById(R.id.tv_phone);
-        tvEmail = findViewById(R.id.tv_email);
         tvLocation = findViewById(R.id.tv_location);
 
         btnEditProfile = findViewById(R.id.btn_edit_profile);

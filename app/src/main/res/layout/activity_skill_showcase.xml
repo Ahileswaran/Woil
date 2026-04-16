@@ -3,24 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="#F7F8FC">
 
+    <!-- HEADER -->
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:background="@drawable/bg_orange_gradient">
+        android:layout_height="92dp"
+        android:background="@drawable/bg_orange_gradient"
+        android:paddingTop="8dp">
 
         <ImageButton
             android:id="@+id/btn_back_arrow_settings"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             android:layout_alignParentStart="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
+            android:contentDescription="Back"
             android:padding="8dp"
-            android:scaleType="center"
+            android:scaleType="centerInside"
             android:src="@drawable/ic_arrow_back"
             app:tint="@android:color/white" />
 
@@ -29,103 +32,203 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="30dp"
             android:text="Skill Showcase"
             android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold" />
     </RelativeLayout>
 
-    <LinearLayout
+    <!-- MAIN CONTENT -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_wage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
-        android:orientation="vertical">
+        android:layout_marginTop="72dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="120dp">
 
-        <ScrollView
-            android:id="@+id/scroll_wage"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true"
-            android:overScrollMode="never"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="10dp">
 
-            <LinearLayout
+            <!-- INTRO CARD -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                app:cardCornerRadius="22dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeColor="#EEEAF4"
+                app:strokeWidth="1dp">
 
-                <com.google.android.material.card.MaterialCardView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="6dp">
+                    android:orientation="vertical"
+                    android:padding="18dp">
 
-                    <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Uploaded Skill Videos"
+                        android:textColor="#111827"
+                        android:textSize="19sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Show your real work to build trust, safety, and transparency for clients."
+                        android:textColor="#6B7280"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- EMPTY STATE -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeColor="#ECE7F3"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="28dp">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@android:drawable/ic_media_play"
+                        app:tint="#C4B5FD" />
+
+                    <TextView
+                        android:id="@+id/txt_empty_state"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:layout_marginTop="14dp"
+                        android:gravity="center"
+                        android:text="No videos uploaded yet"
+                        android:textColor="#111827"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Uploaded Skill Videos"
-                            android:textColor="#222222"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="Add your first skill video to help clients understand your work."
+                        android:textColor="#6B7280"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="Show your real work to build trust and transparency."
-                            android:textColor="#777777"
-                            android:textSize="13sp" />
+            <!-- LIST CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_video_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeColor="#ECE7F3"
+                app:strokeWidth="1dp">
 
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <TextView
-                    android:id="@+id/txt_empty_state"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:gravity="center"
-                    android:padding="20dp"
-                    android:text="No videos uploaded yet."
-                    android:textColor="#888888"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
+                    android:orientation="vertical"
+                    android:padding="14dp">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_skill_videos"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:nestedScrollingEnabled="false" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Your Showcase"
+                        android:textColor="#111827"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="16dp" />
-            </LinearLayout>
-        </ScrollView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Manage uploaded video clips from here"
+                        android:textColor="#6B7280"
+                        android:textSize="12sp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler_skill_videos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:nestedScrollingEnabled="false" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="24dp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- FLOATING BOTTOM ACTION -->
+    <LinearLayout
+        android:id="@+id/bottom_action_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_bottom_action_fade"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="44dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_add_video"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:text="+ Add New Video"
+            android:layout_height="60dp"
+            android:layout_marginBottom="4dp"
+            android:text="Add New Video"
             android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="14dp" />
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.01"
+            android:elevation="6dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            app:backgroundTint="#F97316"
+            app:cornerRadius="22dp"
+            app:icon="@android:drawable/ic_input_add"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp"
+            app:iconTint="@android:color/white"
+            app:rippleColor="#33FFFFFF"
+            app:strokeColor="#FDBA74"
+            app:strokeWidth="1dp" />
     </LinearLayout>
 
 </FrameLayout>

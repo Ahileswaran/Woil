@@ -1,23 +1,27 @@
 package com.example.woil.ui;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Spinner;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
-import android.database.Cursor;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 
 import com.example.woil.R;
 import com.example.woil.models.SkillVideo;
@@ -35,7 +39,8 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
     private MaterialButton btnUploadVideo;
     private EditText edtTitle;
     private EditText edtDescription;
-    private Spinner spinnerCategory;
+    private AutoCompleteTextView spinnerCategory;
+    private LinearLayout videoPlaceholderContainer;
 
     private Uri selectedVideoUri;
     private SkillVideo editVideo;
@@ -56,11 +61,14 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     selectedVideoUri = result.getData().getData();
+
                     if (selectedVideoUri != null) {
-                        videoPreview.setVideoURI(selectedVideoUri);
-                        videoPreview.start();
-                        txtVideoPlaceholder.setText("");
-                        txtSelectedVideoName.setText("Selected video: " + getFileName(selectedVideoUri));
+                        getContentResolver().takePersistableUriPermission(
+                                selectedVideoUri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        );
+
+                        showSelectedVideo(selectedVideoUri);
                     }
                 }
             });
@@ -70,6 +78,17 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_skill_video);
 
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
+        bindViews();
+        setupCategoryDropdown();
+        setupListeners();
+        readEditDataIfAvailable();
+    }
+
+    private void bindViews() {
         btnBack = findViewById(R.id.btn_back_arrow_settings);
         videoPreview = findViewById(R.id.video_preview);
         txtVideoPlaceholder = findViewById(R.id.txt_video_placeholder);
@@ -79,62 +98,103 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
         edtTitle = findViewById(R.id.edt_title);
         edtDescription = findViewById(R.id.edt_description);
         spinnerCategory = findViewById(R.id.spinner_category);
+        videoPlaceholderContainer = findViewById(R.id.video_placeholder_container);
+    }
 
+    private void setupCategoryDropdown() {
         ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
                 this,
-                android.R.layout.simple_spinner_item,
+                android.R.layout.simple_dropdown_item_1line,
                 categories
         );
-        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
+        spinnerCategory.setThreshold(1);
+        spinnerCategory.setText(categories[0], false);
+    }
 
+    private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
 
         btnSelectVideo.setOnClickListener(v -> openVideoPicker());
 
         btnUploadVideo.setOnClickListener(v -> validateAndReturnResult());
 
-        readEditDataIfAvailable();
+        videoPreview.setOnPreparedListener(mp -> {
+            mp.setLooping(true);
+            videoPreview.start();
+        });
+
+        videoPreview.setOnClickListener(v -> {
+            if (selectedVideoUri != null) {
+                if (videoPreview.isPlaying()) {
+                    videoPreview.pause();
+                } else {
+                    videoPreview.start();
+                }
+            }
+        });
+
+        spinnerCategory.setOnClickListener(v -> spinnerCategory.showDropDown());
+        spinnerCategory.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                spinnerCategory.showDropDown();
+            }
+        });
     }
 
     private void openVideoPicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("video/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         pickVideoLauncher.launch(intent);
     }
 
     private void readEditDataIfAvailable() {
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("skill_video")) {
-            editVideo = (SkillVideo) intent.getSerializableExtra("skill_video");
-            editPosition = intent.getIntExtra("edit_position", -1);
+        if (intent == null || !intent.hasExtra("skill_video")) {
+            return;
+        }
 
-            if (editVideo != null) {
-                edtTitle.setText(editVideo.getTitle());
-                edtDescription.setText(editVideo.getDescription());
+        editVideo = (SkillVideo) intent.getSerializableExtra("skill_video");
+        editPosition = intent.getIntExtra("edit_position", -1);
 
-                for (int i = 0; i < categories.length; i++) {
-                    if (categories[i].equalsIgnoreCase(editVideo.getCategory())) {
-                        spinnerCategory.setSelection(i);
-                        break;
-                    }
-                }
+        if (editVideo == null) return;
 
-                if (editVideo.getVideoUriString() != null && !editVideo.getVideoUriString().isEmpty()) {
-                    selectedVideoUri = Uri.parse(editVideo.getVideoUriString());
-                    videoPreview.setVideoURI(selectedVideoUri);
-                    txtVideoPlaceholder.setText("");
-                    txtSelectedVideoName.setText("Selected video: " + getFileName(selectedVideoUri));
-                }
-            }
+        edtTitle.setText(editVideo.getTitle());
+        edtDescription.setText(editVideo.getDescription());
+
+        String editCategory = editVideo.getCategory();
+        if (!TextUtils.isEmpty(editCategory)) {
+            spinnerCategory.setText(editCategory, false);
+        }
+
+        if (!TextUtils.isEmpty(editVideo.getVideoUriString())) {
+            selectedVideoUri = Uri.parse(editVideo.getVideoUriString());
+            showSelectedVideo(selectedVideoUri);
         }
     }
 
+    private void showSelectedVideo(Uri videoUri) {
+        videoPreview.setVideoURI(videoUri);
+        videoPreview.seekTo(150);
+
+        if (videoPlaceholderContainer != null) {
+            videoPlaceholderContainer.setVisibility(View.GONE);
+        }
+
+        if (txtVideoPlaceholder != null) {
+            txtVideoPlaceholder.setText("");
+        }
+
+        txtSelectedVideoName.setText(getFileName(videoUri));
+    }
+
     private void validateAndReturnResult() {
-        String title = edtTitle.getText().toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
-        String description = edtDescription.getText().toString().trim();
+        String title = edtTitle.getText() != null ? edtTitle.getText().toString().trim() : "";
+        String category = spinnerCategory.getText() != null ? spinnerCategory.getText().toString().trim() : "";
+        String description = edtDescription.getText() != null ? edtDescription.getText().toString().trim() : "";
 
         if (selectedVideoUri == null) {
             Toast.makeText(this, "Please select a video", Toast.LENGTH_SHORT).show();
@@ -144,6 +204,12 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(title)) {
             edtTitle.setError("Enter title");
             edtTitle.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(category)) {
+            spinnerCategory.setError("Select category");
+            spinnerCategory.requestFocus();
             return;
         }
 
@@ -184,6 +250,7 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
     private String getFileName(Uri uri) {
         String result = "video_file";
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+
         if (cursor != null) {
             int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
             if (cursor.moveToFirst() && nameIndex >= 0) {
@@ -191,6 +258,7 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
             }
             cursor.close();
         }
+
         return result;
     }
 }

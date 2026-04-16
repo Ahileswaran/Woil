@@ -500,7 +500,7 @@
     <LinearLayout
         android:id="@+id/bottom_action_bar"
         android:layout_width="match_parent"
-        android:layout_height="76dp"
+        android:layout_height="98dp"
         android:layout_gravity="bottom"
         android:background="@android:color/white"
         android:elevation="10dp"
@@ -509,7 +509,7 @@
         android:paddingStart="14dp"
         android:paddingTop="10dp"
         android:paddingEnd="14dp"
-        android:paddingBottom="10dp">
+        android:paddingBottom="46dp">
 
         <ImageButton
             android:id="@+id/btn_call_bottom"

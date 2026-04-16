@@ -114,7 +114,7 @@ public class HomeFragment extends Fragment {
                     }
                 });
 
-        // Attach listener to root view. We return true from onTouch only if the gestureDetector handled it.
+        // listener to root view. return true from onTouch only if the gestureDetector handled it.
         rootView.setOnTouchListener((v, event) -> {
             boolean handled = gestureDetector.onTouchEvent(event);
             // if gesture detector handled it (e.g. recognized a fling), consume it

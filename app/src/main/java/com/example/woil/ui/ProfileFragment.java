@@ -91,7 +91,6 @@ public class ProfileFragment extends Fragment {
         tvMemberSince = view.findViewById(R.id.member_since_value);
         tvFullName = view.findViewById(R.id.tv_name);
         tvPhone = view.findViewById(R.id.tv_phone);
-        tvEmail = view.findViewById(R.id.tv_email);
         tvLocation = view.findViewById(R.id.tv_location);
 
         btnEditProfile = view.findViewById(R.id.btn_edit_profile);
