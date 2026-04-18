@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -17,11 +18,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -41,7 +45,9 @@ public class WageFragment extends Fragment {
     private EditText etTips;
     private EditText etMaterials;
 
+    private ImageView ivProfile;
     private TextView tvName;
+    private TextView tvVerified;
     private TextView tvRoleLocation;
     private TextView tvRating;
 
@@ -80,7 +86,10 @@ public class WageFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
-    private String activeRole = "worker"; // later load from Firestore
+    private ListenerRegistration userListener;
+    private ListenerRegistration profileListener;
+
+    private String activeRole = "worker";
 
     @Nullable
     @Override
@@ -103,6 +112,7 @@ public class WageFragment extends Fragment {
         setupExpandableSections();
         setupButtons();
         loadStaticDemoData();
+        attachProfileListeners();
         applyRoleUi();
     }
 
@@ -124,7 +134,9 @@ public class WageFragment extends Fragment {
         etTips = view.findViewById(R.id.et_tips);
         etMaterials = view.findViewById(R.id.et_materials);
 
+        ivProfile = view.findViewById(R.id.iv_profile);
         tvName = view.findViewById(R.id.tv_name);
+        tvVerified = view.findViewById(R.id.tv_verified);
         tvRoleLocation = view.findViewById(R.id.tv_role_location);
         tvRating = view.findViewById(R.id.tv_rating);
 
@@ -218,9 +230,17 @@ public class WageFragment extends Fragment {
     }
 
     private void loadStaticDemoData() {
-        tvName.setText("Kavitha Dissanayake");
-        tvRoleLocation.setText("Worker • Colombo 5");
-        tvRating.setText("Rating 4.8");
+        tvName.setText("—");
+        tvRoleLocation.setText("Worker • —");
+        tvRating.setVisibility(View.GONE);
+
+        if (tvVerified != null) {
+            tvVerified.setVisibility(View.GONE);
+        }
+
+        if (ivProfile != null) {
+            ivProfile.setImageResource(R.drawable.ic_profile_placeholder);
+        }
 
         tvEarned.setText("Rs. 18,400");
         tvPending.setText("Rs. 3,200");
@@ -246,6 +266,107 @@ public class WageFragment extends Fragment {
         tvTipAmount.setText("Rs. 0");
         tvMaterialAmount.setText("Rs. 0");
         tvTotalWage.setText("Rs. 0");
+    }
+
+    private void attachProfileListeners() {
+        if (auth.getCurrentUser() == null) return;
+
+        String uid = auth.getCurrentUser().getUid();
+
+        userListener = db.collection("users").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromUserSnapshot(snap);
+                });
+
+        profileListener = db.collection("profiles").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromProfileSnapshot(snap);
+                });
+    }
+
+    private void populateFromUserSnapshot(DocumentSnapshot snap) {
+        String role = snap.getString("role");
+        Boolean nicVerified = snap.getBoolean("nicVerified");
+
+        if (!TextUtils.isEmpty(role)) {
+            activeRole = role;
+            applyRoleUi();
+
+            String existingLocation = extractLocationPart(tvRoleLocation.getText() != null
+                    ? tvRoleLocation.getText().toString()
+                    : "");
+
+            if (TextUtils.isEmpty(existingLocation)) {
+                existingLocation = "—";
+            }
+
+            tvRoleLocation.setText(capitalize(role) + " • " + existingLocation);
+        }
+
+        if (tvVerified != null) {
+            tvVerified.setVisibility(Boolean.TRUE.equals(nicVerified) ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void populateFromProfileSnapshot(DocumentSnapshot snap) {
+        String first = snap.getString("firstName");
+        String last = snap.getString("lastName");
+        String displayName = snap.getString("displayName");
+        String role = snap.getString("role");
+        String locationText = snap.getString("locationText");
+
+        if (TextUtils.isEmpty(locationText)) {
+            locationText = snap.getString("address");
+        }
+
+        String fullName = !TextUtils.isEmpty(displayName)
+                ? displayName
+                : ((safe(first) + " " + safe(last)).trim());
+
+        if (TextUtils.isEmpty(fullName)) {
+            fullName = "—";
+        }
+
+        tvName.setText(fullName);
+
+        String roleLabel = TextUtils.isEmpty(role) ? activeRole : role;
+        String locationLabel = TextUtils.isEmpty(locationText) ? "—" : locationText;
+        tvRoleLocation.setText(capitalize(roleLabel) + " • " + locationLabel);
+
+        Object ratingObj = snap.get("rating");
+        if (ratingObj != null) {
+            try {
+                double rating = Double.parseDouble(ratingObj.toString());
+                tvRating.setText("Rating " + String.format(Locale.getDefault(), "%.1f", rating));
+                tvRating.setVisibility(View.VISIBLE);
+            } catch (Exception e) {
+                tvRating.setVisibility(View.GONE);
+            }
+        } else {
+            tvRating.setVisibility(View.GONE);
+        }
+
+        Boolean nicVerified = snap.getBoolean("nicVerified");
+        if (tvVerified != null) {
+            tvVerified.setVisibility(Boolean.TRUE.equals(nicVerified) ? View.VISIBLE : View.GONE);
+        }
+
+        String photoUrl = snap.getString("photoUrl");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("photo");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("nicFrontUri");
+
+        if (!TextUtils.isEmpty(photoUrl) && ivProfile != null) {
+            Glide.with(this)
+                    .load(photoUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .into(ivProfile);
+        } else if (ivProfile != null) {
+            ivProfile.setImageResource(R.drawable.ic_profile_placeholder);
+        }
     }
 
     private void applyRoleUi() {
@@ -381,5 +502,36 @@ public class WageFragment extends Fragment {
 
     private String formatRs(double value) {
         return String.format(Locale.getDefault(), "Rs. %.0f", value);
+    }
+
+    private String capitalize(String s) {
+        if (TextUtils.isEmpty(s)) return "";
+        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    private String extractLocationPart(String roleLocationText) {
+        if (TextUtils.isEmpty(roleLocationText)) return "";
+        String[] parts = roleLocationText.split("•", 2);
+        if (parts.length < 2) return "";
+        return parts[1].trim();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (userListener != null) {
+            userListener.remove();
+            userListener = null;
+        }
+
+        if (profileListener != null) {
+            profileListener.remove();
+            profileListener = null;
+        }
     }
 }
