@@ -3,179 +3,591 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="#F7F8FC">
 
     <!-- ORANGE HEADER -->
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="90dp"
-        android:background="@drawable/bg_orange_gradient">
+        android:layout_height="96dp"
+        android:background="@drawable/bg_orange_gradient"
+        android:paddingTop="8dp">
 
-        <!-- Back button -->
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="12dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="18dp"
+            android:layout_alignParentStart="true"
             android:background="@android:color/transparent"
             android:contentDescription="Back"
+            android:padding="8dp"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_arrow_back_white"
-            android:layout_alignParentStart="true" />
-
+            android:src="@drawable/ic_arrow_back_white" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="34dp"
             android:text="Woil Guard Alert"
             android:textColor="@android:color/white"
             android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="36dp"/>
+            android:textStyle="bold" />
     </RelativeLayout>
-
 
     <!-- MAIN CONTENT -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="80dp"
-        android:padding="16dp">
+        android:layout_marginTop="82dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingTop="10dp">
 
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Woil Guard"
-                android:textStyle="bold"
-                android:textSize="24sp" />
-
-            <RadioGroup
-                android:id="@+id/rgCommunicationMode"
+            <!-- INTRO CARD -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="12dp">
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="6dp"
+                app:strokeColor="#EEEAF4"
+                app:strokeWidth="1dp">
 
-                <RadioButton
-                    android:id="@+id/rbBluetooth"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Bluetooth"
-                    android:checked="true" />
+                    android:orientation="vertical"
+                    android:padding="18dp">
 
-                <RadioButton
-                    android:id="@+id/rbWifi"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:id="@+id/tvTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Woil Guard"
+                        android:textColor="#111827"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Connect your guard device and monitor alert signals, motion scores, battery level, and incident activity."
+                        android:textColor="#6B7280"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- CONNECTION SECTION -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:strokeColor="#ECE7F3"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Wi-Fi"
-                    android:layout_marginStart="20dp" />
-            </RadioGroup>
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <Button
-                android:id="@+id/btnConnectGuard"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1. Device Connection"
+                        android:textColor="#111827"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Choose how to connect to the wearable device."
+                        android:textColor="#6B7280"
+                        android:textSize="12sp" />
+
+                    <RadioGroup
+                        android:id="@+id/rgCommunicationMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/rbBluetooth"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:buttonTint="#F97316"
+                            android:checked="true"
+                            android:text="Bluetooth"
+                            android:textColor="#111827"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <RadioButton
+                            android:id="@+id/rbWifi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="20dp"
+                            android:buttonTint="#F97316"
+                            android:text="Wi-Fi"
+                            android:textColor="#111827"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </RadioGroup>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnConnectGuard"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="14dp"
+                        android:text="Connect Device"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#F97316"
+                        app:cornerRadius="18dp"
+                        app:icon="@android:drawable/stat_sys_data_bluetooth"
+                        app:iconGravity="textStart"
+                        app:iconPadding="10dp"
+                        app:iconTint="@android:color/white" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        app:cardBackgroundColor="#FFF7ED"
+                        app:cardCornerRadius="18dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#FED7AA"
+                        app:strokeWidth="1dp">
+
+                        <TextView
+                            android:id="@+id/tvConnectionStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="14dp"
+                            android:text="Disconnected"
+                            android:textColor="#9A3412"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- LIVE STATUS SECTION -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Connect Device"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:strokeColor="#ECE7F3"
+                app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/tvConnectionStatus"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2. Live Guard Status"
+                        android:textColor="#111827"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Live telemetry from the wearable device."
+                        android:textColor="#6B7280"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#F8FAFC"
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="0dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="14dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Device State"
+                                    android:textColor="#6B7280"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/tvDeviceState"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:text="State: IDLE"
+                                    android:textColor="#111827"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="#F8F5FF"
+                                app:cardCornerRadius="18dp"
+                                app:cardElevation="0dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="14dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Battery"
+                                        android:textColor="#6B7280"
+                                        android:textSize="12sp" />
+
+                                    <TextView
+                                        android:id="@+id/tvBattery"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="6dp"
+                                        android:text="Battery: --%"
+                                        android:textColor="#111827"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <Space
+                                android:layout_width="12dp"
+                                android:layout_height="wrap_content" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="#FFF7ED"
+                                app:cardCornerRadius="18dp"
+                                app:cardElevation="0dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="14dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Incident"
+                                        android:textColor="#6B7280"
+                                        android:textSize="12sp" />
+
+                                    <TextView
+                                        android:id="@+id/tvIncidentType"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="6dp"
+                                        android:text="Incident: NONE"
+                                        android:textColor="#111827"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="#F0F9FF"
+                                app:cardCornerRadius="18dp"
+                                app:cardElevation="0dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="14dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Motion Score"
+                                        android:textColor="#6B7280"
+                                        android:textSize="12sp" />
+
+                                    <TextView
+                                        android:id="@+id/tvMotionScore"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="6dp"
+                                        android:text="Motion score: 0.00"
+                                        android:textColor="#111827"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <Space
+                                android:layout_width="12dp"
+                                android:layout_height="wrap_content" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="#ECFDF5"
+                                app:cardCornerRadius="18dp"
+                                app:cardElevation="0dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="14dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Audio Score"
+                                        android:textColor="#6B7280"
+                                        android:textSize="12sp" />
+
+                                    <TextView
+                                        android:id="@+id/tvAudioScore"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="6dp"
+                                        android:text="Audio score: 0.00"
+                                        android:textColor="#111827"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ACTIONS SECTION -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Disconnected"
-                android:textStyle="bold"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:strokeColor="#ECE7F3"
+                app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/tvDeviceState"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3. Alert Actions"
+                        android:textColor="#111827"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Read live values or trigger test / escalation actions."
+                        android:textColor="#6B7280"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnReadStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="14dp"
+                        android:text="Read Live Status"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#7C3AED"
+                        app:cornerRadius="18dp"
+                        app:icon="@android:drawable/ic_popup_sync"
+                        app:iconGravity="textStart"
+                        app:iconPadding="10dp"
+                        app:iconTint="@android:color/white" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSendTest"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="10dp"
+                        android:text="Send Panic Test"
+                        android:textAllCaps="false"
+                        android:textColor="#F97316"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="18dp"
+                        app:icon="@android:drawable/ic_dialog_alert"
+                        app:iconGravity="textStart"
+                        app:iconPadding="10dp"
+                        app:iconTint="#F97316"
+                        app:strokeColor="#FDBA74"
+                        app:strokeWidth="1dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnConfirmAlert"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="10dp"
+                        android:text="Confirm Alert to CCC"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#DC2626"
+                        app:cornerRadius="18dp"
+                        app:icon="@android:drawable/stat_notify_error"
+                        app:iconGravity="textStart"
+                        app:iconPadding="10dp"
+                        app:iconTint="@android:color/white" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- RAW DATA SECTION -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="State: IDLE"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:strokeColor="#ECE7F3"
+                app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/tvBattery"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4. Raw Wearable Data"
+                        android:textColor="#111827"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvGuardData"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_guard_data_panel"
+                        android:padding="14dp"
+                        android:text="Waiting for wearable data..."
+                        android:textColor="#374151"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- INCIDENT LOG SECTION -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Battery: --%"
-                android:layout_marginTop="4dp" />
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:strokeColor="#ECE7F3"
+                app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/tvIncidentType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Incident: NONE"
-                android:layout_marginTop="4dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <TextView
-                android:id="@+id/tvMotionScore"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Motion score: 0.00"
-                android:layout_marginTop="4dp" />
+                    <TextView
+                        android:id="@+id/tvLogTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="5. Incident Log"
+                        android:textColor="#111827"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvAudioScore"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Audio score: 0.00"
-                android:layout_marginTop="4dp" />
+                    <TextView
+                        android:id="@+id/tvIncidentLog"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_guard_log_panel"
+                        android:padding="14dp"
+                        android:text="No incidents yet"
+                        android:textColor="#374151"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <Button
-                android:id="@+id/btnReadStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Read Live Status"
-                android:layout_marginTop="16dp" />
-
-            <Button
-                android:id="@+id/btnSendTest"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Send Panic Test"
-                android:layout_marginTop="8dp" />
-
-            <Button
-                android:id="@+id/btnConfirmAlert"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Confirm Alert to CCC"
-                android:layout_marginTop="8dp" />
-
-            <TextView
-                android:id="@+id/tvGuardData"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Waiting for wearable data..."
-                android:layout_marginTop="16dp" />
-
-            <TextView
-                android:id="@+id/tvLogTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Incident Log"
-                android:textStyle="bold"
-                android:layout_marginTop="20dp" />
-
-            <TextView
-                android:id="@+id/tvIncidentLog"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="No incidents yet"
-                android:layout_marginTop="8dp" />
         </LinearLayout>
-
-
     </ScrollView>
 
 </FrameLayout>

@@ -13,6 +13,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -67,6 +69,21 @@ public class WoilGuardFragment extends Fragment {
     private BluetoothGattCharacteristic cmdCharacteristic;
 
     private final LinkedList<String> incidentLogs = new LinkedList<>();
+
+    private final Handler liveRefreshHandler = new Handler(Looper.getMainLooper());
+    private boolean autoRefreshEnabled = false;
+
+    private final Runnable liveRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!isAdded()) return;
+
+            if (autoRefreshEnabled && bluetoothGatt != null && statusCharacteristic != null) {
+                readBleStatus();
+                liveRefreshHandler.postDelayed(this, 1000);
+            }
+        }
+    };
 
     // latest parsed wearable data
     private String latestState = "IDLE";
@@ -165,6 +182,19 @@ public class WoilGuardFragment extends Fragment {
         });
 
         btnConfirmAlert.setOnClickListener(v -> openCccFlow());
+    }
+
+    private void startAutoRefresh() {
+        if (autoRefreshEnabled) return;
+
+        autoRefreshEnabled = true;
+        liveRefreshHandler.removeCallbacks(liveRefreshRunnable);
+        liveRefreshHandler.post(liveRefreshRunnable);
+    }
+
+    private void stopAutoRefresh() {
+        autoRefreshEnabled = false;
+        liveRefreshHandler.removeCallbacks(liveRefreshRunnable);
     }
 
     // ----------------------------------------------------
@@ -271,6 +301,7 @@ public class WoilGuardFragment extends Fragment {
 
                 } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                     tvConnectionStatus.setText("BLE disconnected");
+                    stopAutoRefresh();
                     statusCharacteristic = null;
                     cmdCharacteristic = null;
                 } else {
@@ -303,7 +334,8 @@ public class WoilGuardFragment extends Fragment {
                     if (statusCharacteristic == null || cmdCharacteristic == null) {
                         tvGuardData.setText("BLE characteristics not found");
                     } else {
-                        tvGuardData.setText("BLE service discovered. Ready.");
+                        tvGuardData.setText("BLE service discovered. Live monitoring started.");
+                        startAutoRefresh();
                     }
                 });
 
@@ -335,7 +367,6 @@ public class WoilGuardFragment extends Fragment {
 
     private void readBleStatus() {
         if (bluetoothGatt == null || statusCharacteristic == null) {
-            toast("BLE not connected");
             return;
         }
 
@@ -578,8 +609,24 @@ public class WoilGuardFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        stopAutoRefresh();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (bluetoothGatt != null && statusCharacteristic != null) {
+            startAutoRefresh();
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        stopAutoRefresh();
 
         if (bluetoothGatt != null) {
             try {
