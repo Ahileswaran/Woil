@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Nimal Perera"
+            android:text="@string/nimal_perera"
             android:textColor="#1E1E1E"
             android:textSize="17sp"
             android:textStyle="bold" />
@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Cleaning"
+            android:text="@string/cleaning"
             android:textColor="#666666"
             android:textSize="14sp" />
 
@@ -45,7 +45,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="ETA: 12 min"
+            android:text="@string/eta_12_min"
             android:textColor="#333333"
             android:textSize="15sp"
             android:textStyle="bold" />
@@ -54,7 +54,7 @@
             android:id="@+id/tv_worker_distance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Distance: 2.1 km"
+            android:text="@string/distance_2_1_km"
             android:textColor="#666666"
             android:textSize="14sp" />
 
@@ -63,7 +63,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="★ 4.7"
+            android:text="@string/value_4_7"
             android:textColor="#C18A00"
             android:textSize="14sp"
             android:textStyle="bold" />

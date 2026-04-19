@@ -8,7 +8,6 @@
     android:background="#F5F1F6"
     tools:context=".ui.ProfileFragment">
 
-    <!-- FIXED HEADER -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
@@ -23,7 +22,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:background="@android:color/transparent"
-            android:contentDescription="Back"
+            android:contentDescription="@string/cd_back"
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_arrow_back_white"
@@ -49,7 +48,7 @@
             android:layout_height="36dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_purple_gradient_pill"
-            android:text="Choose"
+            android:text="@string/choose"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
@@ -74,7 +73,7 @@
                 android:id="@+id/username"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@Ravikumar Rajes"
+                android:text="@string/ravikumar_rajes"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -84,7 +83,7 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_marginStart="8dp"
-                android:contentDescription="verified"
+                android:contentDescription="@string/cd_verified"
                 android:src="@drawable/ic_verified" />
         </LinearLayout>
 
@@ -93,7 +92,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Client · Colombo 5"
+            android:text="@string/client_colombo_5"
             android:textColor="#FFF7F7"
             android:textSize="10sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -130,7 +129,7 @@
                     android:id="@+id/rating_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="★ 4.6"
+                    android:text="@string/value_4_6"
                     android:textColor="#333333"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -139,7 +138,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Rating"
+                    android:text="@string/rating"
                     android:textColor="#666666"
                     android:textSize="10sp" />
             </LinearLayout>
@@ -160,7 +159,7 @@
                     android:id="@+id/jobs_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="12"
+                    android:text="@string/value_12"
                     android:textColor="#333333"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -169,7 +168,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Jobs Posted"
+                    android:text="@string/jobs_posted"
                     android:textColor="#666666"
                     android:textSize="10sp" />
             </LinearLayout>
@@ -190,7 +189,7 @@
                     android:id="@+id/member_since_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="2024"
+                    android:text="@string/value_2024"
                     android:textColor="#333333"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -199,14 +198,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Member since"
+                    android:text="@string/member_since"
                     android:textColor="#666666"
                     android:textSize="10sp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- OVERLAPPING WHITE ACTION BAR -->
     <LinearLayout
         android:id="@+id/top_white_container"
         android:layout_width="match_parent"
@@ -230,7 +228,7 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:minHeight="0dp"
-            android:text="Edit profile"
+            android:text="@string/edit_profile"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
@@ -254,7 +252,7 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:minHeight="0dp"
-                android:text="Client"
+                android:text="@string/client"
                 android:textAllCaps="false"
                 android:textColor="#222222"
                 android:textSize="12sp"
@@ -269,7 +267,7 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:minHeight="0dp"
-                android:text="Worker"
+                android:text="@string/worker"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp"
@@ -277,7 +275,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ONLY THIS PART SCROLLS -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/root_scroll"
         android:layout_width="match_parent"
@@ -318,7 +315,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Account Info"
+                        android:text="@string/account_info"
                         android:textColor="#333333"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -326,7 +323,7 @@
                     <ImageView
                         android:layout_width="22dp"
                         android:layout_height="22dp"
-                        android:contentDescription="Next"
+                        android:contentDescription="@string/cd_next"
                         android:src="@drawable/ic_chevron_right" />
                 </LinearLayout>
 
@@ -359,7 +356,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="14dp"
-                            android:text="Ravikumar Rajes"
+                            android:text="@string/ravikumar_rajes_2"
                             android:textColor="#222222"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -371,7 +368,7 @@
                         android:layout_marginStart="40dp"
                         android:layout_marginTop="6dp"
                         android:background="@drawable/medium_rounded_input"
-                        android:hint="Enter name"
+                        android:hint="@string/hint_enter_name"
                         android:paddingStart="10dp"
                         android:paddingEnd="10dp"
                         android:textSize="12sp"
@@ -399,7 +396,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
-                        android:text="+94 77685412"
+                        android:text="@string/value_94_77685412"
                         android:textColor="#222222"
                         android:textSize="12sp" />
 
@@ -438,7 +435,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="14dp"
-                            android:text="Colombo 5"
+                            android:text="@string/colombo_5"
                             android:textColor="#222222"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -450,7 +447,7 @@
                         android:layout_marginStart="40dp"
                         android:layout_marginTop="6dp"
                         android:background="@drawable/medium_rounded_input"
-                        android:hint="Enter address"
+                        android:hint="@string/hint_enter_address"
                         android:paddingStart="10dp"
                         android:paddingEnd="10dp"
                         android:textSize="12sp"
@@ -479,7 +476,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="View your ads"
+                        android:text="@string/view_your_ads"
                         android:textColor="#333333"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -487,7 +484,7 @@
                     <ImageView
                         android:layout_width="22dp"
                         android:layout_height="22dp"
-                        android:contentDescription="Next"
+                        android:contentDescription="@string/cd_next"
                         android:src="@drawable/ic_chevron_right" />
                 </LinearLayout>
 
@@ -521,7 +518,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="12.05.2025 12:30 Am"
+                            android:text="@string/value_12_05_2025_12_30_am"
                             android:textColor="#777777"
                             android:textSize="13sp" />
 
@@ -530,7 +527,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Kitchen cleaning"
+                            android:text="@string/kitchen_cleaning"
                             android:textColor="#222222"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -559,7 +556,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="09.05.2025 09:30 Am"
+                            android:text="@string/value_09_05_2025_09_30_am"
                             android:textColor="#777777"
                             android:textSize="13sp" />
 
@@ -568,7 +565,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Care giving"
+                            android:text="@string/care_giving"
                             android:textColor="#222222"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -597,7 +594,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Work Progress"
+                        android:text="@string/work_progress"
                         android:textColor="#333333"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -605,7 +602,7 @@
                     <ImageView
                         android:layout_width="22dp"
                         android:layout_height="22dp"
-                        android:contentDescription="Next"
+                        android:contentDescription="@string/cd_next"
                         android:src="@drawable/ic_chevron_right" />
                 </LinearLayout>
 
@@ -614,7 +611,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
-                    android:text="Kitchen Cleaning"
+                    android:text="@string/kitchen_cleaning_2"
                     android:textColor="#222222"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -624,7 +621,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="12.05.2025 01:45 Am"
+                    android:text="@string/value_12_05_2025_01_45_am"
                     android:textColor="#777777"
                     android:textSize="13sp" />
 
@@ -643,7 +640,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:text="Care giving"
+                    android:text="@string/care_giving"
                     android:textColor="#222222"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -653,7 +650,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="09.05.2025 05:00 Pm"
+                    android:text="@string/value_09_05_2025_05_00_pm"
                     android:textColor="#777777"
                     android:textSize="13sp" />
 
@@ -678,7 +675,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="96dp"
         android:backgroundTint="#A8E28D"
-        android:contentDescription="Add Job"
+        android:contentDescription="@string/cd_add_job"
         android:insetTop="0dp"
         android:insetBottom="0dp"
         android:minWidth="0dp"

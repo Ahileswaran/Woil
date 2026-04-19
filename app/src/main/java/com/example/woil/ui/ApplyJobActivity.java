@@ -84,6 +84,8 @@ public class ApplyJobActivity extends AppCompatActivity {
         btnConfirmApply.setOnClickListener(v -> submitApplication());
     }
 
+
+
     private void submitApplication() {
         if (mAuth.getCurrentUser() == null) {
             Toast.makeText(this, "Please sign in first", Toast.LENGTH_LONG).show();
@@ -122,6 +124,7 @@ public class ApplyJobActivity extends AppCompatActivity {
                     Toast.makeText(this, "Failed to apply: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
+
 
     private String safe(String value, String fallback) {
         return TextUtils.isEmpty(value) ? fallback : value;

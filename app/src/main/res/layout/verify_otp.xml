@@ -49,14 +49,14 @@
                     <ImageView
                         android:layout_width="78dp"
                         android:layout_height="78dp"
-                        android:contentDescription="Woil logo"
+                        android:contentDescription="@string/cd_woil_logo"
                         android:src="@drawable/woil" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Verify Number"
+                        android:text="@string/verify_number"
                         android:textColor="@android:color/white"
                         android:textSize="20sp"
                         android:textStyle="bold"
@@ -67,7 +67,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="Enter the OTP sent to your mobile number"
+                        android:text="@string/enter_the_otp_sent_to_your_mobile_number"
                         android:textColor="#FFF3E6"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -93,7 +93,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="OTP Verification"
+                        android:text="@string/otp_verification"
                         android:textColor="#171717"
                         android:textSize="22sp"
                         android:textStyle="bold"
@@ -103,7 +103,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Enter your 6 digit verification code"
+                        android:text="@string/enter_your_6_digit_verification_code"
                         android:textColor="#6B7280"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif" />
@@ -127,7 +127,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Verification Code"
+                                android:text="@string/verification_code"
                                 android:textColor="#6D4C0D"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
@@ -140,7 +140,7 @@
                                 android:layout_marginTop="10dp"
                                 android:background="@drawable/low_rounded_input"
                                 android:gravity="center"
-                                android:hint="Enter 6 digit code"
+                                android:hint="@string/hint_enter_6_digit_code"
                                 android:inputType="number"
                                 android:letterSpacing="0.15"
                                 android:maxLength="6"
@@ -159,7 +159,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginTop="16dp"
-                        android:text="Verify OTP"
+                        android:text="@string/verify_otp"
                         android:textAllCaps="false"
                         android:textColor="#FFFFFF"
                         android:textSize="15sp"
@@ -189,7 +189,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Didn't receive OTP? "
+                                android:text="@string/didn_t_receive_otp"
                                 android:textColor="#6B7280"
                                 android:textSize="13sp"
                                 android:fontFamily="sans-serif-medium" />
@@ -198,7 +198,7 @@
                                 android:id="@+id/tvResend"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Resend"
+                                android:text="@string/resend"
                                 android:textColor="#2563EB"
                                 android:textSize="13sp"
                                 android:textStyle="bold"

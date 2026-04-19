@@ -48,7 +48,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="18dp"
             android:background="@android:color/transparent"
-            android:contentDescription="Back"
+            android:contentDescription="@string/cd_back"
             android:scaleType="centerInside"
             android:src="@drawable/ic_arrow_back_white"
             android:layout_alignParentStart="true" />
@@ -88,7 +88,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_weight="1"
-                android:text="Ravi Senthilkumar"
+                android:text="@string/ravi_senthilkumar"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#121212" />
@@ -161,7 +161,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:hint="Type a message"
+                android:hint="@string/hint_type_a_message"
                 android:maxLines="4" />
 
             <ImageButton

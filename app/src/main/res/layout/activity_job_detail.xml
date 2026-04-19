@@ -20,7 +20,7 @@
             android:layout_marginStart="12dp"
             android:layout_marginTop="20dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back"
+            android:contentDescription="@string/cd_back"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
             app:tint="@android:color/white" />
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="28dp"
-            android:text="Job Details"
+            android:text="@string/job_details"
             android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -50,7 +50,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Share"
+                android:contentDescription="@string/cd_share"
                 android:padding="8dp"
                 android:src="@drawable/ic_share"
                 app:tint="@android:color/white" />
@@ -60,7 +60,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Save"
+                android:contentDescription="@string/cd_save"
                 android:padding="8dp"
                 android:src="@drawable/ic_bookmark_border"
                 app:tint="@android:color/white" />
@@ -121,7 +121,7 @@
                             android:paddingTop="5dp"
                             android:paddingEnd="10dp"
                             android:paddingBottom="5dp"
-                            android:text="Cleaning"
+                            android:text="@string/cleaning"
                             android:textColor="#E67E00"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -137,7 +137,7 @@
                             android:id="@+id/tv_job_title"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="House Cleaner Needed"
+                            android:text="@string/house_cleaner_needed"
                             android:textColor="#1E1E1E"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -165,7 +165,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="6dp"
-                                android:text="Verified Client"
+                                android:text="@string/verified_client"
                                 android:textColor="#2E7D32"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
@@ -176,7 +176,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
-                            android:text="Rs. 2,000 fixed"
+                            android:text="@string/rs_2_000_fixed"
                             android:textColor="#F57C00"
                             android:textSize="28sp"
                             android:textStyle="bold" />
@@ -199,7 +199,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="Colombo 05"
+                                android:text="@string/colombo_05"
                                 android:textColor="#424242"
                                 android:textSize="15sp" />
                         </LinearLayout>
@@ -222,7 +222,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="Today, 9:00 AM - 12:00 PM"
+                                android:text="@string/today_9_00_am_12_00_pm"
                                 android:textColor="#424242"
                                 android:textSize="15sp" />
                         </LinearLayout>
@@ -232,7 +232,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="Posted 2 hours ago"
+                            android:text="@string/posted_2_hours_ago"
                             android:textColor="#9E9E9E"
                             android:textSize="13sp" />
 
@@ -246,7 +246,7 @@
                             android:paddingTop="6dp"
                             android:paddingEnd="10dp"
                             android:paddingBottom="6dp"
-                            android:text="Open job"
+                            android:text="@string/open_job"
                             android:textColor="#2E7D32"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -264,7 +264,7 @@
                                 android:layout_height="48dp"
                                 android:layout_weight="1"
                                 android:backgroundTint="#FF8A00"
-                                android:text="Apply"
+                                android:text="@string/apply"
                                 android:textAllCaps="false"
                                 android:textColor="@android:color/white"
                                 android:textStyle="bold"
@@ -278,7 +278,7 @@
                                 android:layout_height="48dp"
                                 android:layout_marginStart="10dp"
                                 android:background="@drawable/bg_round_icon_button"
-                                android:contentDescription="Call"
+                                android:contentDescription="@string/call"
                                 android:padding="12dp"
                                 android:src="@drawable/ic_call"
                                 app:tint="#424242" />
@@ -289,7 +289,7 @@
                                 android:layout_height="48dp"
                                 android:layout_marginStart="10dp"
                                 android:background="@drawable/bg_round_icon_button"
-                                android:contentDescription="Chat"
+                                android:contentDescription="@string/action_chat"
                                 android:padding="12dp"
                                 android:src="@drawable/ic_chat"
                                 app:tint="#424242" />
@@ -300,7 +300,7 @@
                                 android:layout_height="48dp"
                                 android:layout_marginStart="10dp"
                                 android:background="@drawable/bg_round_icon_button"
-                                android:contentDescription="Share"
+                                android:contentDescription="@string/cd_share"
                                 android:padding="12dp"
                                 android:src="@drawable/ic_share"
                                 app:tint="#424242" />
@@ -328,7 +328,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Job Description"
+                        android:text="@string/job_description_2"
                         android:textColor="#1E1E1E"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -339,7 +339,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:lineSpacingExtra="2dp"
-                        android:text="Need an experienced house cleaner for a 3-bedroom home."
+                        android:text="@string/need_an_experienced_house_cleaner_for_a_3_bedroom_home"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
                 </LinearLayout>
@@ -376,7 +376,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Location Preview"
+                        android:text="@string/location_preview"
                         android:textColor="#1E1E1E"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -388,7 +388,7 @@
                         android:layout_marginTop="12dp"
                         android:adjustViewBounds="true"
                         android:background="@drawable/bg_map_card"
-                        android:contentDescription="Job location preview"
+                        android:contentDescription="@string/cd_job_location_preview"
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_map_placeholder" />
 
@@ -397,7 +397,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="No location available"
+                        android:text="@string/no_location_available"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
                 </LinearLayout>
@@ -421,7 +421,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="More Details"
+                        android:text="@string/more_details"
                         android:textColor="#1E1E1E"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -431,7 +431,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="Duration: 3 hours"
+                        android:text="@string/duration_3_hours"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
                 </LinearLayout>
@@ -458,7 +458,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Worker Travel Info"
+                        android:text="@string/worker_travel_info"
                         android:textColor="#1E1E1E"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -468,7 +468,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="Distance: 2.4 km"
+                        android:text="@string/distance_2_4_km"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
 
@@ -477,7 +477,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="ETA: 9 min"
+                        android:text="@string/eta_9_min"
                         android:textColor="#5F5F5F"
                         android:textSize="15sp" />
 
@@ -488,7 +488,7 @@
                         android:layout_marginTop="12dp"
                         android:adjustViewBounds="true"
                         android:background="@drawable/bg_map_card"
-                        android:contentDescription="Route preview"
+                        android:contentDescription="@string/cd_route_preview"
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_map_placeholder" />
                 </LinearLayout>
@@ -516,7 +516,7 @@
             android:layout_width="52dp"
             android:layout_height="52dp"
             android:background="@drawable/bg_round_orange_soft"
-            android:contentDescription="Call"
+            android:contentDescription="@string/call"
             android:padding="14dp"
             android:src="@drawable/ic_call"
             app:tint="#F57C00" />
@@ -527,7 +527,7 @@
             android:layout_height="52dp"
             android:layout_marginStart="10dp"
             android:background="@drawable/bg_round_orange_soft"
-            android:contentDescription="Chat"
+            android:contentDescription="@string/action_chat"
             android:padding="14dp"
             android:src="@drawable/ic_chat"
             app:tint="#F57C00" />
@@ -539,7 +539,7 @@
             android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:backgroundTint="#FF8A00"
-            android:text="Apply Now"
+            android:text="@string/apply_now"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
             android:textSize="17sp"

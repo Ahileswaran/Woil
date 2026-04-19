@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="24dp"
-            android:text="Jobs"
+            android:text="@string/jobs"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -52,7 +52,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:text="Loading..."
+            android:text="@string/loading"
             android:textColor="#616161"
             android:textSize="14sp" />
 
@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:padding="20dp"
-            android:text="No jobs found"
+            android:text="@string/no_jobs_found"
             android:textColor="#9E9E9E"
             android:textSize="15sp"
             android:visibility="gone" />

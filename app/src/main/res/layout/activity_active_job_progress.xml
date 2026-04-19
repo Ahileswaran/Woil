@@ -26,7 +26,7 @@
             android:id="@+id/settings_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Job In Progress"
+            android:text="@string/job_in_progress"
             android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -45,7 +45,7 @@
             android:id="@+id/tv_progress_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="House Cleaner Needed"
+            android:text="@string/house_cleaner_needed"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -54,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Time left: 1 hr 20 min"
+            android:text="@string/time_left_1_hr_20_min"
             android:textSize="16sp" />
 
         <ProgressBar

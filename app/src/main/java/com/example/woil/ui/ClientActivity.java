@@ -2,6 +2,7 @@ package com.example.woil.ui;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -456,6 +457,11 @@ public class ClientActivity extends AppCompatActivity {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleManager.applyLocale(newBase));
     }
 
     @Override

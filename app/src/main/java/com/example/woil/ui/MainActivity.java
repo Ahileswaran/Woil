@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -180,6 +181,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleManager.applyLocale(newBase));
     }
 
     private Fragment getSelectedHomeFragment() {

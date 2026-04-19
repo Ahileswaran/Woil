@@ -21,7 +21,7 @@
             android:layout_marginTop="20dp"
             android:layout_alignParentStart="true"
             android:background="@android:color/transparent"
-            android:contentDescription="Back"
+            android:contentDescription="@string/cd_back"
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_arrow_back"
@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="30dp"
-            android:text="Skill Showcase"
+            android:text="@string/skill_showcase"
             android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -77,7 +77,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Uploaded Skill Videos"
+                        android:text="@string/uploaded_skill_videos"
                         android:textColor="#111827"
                         android:textSize="19sp"
                         android:textStyle="bold" />
@@ -86,7 +86,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Show your real work to build trust, safety, and transparency for clients."
+                        android:text="@string/show_your_real_work_to_build_trust_safety_and_transpare"
                         android:textColor="#6B7280"
                         android:textSize="13sp" />
                 </LinearLayout>
@@ -124,7 +124,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
                         android:gravity="center"
-                        android:text="No videos uploaded yet"
+                        android:text="@string/no_videos_uploaded_yet"
                         android:textColor="#111827"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -134,7 +134,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:gravity="center"
-                        android:text="Add your first skill video to help clients understand your work."
+                        android:text="@string/add_your_first_skill_video_to_help_clients_understand_y"
                         android:textColor="#6B7280"
                         android:textSize="13sp" />
                 </LinearLayout>
@@ -161,7 +161,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Your Showcase"
+                        android:text="@string/your_showcase"
                         android:textColor="#111827"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -170,7 +170,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Manage uploaded video clips from here"
+                        android:text="@string/manage_uploaded_video_clips_from_here"
                         android:textColor="#6B7280"
                         android:textSize="12sp" />
 
@@ -209,7 +209,7 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginBottom="4dp"
-            android:text="Add New Video"
+            android:text="@string/add_new_video"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
             android:textSize="16sp"

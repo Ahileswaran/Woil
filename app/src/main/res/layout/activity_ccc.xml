@@ -9,7 +9,7 @@
         android:id="@+id/tvCaseSummary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="CCC case summary"
+        android:text="@string/ccc_case_summary"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -17,20 +17,20 @@
         android:id="@+id/btnAck"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Acknowledge"
+        android:text="@string/acknowledge"
         android:layout_marginTop="16dp" />
 
     <Button
         android:id="@+id/btnEscalate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Escalate"
+        android:text="@string/escalate"
         android:layout_marginTop="8dp" />
 
     <Button
         android:id="@+id/btnClose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Close"
+        android:text="@string/close"
         android:layout_marginTop="8dp" />
 </LinearLayout>

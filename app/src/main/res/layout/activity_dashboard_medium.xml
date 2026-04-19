@@ -72,7 +72,7 @@
                             android:id="@+id/tv_name_medium"
                             android:layout_width="220dp"
                             android:layout_height="wrap_content"
-                            android:text="Kavitha Kanthasawamy"
+                            android:text="@string/kavitha_kanthasawamy"
                             android:textColor="@android:color/white"
                             android:textSize="14sp"
                             android:textStyle="bold"
@@ -86,7 +86,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Worker"
+                            android:text="@string/worker"
                             android:textColor="#FFF3CC"
                             android:textSize="13sp"
                             android:textStyle="bold"
@@ -107,22 +107,22 @@
                         <TextView
                             android:id="@+id/box_wage"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Wage\nLKR 2600" />
+                            android:text="@string/wage_nlkr_2600" />
 
                         <TextView
                             android:id="@+id/box_job_done"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Done\n12" />
+                            android:text="@string/done_n12" />
 
                         <TextView
                             android:id="@+id/box_next"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Next\nCleaning" />
+                            android:text="@string/next_ncleaning" />
 
                         <TextView
                             android:id="@+id/box_find"
                             style="@style/Widget.MediumQuickBox"
-                            android:text="Alerts\n3" />
+                            android:text="@string/alerts_n3" />
                     </GridLayout>
 
                     <ImageButton
@@ -135,7 +135,7 @@
                         android:background="@drawable/medium_panic_button"
                         android:scaleType="centerInside"
                         android:src="@drawable/medium_ic_panic"
-                        android:contentDescription="panic" />
+                        android:contentDescription="@string/cd_panic" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -169,14 +169,14 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:src="@drawable/medium_ic_user"
-                            android:contentDescription="profile" />
+                            android:contentDescription="@string/cd_profile" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="12dp"
-                            android:text="User Profile"
+                            android:text="@string/user_profile"
                             android:textColor="#5A2D0C"
                             android:textSize="15sp"
                             android:textStyle="bold"
@@ -203,7 +203,7 @@
                             android:id="@+id/tv_phone_medium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Phone: 077 XXX XXXX"
+                            android:text="@string/phone_077_xxx_xxxx"
                             android:textColor="#5F3B24"
                             android:textSize="13sp"
                             android:fontFamily="sans-serif-medium" />
@@ -213,7 +213,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Area: Colombo"
+                            android:text="@string/area_colombo"
                             android:textColor="#5F3B24"
                             android:textSize="13sp"
                             android:fontFamily="sans-serif-medium" />
@@ -252,14 +252,14 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:src="@drawable/medium_ic_jobs"
-                            android:contentDescription="jobs" />
+                            android:contentDescription="@string/cd_jobs" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="12dp"
-                            android:text="Job Alerts"
+                            android:text="@string/job_alerts"
                             android:textColor="#163A63"
                             android:textSize="15sp"
                             android:textStyle="bold"
@@ -298,7 +298,7 @@
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:text="Maid work near Jaffna"
+                                    android:text="@string/maid_work_near_jaffna"
                                     android:textColor="#163A63"
                                     android:textSize="13sp"
                                     android:textStyle="bold"
@@ -308,7 +308,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
-                                    android:text="Rs. 1800"
+                                    android:text="@string/rs_1800"
                                     android:textColor="#2563EB"
                                     android:textSize="12sp"
                                     android:textStyle="bold"
@@ -320,7 +320,7 @@
                                     android:layout_height="34dp"
                                     android:layout_marginTop="8dp"
                                     android:backgroundTint="#22C55E"
-                                    android:text="Call"
+                                    android:text="@string/call"
                                     android:textAllCaps="false"
                                     android:textColor="#FFFFFF"
                                     android:textStyle="bold"
@@ -345,7 +345,7 @@
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:text="Cleaning near Colombo"
+                                    android:text="@string/cleaning_near_colombo"
                                     android:textColor="#163A63"
                                     android:textSize="13sp"
                                     android:textStyle="bold"
@@ -355,7 +355,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
-                                    android:text="Rs. 1500"
+                                    android:text="@string/hint_rs_1500"
                                     android:textColor="#2563EB"
                                     android:textSize="12sp"
                                     android:textStyle="bold"
@@ -396,14 +396,14 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:src="@drawable/medium_ic_wallet"
-                            android:contentDescription="wallet" />
+                            android:contentDescription="@string/cd_wallet" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="12dp"
-                            android:text="Wage Calculator"
+                            android:text="@string/wage_calculator"
                             android:textColor="#6D4C0D"
                             android:textSize="15sp"
                             android:textStyle="bold"
@@ -429,7 +429,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Balance: LKR 2600"
+                            android:text="@string/balance_lkr_2600"
                             android:textColor="#C2410C"
                             android:textSize="13sp"
                             android:textStyle="bold"
@@ -448,7 +448,7 @@
                             android:layout_height="40dp"
                             android:layout_marginTop="8dp"
                             android:background="@drawable/medium_rounded_input"
-                            android:hint="Hours"
+                            android:hint="@string/hint_hours"
                             android:inputType="number"
                             android:paddingStart="10dp"
                             android:paddingEnd="10dp" />
@@ -459,7 +459,7 @@
                             android:layout_height="38dp"
                             android:layout_marginTop="8dp"
                             android:backgroundTint="#F59E0B"
-                            android:text="Calculate"
+                            android:text="@string/calculate"
                             android:textAllCaps="false"
                             android:textColor="#FFFFFF"
                             android:textStyle="bold"
@@ -499,14 +499,14 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:src="@drawable/medium_ic_shield"
-                            android:contentDescription="guard" />
+                            android:contentDescription="@string/cd_guard" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="12dp"
-                            android:text="Woil Guard"
+                            android:text="@string/woil_guard"
                             android:textColor="#14532D"
                             android:textSize="15sp"
                             android:textStyle="bold"
@@ -532,7 +532,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Status: Safe"
+                            android:text="@string/status_safe"
                             android:textColor="#15803D"
                             android:textSize="13sp"
                             android:textStyle="bold"
@@ -542,7 +542,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Battery: 82%"
+                            android:text="@string/battery_82"
                             android:textColor="#202020"
                             android:textSize="12sp"
                             android:fontFamily="sans-serif-medium" />
@@ -551,7 +551,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Incident: None"
+                            android:text="@string/incident_none"
                             android:textColor="#202020"
                             android:textSize="12sp"
                             android:fontFamily="sans-serif-medium" />
@@ -605,13 +605,13 @@
                         android:backgroundTint="#EAF1FF"
                         android:scaleType="centerInside"
                         android:src="@drawable/medium_ic_phone"
-                        android:contentDescription="phone" />
+                        android:contentDescription="@string/cd_phone" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Call"
+                        android:text="@string/call"
                         android:textColor="#4B5B7C"
                         android:textSize="11sp"
                         android:textStyle="bold"
@@ -633,13 +633,13 @@
                         android:backgroundTint="#EAF1FF"
                         android:scaleType="centerInside"
                         android:src="@drawable/medium_ic_message"
-                        android:contentDescription="message" />
+                        android:contentDescription="@string/cd_message" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Chat"
+                        android:text="@string/action_chat"
                         android:textColor="#4B5B7C"
                         android:textSize="11sp"
                         android:textStyle="bold"
@@ -661,13 +661,13 @@
                         android:backgroundTint="#EAF1FF"
                         android:scaleType="centerInside"
                         android:src="@drawable/medium_ic_video"
-                        android:contentDescription="video" />
+                        android:contentDescription="@string/cd_video" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Video"
+                        android:text="@string/video"
                         android:textColor="#4B5B7C"
                         android:textSize="11sp"
                         android:textStyle="bold"

@@ -30,6 +30,8 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
         tvDistance.setText("Distance: calculating...");
     }
 
+
+
     @Override
     public void onMapReady(com.google.android.gms.maps.GoogleMap googleMap) {
         // TODO add worker/client markers and route polyline later

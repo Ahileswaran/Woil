@@ -41,6 +41,11 @@ public class SettingsFragment extends Fragment {
     private SwitchMaterial switchUiLow;
     private boolean suppressUiSwitchListener = false;
 
+    private SwitchMaterial switchLangEn;
+    private SwitchMaterial switchLangTa;
+    private SwitchMaterial switchLangSi;
+    private boolean suppressLanguageSwitchListener = false;
+
     private VoiceGuidanceManager voiceGuidanceManager;
 
     public SettingsFragment() { }
@@ -68,6 +73,10 @@ public class SettingsFragment extends Fragment {
         LinearLayout accessibilityExpandable = view.findViewById(R.id.accessibility_expandable);
         ImageView accessibilityChevron = view.findViewById(R.id.ic_accessibility_chevron);
 
+        RelativeLayout languageMainRow = view.findViewById(R.id.language_main_row);
+        LinearLayout languageExpandable = view.findViewById(R.id.language_expandable);
+        ImageView languageChevron = view.findViewById(R.id.ic_language_chevron);
+
         SwitchMaterial switchTheme = view.findViewById(R.id.switch_theme);
         SwitchMaterial switchVoice = view.findViewById(R.id.switch_voice);
         SwitchMaterial switchSimple = view.findViewById(R.id.switch_simple);
@@ -77,6 +86,10 @@ public class SettingsFragment extends Fragment {
         switchUiHigh = view.findViewById(R.id.switch_ui_high);
         switchUiMedium = view.findViewById(R.id.switch_ui_medium);
         switchUiLow = view.findViewById(R.id.switch_ui_low);
+
+        switchLangEn = view.findViewById(R.id.switch_lang_en);
+        switchLangTa = view.findViewById(R.id.switch_lang_ta);
+        switchLangSi = view.findViewById(R.id.switch_lang_si);
 
         View btnBack = view.findViewById(R.id.btn_back);
         if (btnBack != null) {
@@ -158,8 +171,10 @@ public class SettingsFragment extends Fragment {
         bindExpandable(systemMainRow, systemExpandable, systemChevron);
         bindExpandable(systemUiMainRow, systemUiExpandable, systemUiChevron);
         bindExpandable(accessibilityMainRow, accessibilityExpandable, accessibilityChevron);
+        bindExpandable(languageMainRow, languageExpandable, languageChevron);
 
         setupUiLevelSwitches();
+        setupLanguageSwitches();
         setupSwipeBack(view);
 
         view.postDelayed(() -> {
@@ -203,6 +218,52 @@ public class SettingsFragment extends Fragment {
             if (suppressUiSwitchListener || !isChecked) return;
             onUiLevelSelected(UiModeManager.LOW);
         });
+    }
+
+    private void setupLanguageSwitches() {
+        if (switchLangEn == null || switchLangTa == null || switchLangSi == null) return;
+
+        String currentLanguage = LocaleManager.getSavedLanguage(requireContext());
+        applyLanguageSwitchState(currentLanguage);
+
+        switchLangEn.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (suppressLanguageSwitchListener || !isChecked) return;
+            onLanguageSelected(LocaleManager.LANG_EN);
+        });
+
+        switchLangTa.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (suppressLanguageSwitchListener || !isChecked) return;
+            onLanguageSelected(LocaleManager.LANG_TA);
+        });
+
+        switchLangSi.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (suppressLanguageSwitchListener || !isChecked) return;
+            onLanguageSelected(LocaleManager.LANG_SI);
+        });
+    }
+
+    private void onLanguageSelected(@NonNull String language) {
+        String currentLanguage = LocaleManager.getSavedLanguage(requireContext());
+        if (language.equals(currentLanguage)) return;
+
+        LocaleManager.saveLanguage(requireContext(), language);
+        applyLanguageSwitchState(language);
+
+        Toast.makeText(requireContext(),
+                getString(R.string.language_changed),
+                Toast.LENGTH_SHORT).show();
+
+        requireActivity().recreate();
+    }
+
+    private void applyLanguageSwitchState(@NonNull String language) {
+        suppressLanguageSwitchListener = true;
+
+        switchLangEn.setChecked(LocaleManager.LANG_EN.equals(language));
+        switchLangTa.setChecked(LocaleManager.LANG_TA.equals(language));
+        switchLangSi.setChecked(LocaleManager.LANG_SI.equals(language));
+
+        suppressLanguageSwitchListener = false;
     }
 
     private void onUiLevelSelected(@NonNull String clickedLevel) {

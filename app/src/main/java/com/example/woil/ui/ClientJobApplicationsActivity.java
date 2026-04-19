@@ -58,6 +58,8 @@ public class ClientJobApplicationsActivity extends AppCompatActivity {
         Toast.makeText(this, "Accept worker: " + workerUid, Toast.LENGTH_SHORT).show();
     }
 
+
+
     private void rejectWorker(String matchId, String workerUid) {
         // TODO:
         // matches/{matchId}.status = REJECTED

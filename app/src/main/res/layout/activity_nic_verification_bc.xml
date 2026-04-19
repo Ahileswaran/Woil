@@ -28,7 +28,7 @@
                 android:id="@+id/tvStep"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Step 1 of 2 - Capture NIC front side"
+                android:text="@string/step_1_of_2_capture_nic_front_side"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#111827" />
@@ -44,7 +44,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Capture Side" />
+                android:text="@string/capture_side" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -82,7 +82,7 @@
                     android:id="@+id/etDetectedNic"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Detected NIC"
+                    android:hint="@string/hint_detected_nic"
                     android:enabled="false" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -91,27 +91,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="DOB: -" />
+                android:text="@string/dob" />
 
             <TextView
                 android:id="@+id/tvParsedGender"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gender: -" />
+                android:text="@string/gender_2" />
 
             <TextView
                 android:id="@+id/tvOcrStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="OCR status: waiting" />
+                android:text="@string/ocr_status_waiting" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnConfirm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Use This Result"
+                android:text="@string/use_this_result"
                 android:enabled="false" />
         </LinearLayout>
     </ScrollView>

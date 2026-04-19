@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bubble_received"
             android:padding="12dp"
-            android:text="Hi Ravi, Yes I’ll be available from 2 PM to 4 PM"
+            android:text="@string/hi_ravi_yes_i_ll_be_available_from_2_pm_to_4_pm"
             android:textColor="@color/charcoal"
             android:textSize="16sp" />
 
@@ -36,7 +36,7 @@
             android:id="@+id/tv_time_received"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2:12 PM"
+            android:text="@string/value_2_12_pm"
             android:textSize="12sp"
             android:textColor="#9E9E9E"
             android:layout_marginTop="4dp"/>

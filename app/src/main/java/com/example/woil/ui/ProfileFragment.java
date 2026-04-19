@@ -608,6 +608,8 @@ public class ProfileFragment extends Fragment {
                 );
     }
 
+
+
     private void openImagePicker() {
         try {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);

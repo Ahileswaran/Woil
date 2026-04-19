@@ -11,7 +11,7 @@
         android:id="@+id/tv_payment_success"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Payment Successful"
+        android:text="@string/payment_successful"
         android:textColor="#2E7D32"
         android:textSize="26sp"
         android:textStyle="bold" />
@@ -21,6 +21,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="Paid Rs. 2,000"
+        android:text="@string/paid_rs_2_000"
         android:textSize="18sp" />
 </LinearLayout>

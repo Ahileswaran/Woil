@@ -22,7 +22,7 @@
             android:id="@+id/tv_assigned_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Assigned Job Route"
+            android:text="@string/assigned_job_route"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="ETA: 12 min"
+            android:text="@string/eta_12_min"
             android:textColor="@android:color/white"
             android:textSize="14sp" />
 
@@ -40,7 +40,7 @@
             android:id="@+id/tv_distance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Distance: 3.5 km"
+            android:text="@string/distance_3_5_km"
             android:textColor="@android:color/white"
             android:textSize="14sp" />
     </LinearLayout>

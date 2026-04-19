@@ -26,7 +26,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Job title"
+                android:text="@string/job_title_2"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="#263238"/>
@@ -40,7 +40,7 @@
                 android:paddingRight="10dp"
                 android:paddingTop="6dp"
                 android:paddingBottom="6dp"
-                android:text="Rs. 1200/hr"
+                android:text="@string/rs_1200_hr"
                 android:textSize="12sp"
                 android:textColor="#6A1B9A"/>
         </LinearLayout>
@@ -50,7 +50,7 @@
             android:id="@+id/tv_location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Colombo 5"
+            android:text="@string/colombo_5"
             android:textSize="14sp"
             android:textColor="#455A64"
             android:layout_marginTop="6dp"/>
@@ -60,7 +60,7 @@
             android:id="@+id/tv_time_range"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Apr 26, 2024 | 02:00 PM - 04:30 PM"
+            android:text="@string/apr_26_2024_02_00_pm_04_30_pm"
             android:textSize="13sp"
             android:textColor="#757575"
             android:layout_marginTop="6dp"/>

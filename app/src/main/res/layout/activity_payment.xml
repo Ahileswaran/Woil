@@ -26,7 +26,7 @@
             android:id="@+id/settings_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Payment"
+            android:text="@string/payment"
             android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -45,7 +45,7 @@
             android:id="@+id/tv_payment_amount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Amount: Rs. 2,000"
+            android:text="@string/amount_rs_2_000"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -55,7 +55,7 @@
             android:layout_height="48dp"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_field"
-            android:hint="Optional tip"
+            android:hint="@string/hint_optional_tip"
             android:inputType="numberDecimal"
             android:paddingStart="12dp" />
 
@@ -64,7 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="20dp"
-            android:text="Pay Now"
+            android:text="@string/pay_now"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
             app:backgroundTint="#FF8A00"

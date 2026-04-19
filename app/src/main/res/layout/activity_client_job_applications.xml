@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="28dp"
-            android:text="Applications"
+            android:text="@string/applications"
             android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -46,7 +46,7 @@
             android:id="@+id/tv_job_summary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Job: House Cleaner Needed"
+            android:text="@string/job_house_cleaner_needed"
             android:textColor="#424242"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -62,7 +62,7 @@
             android:id="@+id/tv_empty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No applications yet"
+            android:text="@string/no_applications_yet"
             android:textAlignment="center"
             android:textColor="#9E9E9E"
             android:textSize="16sp"

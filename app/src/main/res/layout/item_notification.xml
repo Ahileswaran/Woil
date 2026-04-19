@@ -17,7 +17,7 @@
             android:id="@+id/tv_notification_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Application accepted"
+            android:text="@string/application_accepted"
             android:textColor="#1E1E1E"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Your application for House Cleaner Needed was accepted."
+            android:text="@string/your_application_for_house_cleaner_needed_was_accepted"
             android:textColor="#5F5F5F"
             android:textSize="14sp" />
 
@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="2 min ago"
+            android:text="@string/value_2_min_ago"
             android:textColor="#9E9E9E"
             android:textSize="12sp" />
     </LinearLayout>

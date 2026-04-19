@@ -17,7 +17,7 @@
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="9:30 AM"/>
+            android:text="@string/value_9_30_am"/>
 
         <View
             android:layout_width="8dp"
@@ -43,14 +43,14 @@
             <TextView
                 android:id="@+id/tvName"
                 android:textStyle="bold"
-                android:text="Rangan Kumarasamy"
+                android:text="@string/rangan_kumarasamy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <TextView
                 android:id="@+id/tvLocation"
                 android:textSize="12sp"
-                android:text="Point Pedro, Jaffna"
+                android:text="@string/point_pedro_jaffna"
                 android:layout_marginTop="4dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -58,7 +58,7 @@
             <TextView
                 android:id="@+id/tvDesc"
                 android:textSize="12sp"
-                android:text="Repair broken downpipes"
+                android:text="@string/repair_broken_downpipes"
                 android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>

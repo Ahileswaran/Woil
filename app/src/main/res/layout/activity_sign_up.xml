@@ -53,7 +53,7 @@
                         android:id="@+id/imgLogo"
                         android:layout_width="82dp"
                         android:layout_height="82dp"
-                        android:contentDescription="Woil logo"
+                        android:contentDescription="@string/cd_woil_logo"
                         android:src="@drawable/woil" />
 
                     <TextView
@@ -61,7 +61,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Woil"
+                        android:text="@string/app_name"
                         android:textColor="@android:color/white"
                         android:textSize="20sp"
                         android:textStyle="bold"
@@ -73,7 +73,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:gravity="center"
-                        android:text="Workers' Opportunity and Inclusive Labor"
+                        android:text="@string/workers_opportunity_and_inclusive_labor"
                         android:textColor="#FFF3E6"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-medium" />
@@ -100,7 +100,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Create account"
+                        android:text="@string/create_account"
                         android:textColor="#171717"
                         android:textSize="22sp"
                         android:textStyle="bold"
@@ -110,7 +110,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Sign up to continue with Woil"
+                        android:text="@string/sign_up_to_continue_with_woil"
                         android:textColor="#6B7280"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif" />
@@ -135,7 +135,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Mobile Number"
+                                android:text="@string/mobile_number"
                                 android:textColor="#6D4C0D"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
@@ -156,7 +156,7 @@
                                     android:layout_height="match_parent"
                                     android:background="@drawable/low_rounded_input"
                                     android:gravity="center"
-                                    android:text="+94"
+                                    android:text="@string/value_94"
                                     android:textColor="#374151"
                                     android:textSize="14sp"
                                     android:textStyle="bold"
@@ -169,7 +169,7 @@
                                     android:layout_weight="1"
                                     android:layout_marginStart="8dp"
                                     android:background="@drawable/low_rounded_input"
-                                    android:hint="Enter mobile number"
+                                    android:hint="@string/hint_enter_mobile_number"
                                     android:inputType="phone"
                                     android:paddingStart="12dp"
                                     android:paddingEnd="12dp"
@@ -201,7 +201,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="I want to"
+                                android:text="@string/i_want_to"
                                 android:textColor="#163A63"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
@@ -221,7 +221,7 @@
                                     android:buttonTint="#2563EB"
                                     android:paddingTop="6dp"
                                     android:paddingBottom="6dp"
-                                    android:text="Hire Workers (Client)"
+                                    android:text="@string/hire_workers_client"
                                     android:textColor="#1F2937"
                                     android:textSize="14sp"
                                     android:fontFamily="sans-serif-medium" />
@@ -234,7 +234,7 @@
                                     android:buttonTint="#2563EB"
                                     android:paddingTop="6dp"
                                     android:paddingBottom="6dp"
-                                    android:text="Find Work (Worker)"
+                                    android:text="@string/find_work_worker"
                                     android:textColor="#1F2937"
                                     android:textSize="14sp"
                                     android:fontFamily="sans-serif-medium" />
@@ -247,7 +247,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginTop="16dp"
-                        android:text="Sign Up"
+                        android:text="@string/sign_up"
                         android:textAllCaps="false"
                         android:textColor="#FFFFFF"
                         android:textSize="15sp"
@@ -279,7 +279,7 @@
                                 android:id="@+id/tvAlready"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Already have an account? "
+                                android:text="@string/already_have_an_account"
                                 android:textColor="#6B7280"
                                 android:textSize="13sp"
                                 android:fontFamily="sans-serif-medium" />
@@ -288,7 +288,7 @@
                                 android:id="@+id/tvLogin"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Login"
+                                android:text="@string/login"
                                 android:textColor="#2563EB"
                                 android:textSize="13sp"
                                 android:textStyle="bold"

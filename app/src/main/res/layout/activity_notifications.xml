@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="28dp"
-            android:text="Notifications"
+            android:text="@string/action_notifications"
             android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold" />

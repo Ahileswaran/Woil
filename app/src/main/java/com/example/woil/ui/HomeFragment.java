@@ -125,6 +125,8 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+
+
     // helper method to open settings
     private void openSettingsFragmentWithAnimation() {
         SettingsFragment settingsFragment = new SettingsFragment();

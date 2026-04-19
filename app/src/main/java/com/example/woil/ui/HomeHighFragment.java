@@ -123,6 +123,8 @@ public class HomeHighFragment extends Fragment {
         return view;
     }
 
+
+
     private void openSettingsFragmentWithAnimation() {
         SettingsFragment settingsFragment = new SettingsFragment();
 

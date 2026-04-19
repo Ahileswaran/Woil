@@ -43,7 +43,7 @@
                 android:id="@+id/tvWelcome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Welcome 👋\nLooking for a Job?"
+                android:text="@string/welcome_nlooking_for_a_job"
                 android:textSize="20sp"
                 android:textStyle="bold" />
         </com.google.android.material.card.MaterialCardView>
@@ -53,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Your Job to do"
+            android:text="@string/your_job_to_do"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -76,7 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="55dp"
-            android:text="Find Job"
+            android:text="@string/find_job"
             android:textSize="16sp"
             android:textStyle="bold" />
 
