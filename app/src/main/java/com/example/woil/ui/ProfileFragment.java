@@ -49,7 +49,7 @@ public class ProfileFragment extends Fragment {
 
     private CircleImageView ivProfile;
     private TextView tvUsername, tvSubtitle, tvRatingValue, tvJobsValue, tvMemberSince;
-    private TextView tvFullName, tvPhone, tvEmail, tvLocation;
+    private TextView tvFullName, tvPhone, tvLocation;
     private Button btnEditProfile;
     private ImageButton btnBack;
     private TextView tvPending;
@@ -107,10 +107,12 @@ public class ProfileFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
 
         TextView txtViewSkillDetails = view.findViewById(R.id.txt_view_skill_details);
-        txtViewSkillDetails.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), SkillShowcaseActivity.class);
-            startActivity(intent);
-        });
+        if (txtViewSkillDetails != null) {
+            txtViewSkillDetails.setOnClickListener(v -> {
+                Intent intent = new Intent(requireContext(), SkillShowcaseActivity.class);
+                startActivity(intent);
+            });
+        }
 
         ivProfile = view.findViewById(R.id.profile_image_main);
         tvUsername = view.findViewById(R.id.username);
@@ -156,12 +158,12 @@ public class ProfileFragment extends Fragment {
 
         Button btnClient = view.findViewById(R.id.btn_client);
         if (btnClient != null) {
-            btnClient.setOnClickListener(v -> switchToClientProfile());
+            btnClient.setOnClickListener(v -> switchRole("client"));
         }
 
         Button btnWorker = view.findViewById(R.id.btn_worker);
         if (btnWorker != null) {
-            btnWorker.setOnClickListener(v -> switchToWorkerHome());
+            btnWorker.setOnClickListener(v -> switchRole("worker"));
         }
 
         if (btnEditProfile != null) {
@@ -205,7 +207,7 @@ public class ProfileFragment extends Fragment {
         attachListeners();
     }
 
-    private void switchToClientProfile() {
+    private void switchRole(String role) {
         if (mAuth.getCurrentUser() == null) {
             Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
             return;
@@ -213,44 +215,48 @@ public class ProfileFragment extends Fragment {
 
         String uid = mAuth.getCurrentUser().getUid();
 
-        db.collection("users").document(uid)
-                .update("role", "client")
-                .addOnSuccessListener(aVoid -> {
-                    saveActiveRole("client");
-                    Toast.makeText(requireContext(), "Switched to Client", Toast.LENGTH_SHORT).show();
+        Map<String, Object> userUpdates = new HashMap<>();
+        userUpdates.put("role", role);
 
-                    try {
-                        startActivity(new Intent(requireContext(), ClientActivity.class));
-                    } catch (Exception e) {
-                        Toast.makeText(requireContext(), "Client profile not available", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(), "Role switch failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
-    }
-
-    private void switchToWorkerHome() {
-        if (mAuth.getCurrentUser() == null) {
-            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String uid = mAuth.getCurrentUser().getUid();
+        Map<String, Object> profileUpdates = new HashMap<>();
+        profileUpdates.put("role", role);
+        profileUpdates.put("isWorker", "worker".equalsIgnoreCase(role));
 
         db.collection("users").document(uid)
-                .update("role", "worker")
-                .addOnSuccessListener(aVoid -> {
-                    saveActiveRole("worker");
-                    Toast.makeText(requireContext(), "Switched to Worker", Toast.LENGTH_SHORT).show();
+                .set(userUpdates, SetOptions.merge())
+                .addOnSuccessListener(unused ->
+                        db.collection("profiles").document(uid)
+                                .set(profileUpdates, SetOptions.merge())
+                                .addOnSuccessListener(unused2 -> {
+                                    saveActiveRole(role);
+                                    Toast.makeText(requireContext(),
+                                            "Switched to " + capitalize(role),
+                                            Toast.LENGTH_SHORT).show();
 
-                    if (requireActivity() instanceof MainActivity) {
-                        ((MainActivity) requireActivity()).reloadHomeForRole("worker");
-                    }
-                })
+                                    if ("client".equalsIgnoreCase(role)) {
+                                        try {
+                                            startActivity(new Intent(requireContext(), ClientActivity.class));
+                                        } catch (Exception e) {
+                                            Toast.makeText(requireContext(),
+                                                    "Client profile not available",
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        if (requireActivity() instanceof MainActivity) {
+                                            ((MainActivity) requireActivity()).reloadHomeForRole("worker");
+                                        } else {
+                                            requireActivity().onBackPressed();
+                                        }
+                                    }
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(requireContext(),
+                                                "Role switch failed: " + e.getMessage(),
+                                                Toast.LENGTH_LONG).show()))
                 .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(), "Role switch failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                        Toast.makeText(requireContext(),
+                                "Role switch failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
     }
 
     private void saveActiveRole(String role) {
@@ -307,16 +313,15 @@ public class ProfileFragment extends Fragment {
     private void populateFromUserSnapshot(DocumentSnapshot snap) {
         String role = snap.getString("role");
         String phoneFromDoc = snap.getString("phone");
-        String emailFromDoc = snap.getString("email");
         Boolean userNicVerified = snap.getBoolean("nicVerified");
 
         if (mAuth.getCurrentUser() != null) {
             String phone = mAuth.getCurrentUser().getPhoneNumber();
-            String email = mAuth.getCurrentUser().getEmail();
-
             if (tvPhone != null) {
                 tvPhone.setText(!TextUtils.isEmpty(phone) ? phone : safe(phoneFromDoc));
             }
+        } else {
+            if (tvPhone != null) tvPhone.setText(safe(phoneFromDoc));
         }
 
         if (Boolean.TRUE.equals(userNicVerified) && tvPending != null) {
@@ -361,7 +366,9 @@ public class ProfileFragment extends Fragment {
                 + (!TextUtils.isEmpty(locationText) ? " · " + locationText : " · —");
         if (tvSubtitle != null) tvSubtitle.setText(subtitle);
 
-        if (!isEditMode && tvLocation != null) tvLocation.setText(!TextUtils.isEmpty(locationText) ? locationText : "—");
+        if (!isEditMode && tvLocation != null) {
+            tvLocation.setText(!TextUtils.isEmpty(locationText) ? locationText : "—");
+        }
 
         Object ratingObj = snap.get("rating");
         if (ratingObj != null && tvRatingValue != null) {
@@ -489,7 +496,7 @@ public class ProfileFragment extends Fragment {
                         ivProfile.setImageResource(R.drawable.photo_placeholder);
                     }
                 }
-            } else {
+            } else if (ivProfile != null) {
                 ivProfile.setImageResource(R.drawable.photo_placeholder);
             }
         }

@@ -1,16 +1,24 @@
 package com.example.woil.ui;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -23,73 +31,92 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.SetOptions;
 
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ClientActivity extends AppCompatActivity {
 
+    private static final String PREFS_NAME = "woil_prefs";
+    private static final String KEY_ACTIVE_ROLE = "active_role";
+
     private CircleImageView ivProfile;
     private TextView tvUsername, tvSubtitle, tvRatingValue, tvJobsValue, tvMemberSince;
-    private TextView tvFullName, tvPhone, tvEmail, tvLocation;
+    private TextView tvFullName, tvPhone, tvLocation;
     private Button btnEditProfile;
     private ImageButton btnBack;
     private TextView tvPending;
 
-    // Optional UI from client layout (ads / work progress)
+    private EditText etName;
+    private EditText etLocation;
+    private Button btnChooseImage;
+
+    private boolean isEditMode = false;
+    private Uri selectedImageUri;
+
     private ImageView ad1Image, ad2Image;
     private TextView ad1Date, ad1Title, ad2Date, ad2Title;
     private ProgressBar wpTask1Progress, wpTask2Progress;
     private TextView wpTask1Title, wpTask1Date, wpTask2Title, wpTask2Date;
 
-    // toggle buttons
     private Button btnClientToggle, btnWorkerToggle;
 
-    // Firebase
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private ListenerRegistration userListener;
     private ListenerRegistration profileListener;
+
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK &&
+                        result.getData() != null &&
+                        result.getData().getData() != null) {
+
+                    selectedImageUri = result.getData().getData();
+
+                    if (ivProfile != null) {
+                        ivProfile.setImageURI(selectedImageUri);
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Replace with the actual layout filename you saved for the client layout
         setContentView(R.layout.activity_client);
 
-        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-
-        // Transparent bars so fragment header can draw behind them
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-
-        // init firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // find views (IDs match your client XML)
         ivProfile = findViewById(R.id.profile_image_main);
         tvUsername = findViewById(R.id.username);
         tvSubtitle = findViewById(R.id.subtitle);
-
         tvRatingValue = findViewById(R.id.rating_value);
         tvJobsValue = findViewById(R.id.jobs_value);
         tvMemberSince = findViewById(R.id.member_since_value);
-
         tvFullName = findViewById(R.id.tv_name);
         tvPhone = findViewById(R.id.tv_phone);
         tvLocation = findViewById(R.id.tv_location);
 
         btnEditProfile = findViewById(R.id.btn_edit_profile);
         btnBack = findViewById(R.id.btn_back);
-      //  tvPending = findViewById(R.id.tv_pending);
 
-        // ads & work progress (optional; null-checks used)
+        tvPending = findViewById(R.id.tv_pending); // may be null in some layouts
+
+        etName = findViewById(R.id.et_name);
+        etLocation = findViewById(R.id.et_location);
+        btnChooseImage = findViewById(R.id.btn_choose_image);
+
         ad1Image = findViewById(R.id.ad1_image);
         ad1Date = findViewById(R.id.ad1_date);
         ad1Title = findViewById(R.id.ad1_title);
@@ -104,30 +131,30 @@ public class ClientActivity extends AppCompatActivity {
         wpTask2Title = findViewById(R.id.wp_task2_title);
         wpTask2Date = findViewById(R.id.wp_task2_date);
 
-        btnClientToggle = findViewById(R.id.btn_client); // same id as the toggle in the layout
+        btnClientToggle = findViewById(R.id.btn_client);
         btnWorkerToggle = findViewById(R.id.btn_worker);
 
         setPlaceholders();
 
-        // back button -> finish
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
 
-        // edit profile -> launch ProfileSetupActivity (fallback toast if missing)
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {
-                try {
-                    startActivity(new Intent(this, Class.forName("com.example.woil.ui.ProfileSetupActivity")));
-                } catch (ClassNotFoundException e) {
-                    Toast.makeText(this, "Profile editor not available", Toast.LENGTH_SHORT).show();
+                if (!isEditMode) {
+                    enterEditMode();
+                } else {
+                    saveEditableProfileFields();
                 }
             });
         }
 
+        if (btnChooseImage != null) {
+            btnChooseImage.setOnClickListener(v -> openImagePicker());
+        }
 
         MaterialButton btnAddJob = findViewById(R.id.btn_add_job_floating);
-
         if (btnAddJob != null) {
             btnAddJob.setOnClickListener(v -> {
                 try {
@@ -138,21 +165,15 @@ public class ClientActivity extends AppCompatActivity {
             });
         }
 
-        // Toggle: if user taps "Worker" while on client view, just finish() and return to previous UI.
-        if (btnWorkerToggle != null) {
-            btnWorkerToggle.setOnClickListener(v -> {
-                // if your app uses a fragment for the worker profile, returning (finish) will show it again.
-                finish();
-            });
-        }
-
-        // Make sure the client toggle is visually active
         if (btnClientToggle != null) {
-            // optional: set style to active
             btnClientToggle.setEnabled(false);
         }
 
-        attachProfileListener();
+        if (btnWorkerToggle != null) {
+            btnWorkerToggle.setOnClickListener(v -> switchRoleToWorker());
+        }
+
+        attachListeners();
     }
 
     private void setPlaceholders() {
@@ -164,84 +185,91 @@ public class ClientActivity extends AppCompatActivity {
 
         if (tvFullName != null) tvFullName.setText("—");
         if (tvPhone != null) tvPhone.setText("");
-        if (tvEmail != null) tvEmail.setText("");
         if (tvLocation != null) tvLocation.setText("—");
+
+        if (etName != null) etName.setVisibility(View.GONE);
+        if (etLocation != null) etLocation.setVisibility(View.GONE);
+        if (btnChooseImage != null) btnChooseImage.setVisibility(View.GONE);
 
         if (ivProfile != null) ivProfile.setImageResource(R.drawable.photo_placeholder);
 
         if (tvPending != null) tvPending.setText("⏱ Pending");
 
-        // optional ad placeholders
         if (ad1Date != null) ad1Date.setText("");
         if (ad1Title != null) ad1Title.setText("");
         if (ad2Date != null) ad2Date.setText("");
         if (ad2Title != null) ad2Title.setText("");
     }
 
-    private void attachProfileListener() {
+    private void attachListeners() {
         if (mAuth.getCurrentUser() == null) return;
         String uid = mAuth.getCurrentUser().getUid();
 
-        profileListener = db.collection("users").document(uid)
+        userListener = db.collection("users").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) {
-                        // silent return; you can log
-                        return;
-                    }
-                    if (snap != null && snap.exists()) {
-                        populateUIFromSnapshot(snap);
-                    }
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromUserSnapshot(snap);
+                });
+
+        profileListener = db.collection("profiles").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromProfileSnapshot(snap);
                 });
     }
 
-    private void populateUIFromSnapshot(DocumentSnapshot snap) {
-        // NAME / USERNAME / SUBTITLE
+    private void populateFromUserSnapshot(DocumentSnapshot snap) {
+        String phoneFromDoc = snap.getString("phone");
+
+        if (mAuth.getCurrentUser() != null) {
+            String phone = mAuth.getCurrentUser().getPhoneNumber();
+            if (tvPhone != null) {
+                tvPhone.setText(!TextUtils.isEmpty(phone) ? phone : safe(phoneFromDoc));
+            }
+        } else {
+            if (tvPhone != null) tvPhone.setText(safe(phoneFromDoc));
+        }
+    }
+
+    private void populateFromProfileSnapshot(DocumentSnapshot snap) {
         String first = snap.getString("firstName");
-        String last  = snap.getString("lastName");
-        String displayName = snap.getString("displayName"); // optional
+        String last = snap.getString("lastName");
+        String displayName = snap.getString("displayName");
+        String locationText = snap.getString("locationText");
+        if (TextUtils.isEmpty(locationText)) locationText = snap.getString("address");
 
-        String fullName = (displayName != null && !displayName.isEmpty())
+        String fullName = !TextUtils.isEmpty(displayName)
                 ? displayName
-                : ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
+                : ((safe(first) + " " + safe(last)).trim());
 
-        if (tvFullName != null) tvFullName.setText(fullName.isEmpty() ? "—" : fullName);
+        if (TextUtils.isEmpty(fullName)) fullName = "—";
 
-        // header username (handle) - try "handle" then @displayName fallback
-        String handle = snap.getString("handle");
-        if (handle == null || handle.isEmpty()) {
-            handle = fullName.isEmpty() ? ("@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user")) : ("@" + fullName.replaceAll("\\s+", ""));
+        if (!isEditMode && tvFullName != null) tvFullName.setText(fullName);
+
+        String handle = "@" + fullName.replaceAll("\\s+", "");
+        if ("@".equals(handle)) {
+            handle = "@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user");
         }
         if (tvUsername != null) tvUsername.setText(handle);
 
-        // For client view override role to Client (even if role field exists)
-        String address = snap.getString("address");
-        String subtitle = "Client" + (address != null && !address.isEmpty() ? " · " + address : "");
+        String subtitle = "Client" + (!TextUtils.isEmpty(locationText) ? " · " + locationText : " · —");
         if (tvSubtitle != null) tvSubtitle.setText(subtitle);
 
-        // CONTACTS FROM AUTH (canonical)
-        if (mAuth.getCurrentUser() != null) {
-            String phone = mAuth.getCurrentUser().getPhoneNumber();
-            String email = mAuth.getCurrentUser().getEmail();
-            if (tvPhone != null) tvPhone.setText(phone != null ? phone : (snap.getString("phone") != null ? snap.getString("phone") : ""));
-            if (tvEmail != null) tvEmail.setText(email != null ? email : (snap.getString("email") != null ? snap.getString("email") : ""));
-        } else {
-            if (tvPhone != null) tvPhone.setText(snap.getString("phone") != null ? snap.getString("phone") : "");
-            if (tvEmail != null) tvEmail.setText(snap.getString("email") != null ? snap.getString("email") : "");
+        if (!isEditMode && tvLocation != null) {
+            tvLocation.setText(!TextUtils.isEmpty(locationText) ? locationText : "—");
         }
 
-        if (tvLocation != null) tvLocation.setText(address != null ? address : "—");
-
-        // RATING / JOBS / MEMBER SINCE
         Object ratingObj = snap.get("rating");
         if (ratingObj != null && tvRatingValue != null) {
             try {
                 double rating = Double.parseDouble(ratingObj.toString());
                 tvRatingValue.setText("★ " + new DecimalFormat("#0.0").format(rating));
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) {
+            }
         }
 
-        Object jobsObj = snap.get("jobsPosted"); // client uses jobsPosted field if present
-        if (jobsObj == null) jobsObj = snap.get("jobs"); // fallback
+        Object jobsObj = snap.get("jobsPosted");
+        if (jobsObj == null) jobsObj = snap.get("jobs");
         if (jobsObj != null && tvJobsValue != null) {
             tvJobsValue.setText(String.valueOf(jobsObj));
         }
@@ -261,25 +289,20 @@ public class ClientActivity extends AppCompatActivity {
                 tvMemberSince.setText(String.valueOf(c.get(Calendar.YEAR)));
             } else if (snap.getString("memberSinceYear") != null && tvMemberSince != null) {
                 tvMemberSince.setText(snap.getString("memberSinceYear"));
+            } else if (snap.getTimestamp("createdAt") != null && tvMemberSince != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(snap.getTimestamp("createdAt").toDate());
+                tvMemberSince.setText(String.valueOf(c.get(Calendar.YEAR)));
             }
         }
 
-        // VERIFIED / PENDING
-        Boolean verified = snap.getBoolean("isVerified");
-        if (verified != null && verified && tvPending != null) {
-            tvPending.setText("✔ Verified");
-            tvPending.setTextColor(Color.parseColor("#2E7D32")); // green
-        } else if (tvPending != null) {
-            tvPending.setText("⏱ Pending");
-            tvPending.setTextColor(Color.parseColor("#6B4B00"));
-        }
-
-        // PROFILE IMAGE (try common fields)
         String photoUrl = snap.getString("photoUrl");
-        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("photo");
-        if (photoUrl == null || photoUrl.isEmpty()) photoUrl = snap.getString("avatar");
-        if (photoUrl != null && !photoUrl.isEmpty()) {
-            if (ivProfile != null) {
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("photo");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("nicFrontUri");
+
+        if (!isEditMode) {
+            if (!TextUtils.isEmpty(photoUrl)) {
                 try {
                     Glide.with(this)
                             .load(photoUrl)
@@ -287,41 +310,161 @@ public class ClientActivity extends AppCompatActivity {
                             .error(R.drawable.photo_placeholder)
                             .into(ivProfile);
                 } catch (Exception ex) {
-                    try { ivProfile.setImageURI(Uri.parse(photoUrl)); } catch (Exception ignored) {}
+                    try {
+                        ivProfile.setImageURI(Uri.parse(photoUrl));
+                    } catch (Exception ignored) {
+                        ivProfile.setImageResource(R.drawable.photo_placeholder);
+                    }
                 }
+            } else if (ivProfile != null) {
+                ivProfile.setImageResource(R.drawable.photo_placeholder);
             }
-        } else {
-            if (ivProfile != null) ivProfile.setImageResource(R.drawable.photo_placeholder);
+        }
+    }
+
+    private void enterEditMode() {
+        isEditMode = true;
+
+        if (btnEditProfile != null) btnEditProfile.setText("Save");
+        if (btnChooseImage != null) btnChooseImage.setVisibility(View.VISIBLE);
+
+        if (tvFullName != null && etName != null) {
+            etName.setText(tvFullName.getText().toString());
+            tvFullName.setVisibility(View.GONE);
+            etName.setVisibility(View.VISIBLE);
         }
 
-        // OPTIONAL: populate ads & work progress demo fields if present in doc
-        if (ad1Title != null && snap.getString("ad1_title") != null) {
-            ad1Title.setText(snap.getString("ad1_title"));
+        if (tvLocation != null && etLocation != null) {
+            etLocation.setText(tvLocation.getText().toString());
+            tvLocation.setVisibility(View.GONE);
+            etLocation.setVisibility(View.VISIBLE);
         }
-        if (ad1Date != null && snap.getString("ad1_date") != null) {
-            ad1Date.setText(snap.getString("ad1_date"));
-        }
-        if (ad2Title != null && snap.getString("ad2_title") != null) {
-            ad2Title.setText(snap.getString("ad2_title"));
-        }
-        if (ad2Date != null && snap.getString("ad2_date") != null) {
-            ad2Date.setText(snap.getString("ad2_date"));
+    }
+
+    private void exitEditMode() {
+        isEditMode = false;
+
+        if (btnEditProfile != null) btnEditProfile.setText("Edit profile");
+        if (btnChooseImage != null) btnChooseImage.setVisibility(View.GONE);
+
+        if (tvFullName != null) tvFullName.setVisibility(View.VISIBLE);
+        if (etName != null) etName.setVisibility(View.GONE);
+
+        if (tvLocation != null) tvLocation.setVisibility(View.VISIBLE);
+        if (etLocation != null) etLocation.setVisibility(View.GONE);
+    }
+
+    private void saveEditableProfileFields() {
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // Demo progress values if stored as numbers
-        Object p1 = snap.get("wp_task1_progress");
-        if (p1 instanceof Number && wpTask1Progress != null) {
-            wpTask1Progress.setProgress(((Number) p1).intValue());
+        String uid = mAuth.getCurrentUser().getUid();
+
+        String updatedName = etName != null ? etName.getText().toString().trim() : "";
+        String updatedLocation = etLocation != null ? etLocation.getText().toString().trim() : "";
+
+        if (TextUtils.isEmpty(updatedName)) {
+            if (etName != null) etName.setError("Enter name");
+            return;
         }
-        Object p2 = snap.get("wp_task2_progress");
-        if (p2 instanceof Number && wpTask2Progress != null) {
-            wpTask2Progress.setProgress(((Number) p2).intValue());
+
+        String firstName = updatedName;
+        String lastName = "";
+
+        String[] parts = updatedName.split("\\s+", 2);
+        if (parts.length > 0) firstName = parts[0];
+        if (parts.length > 1) lastName = parts[1];
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("displayName", updatedName);
+        updates.put("firstName", firstName);
+        updates.put("lastName", lastName);
+        updates.put("locationText", updatedLocation);
+        updates.put("address", updatedLocation);
+        updates.put("role", "client");
+        updates.put("isWorker", false);
+
+        if (selectedImageUri != null) {
+            updates.put("photoUrl", selectedImageUri.toString());
         }
+
+        db.collection("profiles").document(uid)
+                .set(updates, SetOptions.merge())
+                .addOnSuccessListener(unused -> {
+                    if (tvFullName != null) tvFullName.setText(updatedName);
+                    if (tvLocation != null) tvLocation.setText(updatedLocation);
+
+                    exitEditMode();
+                    Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+
+    private void openImagePicker() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            imagePickerLauncher.launch(Intent.createChooser(intent, "Select profile image"));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "No image picker found", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void switchRoleToWorker() {
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String uid = mAuth.getCurrentUser().getUid();
+
+        Map<String, Object> userUpdates = new HashMap<>();
+        userUpdates.put("role", "worker");
+
+        Map<String, Object> profileUpdates = new HashMap<>();
+        profileUpdates.put("role", "worker");
+        profileUpdates.put("isWorker", true);
+
+        db.collection("users").document(uid)
+                .set(userUpdates, SetOptions.merge())
+                .addOnSuccessListener(unused ->
+                        db.collection("profiles").document(uid)
+                                .set(profileUpdates, SetOptions.merge())
+                                .addOnSuccessListener(unused2 -> {
+                                    saveActiveRole("worker");
+                                    Toast.makeText(this, "Switched to Worker", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(this,
+                                                "Role switch failed: " + e.getMessage(),
+                                                Toast.LENGTH_LONG).show()))
+                .addOnFailureListener(e ->
+                        Toast.makeText(this,
+                                "Role switch failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
+    }
+
+    private void saveActiveRole(String role) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit().putString(KEY_ACTIVE_ROLE, role).apply();
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (userListener != null) {
+            userListener.remove();
+            userListener = null;
+        }
         if (profileListener != null) {
             profileListener.remove();
             profileListener = null;
