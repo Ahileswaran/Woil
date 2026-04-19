@@ -81,21 +81,6 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNav = findViewById(R.id.bottom_navigation);
 
-        getSupportFragmentManager().registerFragmentLifecycleCallbacks(
-                new FragmentManager.FragmentLifecycleCallbacks() {
-                    @Override
-                    public void onFragmentViewCreated(@NonNull FragmentManager fm,
-                                                      @NonNull Fragment f,
-                                                      @NonNull View v,
-                                                      @Nullable Bundle savedInstanceState) {
-                        super.onFragmentViewCreated(fm, f, v, savedInstanceState);
-                        View btnBack = v.findViewById(R.id.btn_back);
-                        if (btnBack != null) {
-                            btnBack.setOnClickListener(view -> onFragmentArrowBackToHome());
-                        }
-                    }
-                }, true
-        );
 
         if (savedInstanceState != null) {
             currentTag = savedInstanceState.getString("currentTag", "home");
@@ -148,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                         openFragment(new WageFragment(), true, "wage");
                         return true;
                     } else if (id == R.id.nav_messages) {
-                        openFragment(new ChatFragment(), false, "chat");
+                        startActivity(new Intent(MainActivity.this, MessageActivity.class));
                         return true;
                     } else if (id == R.id.navigation_profile) {
                         openFragment(new ProfileFragment(), false, "profile");

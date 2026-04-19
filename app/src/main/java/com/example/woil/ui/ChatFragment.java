@@ -1,7 +1,6 @@
 package com.example.woil.ui;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -11,7 +10,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -32,7 +30,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.woil.R;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -44,6 +41,11 @@ import java.util.Locale;
 
 public class ChatFragment extends Fragment {
 
+    public static final String ARG_CONTACT_UID = "contact_uid";
+    public static final String ARG_CONTACT_NAME = "contact_name";
+    public static final String ARG_CONTACT_ROLE = "contact_role";
+    public static final String ARG_CONTACT_PHOTO = "contact_photo";
+
     private RecyclerView rvMessages;
     private EditText etMessage;
 
@@ -54,7 +56,6 @@ public class ChatFragment extends Fragment {
     private ImageButton btnMore;
     private ImageButton btnCamera;
     private ImageButton btnAttach;
-    private ImageButton btnEmoji;
 
     private ImageView ivProfileImage;
     private TextView tvContactName;
@@ -64,8 +65,27 @@ public class ChatFragment extends Fragment {
     private ChatAdapter chatAdapter;
     private final List<Message> messageList = new ArrayList<>();
 
-    private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+
+    private String contactUid;
+    private String contactNameArg;
+    private String contactRoleArg;
+    private String contactPhotoArg;
+
+    public ChatFragment() {
+    }
+
+    public static ChatFragment newInstance(String contactUid, String contactName,
+                                           String contactRole, String contactPhoto) {
+        ChatFragment fragment = new ChatFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_CONTACT_UID, contactUid);
+        args.putString(ARG_CONTACT_NAME, contactName);
+        args.putString(ARG_CONTACT_ROLE, contactRole);
+        args.putString(ARG_CONTACT_PHOTO, contactPhoto);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     private final ActivityResultLauncher<Intent> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -102,9 +122,6 @@ public class ChatFragment extends Fragment {
                 }
             });
 
-    public ChatFragment() {
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -116,15 +133,25 @@ public class ChatFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        readArguments();
         bindViews(view);
         setupWindowInsets(view);
         setupRecyclerView();
         setupClickListeners();
         loadDummyMessages();
-        loadCurrentProfileHeader();
+        loadChatHeader();
+    }
+
+    private void readArguments() {
+        Bundle args = getArguments();
+        if (args == null) return;
+
+        contactUid = args.getString(ARG_CONTACT_UID);
+        contactNameArg = args.getString(ARG_CONTACT_NAME);
+        contactRoleArg = args.getString(ARG_CONTACT_ROLE);
+        contactPhotoArg = args.getString(ARG_CONTACT_PHOTO);
     }
 
     private void bindViews(@NonNull View view) {
@@ -163,19 +190,8 @@ public class ChatFragment extends Fragment {
 
             int bottomInset = Math.max(systemBars.bottom, ime.bottom);
 
-            inputWrapper.setPadding(
-                    inputStart,
-                    inputTop,
-                    inputEnd,
-                    inputBottom + bottomInset
-            );
-
-            rvMessages.setPadding(
-                    rvStart,
-                    rvTop,
-                    rvEnd,
-                    rvBottom + bottomInset + dpToPx(8)
-            );
+            inputWrapper.setPadding(inputStart, inputTop, inputEnd, inputBottom + bottomInset);
+            rvMessages.setPadding(rvStart, rvTop, rvEnd, rvBottom + bottomInset + dpToPx(8));
 
             scrollToBottom();
             return insets;
@@ -217,7 +233,6 @@ public class ChatFragment extends Fragment {
 
         btnCamera.setOnClickListener(v -> openCamera());
         btnAttach.setOnClickListener(v -> openFilePicker());
-        btnEmoji.setOnClickListener(v -> openKeyboardForEmoji());
     }
 
     private void openCamera() {
@@ -250,43 +265,12 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    private void openKeyboardForEmoji() {
-        etMessage.requestFocus();
-        etMessage.setSelection(etMessage.getText().length());
-
-        etMessage.post(() -> {
-            InputMethodManager imm =
-                    (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-
-            if (imm != null) {
-                imm.showSoftInput(etMessage, InputMethodManager.SHOW_IMPLICIT);
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-            }
-        });
-
-        Toast.makeText(requireContext(), "Keyboard opened. Use your keyboard emoji button.", Toast.LENGTH_SHORT).show();
-    }
-
     private void loadDummyMessages() {
         messageList.clear();
 
-        messageList.add(new Message(
-                "Hi Kavitha, can you come to clean my apartment tomorrow?",
-                "2:10 PM",
-                true
-        ));
-
-        messageList.add(new Message(
-                "Hi Ravi, yes I’ll be available from 2 PM to 4 PM",
-                "2:12 PM",
-                false
-        ));
-
-        messageList.add(new Message(
-                "Sounds great! See you tomorrow",
-                "2:15 PM",
-                true
-        ));
+        messageList.add(new Message("Hi Kavitha, can you come to clean my apartment tomorrow?", "2:10 PM", true));
+        messageList.add(new Message("Hi Ravi, yes I’ll be available from 2 PM to 4 PM", "2:12 PM", false));
+        messageList.add(new Message("Sounds great! See you tomorrow", "2:15 PM", true));
 
         chatAdapter.notifyDataSetChanged();
         scrollToBottom();
@@ -294,13 +278,9 @@ public class ChatFragment extends Fragment {
 
     private void sendMessage() {
         String text = etMessage.getText().toString().trim();
-
-        if (TextUtils.isEmpty(text)) {
-            return;
-        }
+        if (TextUtils.isEmpty(text)) return;
 
         String currentTime = new SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date());
-
         messageList.add(new Message(text, currentTime, true));
         chatAdapter.notifyItemInserted(messageList.size() - 1);
         etMessage.setText("");
@@ -313,24 +293,32 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    private void loadCurrentProfileHeader() {
-        if (mAuth.getCurrentUser() == null) {
-            setFallbackHeader();
+    private void loadChatHeader() {
+        if (!TextUtils.isEmpty(contactUid)) {
+            db.collection("profiles")
+                    .document(contactUid)
+                    .get()
+                    .addOnSuccessListener(this::bindProfileToHeader)
+                    .addOnFailureListener(e -> bindHeaderFromArguments());
             return;
         }
 
-        String uid = mAuth.getCurrentUser().getUid();
+        bindHeaderFromArguments();
+    }
 
-        db.collection("profiles")
-                .document(uid)
-                .get()
-                .addOnSuccessListener(this::bindProfileToHeader)
-                .addOnFailureListener(e -> setFallbackHeader());
+    private void bindHeaderFromArguments() {
+        String name = TextUtils.isEmpty(contactNameArg) ? "User" : contactNameArg.trim();
+        String role = TextUtils.isEmpty(contactRoleArg) ? "Worker" : capitalize(contactRoleArg.trim());
+
+        tvContactName.setText(name);
+        tvContactRole.setText(role);
+
+        loadImageIntoHeader(contactPhotoArg);
     }
 
     private void bindProfileToHeader(DocumentSnapshot snapshot) {
         if (snapshot == null || !snapshot.exists()) {
-            setFallbackHeader();
+            bindHeaderFromArguments();
             return;
         }
 
@@ -339,59 +327,37 @@ public class ChatFragment extends Fragment {
         String displayName = snapshot.getString("displayName");
         String role = snapshot.getString("role");
 
+        String fullName = !TextUtils.isEmpty(displayName)
+                ? displayName.trim()
+                : ((firstName == null ? "" : firstName.trim()) + " " +
+                (lastName == null ? "" : lastName.trim())).trim();
+
+        if (TextUtils.isEmpty(fullName)) fullName = "User";
+        if (TextUtils.isEmpty(role)) role = "Worker";
+
+        tvContactName.setText(fullName);
+        tvContactRole.setText(capitalize(role));
+
         String photoUrl = snapshot.getString("photoUrl");
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snapshot.getString("photo");
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snapshot.getString("avatar");
-        if (TextUtils.isEmpty(photoUrl)) photoUrl = snapshot.getString("nicFrontUri");
 
-        String fullName;
-        if (!TextUtils.isEmpty(displayName)) {
-            fullName = displayName.trim();
-        } else {
-            String first = firstName == null ? "" : firstName.trim();
-            String last = lastName == null ? "" : lastName.trim();
-            fullName = (first + " " + last).trim();
-        }
-
-        if (TextUtils.isEmpty(fullName)) {
-            fullName = "User";
-        }
-
-        if (TextUtils.isEmpty(role)) {
-            role = "Worker";
-        } else {
-            role = capitalize(role);
-        }
-
-        tvContactName.setText(fullName);
-        tvContactRole.setText(role);
-
-        if (!TextUtils.isEmpty(photoUrl)) {
-
-            Uri uri = Uri.parse(photoUrl);
-
-            // Handle local URI (content:// or file://)
-            if ("content".equals(uri.getScheme()) || "file".equals(uri.getScheme())) {
-                ivProfileImage.setImageURI(uri);
-
-            } else {
-                // Handle real URL (http/https)
-                Glide.with(requireContext())
-                        .load(photoUrl)
-                        .placeholder(R.drawable.photo_placeholder)
-                        .error(R.drawable.photo_placeholder)
-                        .into(ivProfileImage);
-            }
-
-        } else {
-            ivProfileImage.setImageResource(R.drawable.photo_placeholder);
-        }
+        loadImageIntoHeader(photoUrl);
     }
 
-    private void setFallbackHeader() {
-        tvContactName.setText("User");
-        tvContactRole.setText("Worker");
-        ivProfileImage.setImageResource(R.drawable.photo_placeholder);
+    private void loadImageIntoHeader(@Nullable String photoUrl) {
+        if (!isAdded() || ivProfileImage == null) return;
+
+        if (TextUtils.isEmpty(photoUrl)) {
+            ivProfileImage.setImageResource(R.drawable.photo_placeholder);
+            return;
+        }
+
+        Glide.with(this)
+                .load(photoUrl)
+                .placeholder(R.drawable.photo_placeholder)
+                .error(R.drawable.photo_placeholder)
+                .into(ivProfileImage);
     }
 
     private String capitalize(String value) {
