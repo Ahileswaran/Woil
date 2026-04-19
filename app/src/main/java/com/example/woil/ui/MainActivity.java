@@ -81,6 +81,23 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNav = findViewById(R.id.bottom_navigation);
 
+        getSupportFragmentManager().registerFragmentLifecycleCallbacks(
+                new FragmentManager.FragmentLifecycleCallbacks() {
+                    @Override
+                    public void onFragmentViewCreated(@NonNull FragmentManager fm,
+                                                      @NonNull Fragment f,
+                                                      @NonNull View v,
+                                                      @Nullable Bundle savedInstanceState) {
+                        super.onFragmentViewCreated(fm, f, v, savedInstanceState);
+                        View btnBack = v.findViewById(R.id.btn_back);
+                        if (btnBack != null) {
+                            btnBack.setOnClickListener(view -> onFragmentArrowBackToHome());
+                        }
+                    }
+                }, true
+        );
+
+
 
         if (savedInstanceState != null) {
             currentTag = savedInstanceState.getString("currentTag", "home");
