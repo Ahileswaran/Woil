@@ -2,6 +2,7 @@ package com.example.woil.ui;
 
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -9,6 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,9 +21,28 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.example.woil.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class HomeLowFragment extends Fragment {
+
+    private ImageView profileImage;
+    private TextView tvName;
+    private TextView tvRole;
+    private TextView boxWage;
+    private TextView boxJobDone;
+    private TextView boxNext;
+    private TextView boxFind;
+
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
+
+    private ListenerRegistration userListener;
+    private ListenerRegistration profileListener;
 
     public HomeLowFragment() { }
 
@@ -30,10 +54,155 @@ public class HomeLowFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_low_profile_dashboard, container, false);
 
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        bindProfileViews(view);
+        setPlaceholders();
         bindActions(view);
         setupSwipeToSettings(view);
+        attachProfileListeners();
 
         return view;
+    }
+
+    private void bindProfileViews(@NonNull View view) {
+        profileImage = view.findViewById(R.id.profile_image);
+        tvName = view.findViewById(R.id.tv_name);
+        tvRole = view.findViewById(R.id.tv_role);
+        boxWage = view.findViewById(R.id.box_wage);
+        boxJobDone = view.findViewById(R.id.box_job_done);
+        boxNext = view.findViewById(R.id.box_next);
+        boxFind = view.findViewById(R.id.box_find);
+    }
+
+    private void setPlaceholders() {
+        if (tvName != null) tvName.setText("—");
+        if (tvRole != null) tvRole.setText("Worker");
+        if (boxWage != null) boxWage.setText("Wage\nLKR 0");
+        if (boxJobDone != null) boxJobDone.setText("Done\n0");
+        if (boxNext != null) boxNext.setText("Next\n—");
+        if (boxFind != null) boxFind.setText("Alerts\n0");
+
+        if (profileImage != null) {
+            profileImage.setImageResource(R.drawable.low_profile_pic);
+        }
+    }
+
+    private void attachProfileListeners() {
+        if (auth.getCurrentUser() == null) return;
+
+        String uid = auth.getCurrentUser().getUid();
+
+        userListener = db.collection("users").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromUserSnapshot(snap);
+                });
+
+        profileListener = db.collection("profiles").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null || !snap.exists()) return;
+                    populateFromProfileSnapshot(snap);
+                });
+    }
+
+    private void populateFromUserSnapshot(DocumentSnapshot snap) {
+        String role = snap.getString("role");
+        if (!TextUtils.isEmpty(role) && tvRole != null) {
+            tvRole.setText(capitalize(role));
+        }
+
+        Object alertsObj = snap.get("alertsCount");
+        if (alertsObj == null) alertsObj = snap.get("alerts");
+        if (alertsObj == null) alertsObj = snap.get("jobAlerts");
+
+        if (boxFind != null) {
+            boxFind.setText("Alerts\n" + (alertsObj != null ? alertsObj.toString() : "0"));
+        }
+    }
+
+    private void populateFromProfileSnapshot(DocumentSnapshot snap) {
+        String first = snap.getString("firstName");
+        String last = snap.getString("lastName");
+        String displayName = snap.getString("displayName");
+
+        String fullName = !TextUtils.isEmpty(displayName)
+                ? displayName
+                : ((safe(first) + " " + safe(last)).trim());
+
+        if (TextUtils.isEmpty(fullName)) fullName = "—";
+
+        if (tvName != null) tvName.setText(fullName);
+
+        String role = snap.getString("role");
+        if (!TextUtils.isEmpty(role) && tvRole != null) {
+            tvRole.setText(capitalize(role));
+        }
+
+        Object wageObj = snap.get("wage");
+        if (wageObj == null) wageObj = snap.get("dailyWage");
+        if (wageObj == null) wageObj = snap.get("expectedWage");
+        if (wageObj == null) wageObj = snap.get("rate");
+
+        if (boxWage != null) {
+            boxWage.setText("Wage\nLKR " + formatValueOrDefault(wageObj, "0"));
+        }
+
+        Object jobsObj = snap.get("completedJobs");
+        if (jobsObj == null) jobsObj = snap.get("jobsCompleted");
+        if (jobsObj == null) jobsObj = snap.get("jobs");
+        if (jobsObj == null) jobsObj = snap.get("jobsDone");
+
+        if (boxJobDone != null) {
+            boxJobDone.setText("Done\n" + formatValueOrDefault(jobsObj, "0"));
+        }
+
+        String nextJob = snap.getString("nextJob");
+        if (TextUtils.isEmpty(nextJob)) nextJob = snap.getString("nextTask");
+        if (TextUtils.isEmpty(nextJob)) nextJob = snap.getString("preferredCategory");
+
+        if (boxNext != null) {
+            boxNext.setText("Next\n" + (!TextUtils.isEmpty(nextJob) ? nextJob : "—"));
+        }
+
+        Object alertsObj = snap.get("alertsCount");
+        if (alertsObj == null) alertsObj = snap.get("alerts");
+        if (alertsObj == null) alertsObj = snap.get("jobAlerts");
+
+        if (boxFind != null) {
+            boxFind.setText("Alerts\n" + formatValueOrDefault(alertsObj, "0"));
+        }
+
+        String photoUrl = snap.getString("photoUrl");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("photo");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
+        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("nicFrontUri");
+
+        if (!TextUtils.isEmpty(photoUrl) && profileImage != null) {
+            Glide.with(this)
+                    .load(photoUrl)
+                    .placeholder(R.drawable.low_profile_pic)
+                    .error(R.drawable.low_profile_pic)
+                    .into(profileImage);
+        } else if (profileImage != null) {
+            profileImage.setImageResource(R.drawable.low_profile_pic);
+        }
+    }
+
+    private String formatValueOrDefault(Object value, String fallback) {
+        if (value == null) return fallback;
+        String text = value.toString().trim();
+        return text.isEmpty() ? fallback : text;
+    }
+
+    private String capitalize(String s) {
+        if (TextUtils.isEmpty(s)) return "";
+        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 
     private void bindActions(@NonNull View view) {
@@ -167,5 +336,20 @@ public class HomeLowFragment extends Fragment {
         ft.replace(R.id.nav_host_fragment, settingsFragment);
         ft.addToBackStack("settings");
         ft.commit();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (userListener != null) {
+            userListener.remove();
+            userListener = null;
+        }
+
+        if (profileListener != null) {
+            profileListener.remove();
+            profileListener = null;
+        }
     }
 }

@@ -70,13 +70,16 @@
 
                         <TextView
                             android:id="@+id/tv_name_medium"
-                            android:layout_width="wrap_content"
+                            android:layout_width="220dp"
                             android:layout_height="wrap_content"
                             android:text="Kavitha Kanthasawamy"
                             android:textColor="@android:color/white"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             android:textStyle="bold"
-                            android:fontFamily="sans-serif-black" />
+                            android:fontFamily="sans-serif-black"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:ellipsize="end" />
 
                         <TextView
                             android:id="@+id/tv_role_medium"
@@ -197,6 +200,7 @@
                         android:visibility="gone">
 
                         <TextView
+                            android:id="@+id/tv_phone_medium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Phone: 077 XXX XXXX"
@@ -205,6 +209,7 @@
                             android:fontFamily="sans-serif-medium" />
 
                         <TextView
+                            android:id="@+id/tv_area_medium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
@@ -213,14 +218,6 @@
                             android:textSize="13sp"
                             android:fontFamily="sans-serif-medium" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="Preferred jobs: Cleaning, Laundry"
-                            android:textColor="#5F3B24"
-                            android:textSize="13sp"
-                            android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

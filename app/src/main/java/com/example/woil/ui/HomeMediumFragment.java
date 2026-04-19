@@ -2,6 +2,7 @@ package com.example.woil.ui;
 
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,8 +20,22 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.woil.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class HomeMediumFragment extends Fragment {
+
+    private TextView tvNameMedium;
+    private TextView tvRoleMedium;
+    private TextView tvPhoneMedium;
+    private TextView tvAreaMedium;
+
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+
+    private ListenerRegistration userListener;
+    private ListenerRegistration profileListener;
 
     public HomeMediumFragment() { }
 
@@ -31,11 +47,99 @@ public class HomeMediumFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_dashboard_medium, container, false);
 
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        tvNameMedium = view.findViewById(R.id.tv_name_medium);
+        tvRoleMedium = view.findViewById(R.id.tv_role_medium);
+        tvPhoneMedium = view.findViewById(R.id.tv_phone_medium);
+        tvAreaMedium = view.findViewById(R.id.tv_area_medium);
+
+        setPlaceholders();
+
         bindActions(view);
         setupExpandableSections(view);
         setupSwipeToSettings(view);
+        attachProfileListeners();
 
         return view;
+    }
+
+    private void setPlaceholders() {
+        if (tvNameMedium != null) tvNameMedium.setText("—");
+        if (tvRoleMedium != null) tvRoleMedium.setText("Worker");
+        if (tvPhoneMedium != null) tvPhoneMedium.setText("Phone: —");
+        if (tvAreaMedium != null) tvAreaMedium.setText("Area: —");
+    }
+
+    private void attachProfileListeners() {
+        if (mAuth == null || db == null || mAuth.getCurrentUser() == null) return;
+
+        String uid = mAuth.getCurrentUser().getUid();
+
+        userListener = db.collection("users").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (!isAdded()) return;
+                    if (e != null || snap == null || !snap.exists()) return;
+
+                    String role = snap.getString("role");
+                    String phoneFromDoc = snap.getString("phone");
+
+                    if (tvRoleMedium != null && !TextUtils.isEmpty(role)) {
+                        tvRoleMedium.setText(capitalize(role));
+                    }
+
+                    if (tvPhoneMedium != null) {
+                        String phone = mAuth.getCurrentUser() != null
+                                ? mAuth.getCurrentUser().getPhoneNumber()
+                                : null;
+
+                        String value = !TextUtils.isEmpty(phone) ? phone : safe(phoneFromDoc);
+                        tvPhoneMedium.setText("Phone: " + (!TextUtils.isEmpty(value) ? value : "—"));
+                    }
+                });
+
+        profileListener = db.collection("profiles").document(uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (!isAdded()) return;
+                    if (e != null || snap == null || !snap.exists()) return;
+
+                    String first = snap.getString("firstName");
+                    String last = snap.getString("lastName");
+                    String displayName = snap.getString("displayName");
+
+                    String fullName = ((safe(first) + " " + safe(last)).trim());
+                    if (TextUtils.isEmpty(fullName)) {
+                        fullName = !TextUtils.isEmpty(displayName) ? displayName : "—";
+                    }
+
+                    if (tvNameMedium != null) {
+                        tvNameMedium.setText(fullName);
+                    }
+
+                    String locationText = snap.getString("locationText");
+                    if (TextUtils.isEmpty(locationText)) {
+                        locationText = snap.getString("address");
+                    }
+
+                    if (tvAreaMedium != null) {
+                        tvAreaMedium.setText("Area: " + (!TextUtils.isEmpty(locationText) ? locationText : "—"));
+                    }
+
+                    String role = snap.getString("role");
+                    if (tvRoleMedium != null && !TextUtils.isEmpty(role)) {
+                        tvRoleMedium.setText(capitalize(role));
+                    }
+                });
+    }
+
+    private String capitalize(String s) {
+        if (TextUtils.isEmpty(s)) return "";
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 
     private void bindActions(@NonNull View view) {
@@ -130,33 +234,10 @@ public class HomeMediumFragment extends Fragment {
     }
 
     private void setupExpandableSections(@NonNull View view) {
-        bindExpandable(
-                view,
-                R.id.header_user_profile,
-                R.id.content_user_profile,
-                R.id.chev_user_profile
-        );
-
-        bindExpandable(
-                view,
-                R.id.header_job_alerts,
-                R.id.content_job_alerts,
-                R.id.chev_job_alerts
-        );
-
-        bindExpandable(
-                view,
-                R.id.header_wage_calc,
-                R.id.content_wage_calc,
-                R.id.chev_wage_calc
-        );
-
-        bindExpandable(
-                view,
-                R.id.header_woil_guard,
-                R.id.content_woil_guard,
-                R.id.chev_woil_guard
-        );
+        bindExpandable(view, R.id.header_user_profile, R.id.content_user_profile, R.id.chev_user_profile);
+        bindExpandable(view, R.id.header_job_alerts, R.id.content_job_alerts, R.id.chev_job_alerts);
+        bindExpandable(view, R.id.header_wage_calc, R.id.content_wage_calc, R.id.chev_wage_calc);
+        bindExpandable(view, R.id.header_woil_guard, R.id.content_woil_guard, R.id.chev_woil_guard);
     }
 
     private void bindExpandable(@NonNull View root,
@@ -253,5 +334,20 @@ public class HomeMediumFragment extends Fragment {
         ft.replace(R.id.nav_host_fragment, settingsFragment);
         ft.addToBackStack("settings");
         ft.commit();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (userListener != null) {
+            userListener.remove();
+            userListener = null;
+        }
+
+        if (profileListener != null) {
+            profileListener.remove();
+            profileListener = null;
+        }
     }
 }
