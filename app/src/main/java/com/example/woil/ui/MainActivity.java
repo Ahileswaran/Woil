@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final String PREFS_NAME = "woil_prefs";
     private static final String KEY_ACTIVE_ROLE = "active_role";
+    private static final String APP_PREFS = "app_prefs";
+    private static final String KEY_SHOW_WOIL_GUARD_NAV = "show_woil_guard_nav";
 
     private BottomNavigationView bottomNav;
 
@@ -109,12 +111,14 @@ public class MainActivity extends AppCompatActivity {
             );
             setBottomNavVisibility(bottomVisible);
             updateRoleAwareBottomNavUi(getCurrentRoleLocal());
+            restoreWoilGuardNavVisibility();
         } else {
             openFragment(getSelectedHomeFragment(), false, "home");
             if (bottomNav != null) {
                 bottomNav.setSelectedItemId(R.id.navigation_home);
             }
             updateRoleAwareBottomNavUi(getCurrentRoleLocal());
+            restoreWoilGuardNavVisibility();
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -210,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Throwable ignored) {
                 }
                 updateRoleAwareBottomNavUi(getCurrentRoleLocal());
+                restoreWoilGuardNavVisibility();
                 applyBottomNavInsets(lastNavBarInset);
             });
         }
@@ -232,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Throwable ignored) {
                 }
                 updateRoleAwareBottomNavUi(role);
+                restoreWoilGuardNavVisibility();
                 setBottomNavVisibility(shouldShowBottomNavForFragment(home));
                 applyBottomNavInsets(lastNavBarInset);
             });
@@ -266,6 +272,38 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Throwable t) {
             Log.w(TAG, "Failed to update bottom nav labels/icons", t);
+        }
+    }
+
+    private void restoreWoilGuardNavVisibility() {
+        SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
+        boolean visible = prefs.getBoolean(KEY_SHOW_WOIL_GUARD_NAV, true);
+        updateWoilGuardNavVisibility(visible);
+    }
+
+    public void updateWoilGuardNavVisibility(boolean visible) {
+        if (bottomNav == null) return;
+
+        try {
+            MenuItem guardItem = bottomNav.getMenu().findItem(R.id.nav_guard);
+            if (guardItem != null) {
+                if (!visible && guardItem.isChecked()) {
+                    Fragment selectedHome = getSelectedHomeFragment();
+                    openFragment(selectedHome, false, "home");
+                    currentMenuItemId = R.id.navigation_home;
+                    currentTag = "home";
+
+                    bottomNav.post(() -> {
+                        try {
+                            bottomNav.setSelectedItemId(R.id.navigation_home);
+                        } catch (Throwable ignored) {
+                        }
+                    });
+                }
+                guardItem.setVisible(visible);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed to update Woil Guard nav visibility", t);
         }
     }
 
@@ -511,6 +549,7 @@ public class MainActivity extends AppCompatActivity {
         else if (bottomNav != null) currentMenuItemId = bottomNav.getSelectedItemId();
 
         updateRoleAwareBottomNavUi(getCurrentRoleLocal());
+        restoreWoilGuardNavVisibility();
     }
 
     private boolean shouldShowBottomNavForFragment(Fragment fragment) {
@@ -589,6 +628,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable ignored) {
             }
             updateRoleAwareBottomNavUi(getCurrentRoleLocal());
+            restoreWoilGuardNavVisibility();
             applyBottomNavInsets(lastNavBarInset);
         });
     }
@@ -607,6 +647,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         updateRoleAwareBottomNavUi(getCurrentRoleLocal());
+        restoreWoilGuardNavVisibility();
         applyInsetsToCurrentFragment();
     }
 

@@ -73,9 +73,9 @@ public class HomeHighFragment extends Fragment {
 
         // timeline
         List<TimelineModel> timelineList = new ArrayList<>();
-        timelineList.add(new TimelineModel("Fix sink leak", "Pending", "Today 2PM"));
-        timelineList.add(new TimelineModel("Install ceiling fan", "Completed", "Yesterday"));
-        timelineList.add(new TimelineModel("Paint living room", "Ongoing", "Tomorrow"));
+        timelineList.add(new TimelineModel("Garden cleaning", "Pending", "Today 2PM"));
+        timelineList.add(new TimelineModel("Cleaning Silva House", "Completed", "Yesterday"));
+        timelineList.add(new TimelineModel("Cooking", "Ongoing", "Tomorrow"));
 
         rvTimeline.setLayoutManager(new LinearLayoutManager(getContext()));
         TimelineAdapter tAdapter = new TimelineAdapter(timelineList);

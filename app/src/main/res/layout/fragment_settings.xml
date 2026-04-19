@@ -553,8 +553,9 @@
 
             <!-- Woil Guard -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_woil_guard_settings"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="18dp"
@@ -562,39 +563,94 @@
                 app:strokeColor="#ECECEC"
                 app:strokeWidth="1dp">
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-                    <ImageView
-                        android:id="@+id/ic_guard"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ic_guard_green" />
+                    <RelativeLayout
+                        android:id="@+id/woil_guard_main_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="72dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
 
-                    <TextView
-                        android:id="@+id/tv_guard"
-                        android:layout_width="wrap_content"
+                        <ImageView
+                            android:id="@+id/ic_guard"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_guard_green" />
+
+                        <TextView
+                            android:id="@+id/tv_guard"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="14dp"
+                            android:layout_toEndOf="@id/ic_guard"
+                            android:text="@string/woil_guard_settings"
+                            android:textColor="#222222"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/ic_guard_chevron"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_chevron_right" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/woil_guard_expandable"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="14dp"
-                        android:layout_toEndOf="@id/ic_guard"
-                        android:text="@string/woil_guard_settings"
-                        android:textColor="#222222"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="16dp"
+                        android:visibility="gone">
 
-                    <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ic_chevron_right" />
-                </RelativeLayout>
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#F1F1F1" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Show Woil Guard in navigation"
+                                android:textColor="#222222"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switch_woil_guard_nav"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="true" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Hide or show the Woil Guard item in the navigation bar"
+                            android:textColor="#7A7A7A"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView

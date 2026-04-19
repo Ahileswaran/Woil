@@ -35,6 +35,7 @@ public class SettingsFragment extends Fragment {
     private static final String KEY_VOICE = "pref_voice_guidance";
     private static final String KEY_SIMPLE = "pref_simplified_layout";
     private static final String KEY_TEXT_PROGRESS = "pref_text_size_progress";
+    private static final String KEY_SHOW_WOIL_GUARD_NAV = "show_woil_guard_nav";
 
     private SwitchMaterial switchUiHigh;
     private SwitchMaterial switchUiMedium;
@@ -77,9 +78,14 @@ public class SettingsFragment extends Fragment {
         LinearLayout languageExpandable = view.findViewById(R.id.language_expandable);
         ImageView languageChevron = view.findViewById(R.id.ic_language_chevron);
 
+        RelativeLayout woilGuardMainRow = view.findViewById(R.id.woil_guard_main_row);
+        LinearLayout woilGuardExpandable = view.findViewById(R.id.woil_guard_expandable);
+        ImageView woilGuardChevron = view.findViewById(R.id.ic_guard_chevron);
+
         SwitchMaterial switchTheme = view.findViewById(R.id.switch_theme);
         SwitchMaterial switchVoice = view.findViewById(R.id.switch_voice);
         SwitchMaterial switchSimple = view.findViewById(R.id.switch_simple);
+        SwitchMaterial switchWoilGuardNav = view.findViewById(R.id.switch_woil_guard_nav);
         SeekBar seekTextSize = view.findViewById(R.id.seek_text_size);
         TextView tvTextSizeValue = view.findViewById(R.id.tv_text_size_value);
 
@@ -107,6 +113,7 @@ public class SettingsFragment extends Fragment {
         boolean isDark = appPrefs.getBoolean(KEY_DARK, false);
         boolean isVoice = appPrefs.getBoolean(KEY_VOICE, false);
         boolean isSimple = appPrefs.getBoolean(KEY_SIMPLE, false);
+        boolean showWoilGuardNav = appPrefs.getBoolean(KEY_SHOW_WOIL_GUARD_NAV, true);
         int textProgress = appPrefs.getInt(KEY_TEXT_PROGRESS, 13);
 
         if (switchTheme != null) {
@@ -143,6 +150,21 @@ public class SettingsFragment extends Fragment {
             });
         }
 
+        if (switchWoilGuardNav != null) {
+            switchWoilGuardNav.setChecked(showWoilGuardNav);
+            switchWoilGuardNav.setOnCheckedChangeListener((buttonView, checked) -> {
+                appPrefs.edit().putBoolean(KEY_SHOW_WOIL_GUARD_NAV, checked).apply();
+
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) requireActivity()).updateWoilGuardNavVisibility(checked);
+                }
+
+                Toast.makeText(requireContext(),
+                        checked ? "Woil Guard shown in navigation" : "Woil Guard hidden from navigation",
+                        Toast.LENGTH_SHORT).show();
+            });
+        }
+
         if (seekTextSize != null && tvTextSizeValue != null) {
             seekTextSize.setMax(30);
             seekTextSize.setProgress(textProgress);
@@ -172,6 +194,7 @@ public class SettingsFragment extends Fragment {
         bindExpandable(systemUiMainRow, systemUiExpandable, systemUiChevron);
         bindExpandable(accessibilityMainRow, accessibilityExpandable, accessibilityChevron);
         bindExpandable(languageMainRow, languageExpandable, languageChevron);
+        bindExpandable(woilGuardMainRow, woilGuardExpandable, woilGuardChevron);
 
         setupUiLevelSwitches();
         setupLanguageSwitches();
