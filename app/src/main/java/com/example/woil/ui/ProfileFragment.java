@@ -134,11 +134,7 @@ public class ProfileFragment extends Fragment {
         tvIdMatch = view.findViewById(R.id.tv_id_match);
         tvIdStatus = view.findViewById(R.id.tv_id_status);
 
-        switchDigital = view.findViewById(R.id.switch_digital);
-        switchVoice = view.findViewById(R.id.switch_voice);
-        switchSimplified = view.findViewById(R.id.switch_simple);
-        seekTextSize = view.findViewById(R.id.seek_text_size);
-        tvTextSizeValue = view.findViewById(R.id.tv_text_size_value);
+
 
         etName = view.findViewById(R.id.et_name);
         etLocation = view.findViewById(R.id.et_location);

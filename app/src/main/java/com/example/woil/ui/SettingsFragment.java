@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,17 +24,22 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.woil.R;
-import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+
+import java.util.Locale;
 
 public class SettingsFragment extends Fragment {
 
     private static final String APP_PREFS = "app_prefs";
     private static final String KEY_DARK = "pref_dark_mode";
+    private static final String KEY_VOICE = "pref_voice_guidance";
+    private static final String KEY_SIMPLE = "pref_simplified_layout";
+    private static final String KEY_TEXT_PROGRESS = "pref_text_size_progress";
 
-    private MaterialButtonToggleGroup toggleGroup;
-    private int previousCheckedId = View.NO_ID;
-    private boolean suppressToggleListener = false;
+    private SwitchMaterial switchUiHigh;
+    private SwitchMaterial switchUiMedium;
+    private SwitchMaterial switchUiLow;
+    private boolean suppressUiSwitchListener = false;
 
     public SettingsFragment() { }
 
@@ -44,15 +51,27 @@ public class SettingsFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
-        LinearLayout systemExpandable = view.findViewById(R.id.system_expandable);
         RelativeLayout systemMainRow = view.findViewById(R.id.system_main_row);
-        ImageView chevron = view.findViewById(R.id.ic_system_chevron);
-        SwitchMaterial switchTheme = view.findViewById(R.id.switch_theme);
+        LinearLayout systemExpandable = view.findViewById(R.id.system_expandable);
+        ImageView systemChevron = view.findViewById(R.id.ic_system_chevron);
 
-        LinearLayout systemUiExpandable = view.findViewById(R.id.system_ui_expandable);
         RelativeLayout systemUiMainRow = view.findViewById(R.id.system_ui_main_row);
+        LinearLayout systemUiExpandable = view.findViewById(R.id.system_ui_expandable);
         ImageView systemUiChevron = view.findViewById(R.id.ic_system_ui_chevron);
-        toggleGroup = view.findViewById(R.id.system_ui_toggle_group);
+
+        RelativeLayout accessibilityMainRow = view.findViewById(R.id.accessibility_main_row);
+        LinearLayout accessibilityExpandable = view.findViewById(R.id.accessibility_expandable);
+        ImageView accessibilityChevron = view.findViewById(R.id.ic_accessibility_chevron);
+
+        SwitchMaterial switchTheme = view.findViewById(R.id.switch_theme);
+        SwitchMaterial switchVoice = view.findViewById(R.id.switch_voice);
+        SwitchMaterial switchSimple = view.findViewById(R.id.switch_simple);
+        SeekBar seekTextSize = view.findViewById(R.id.seek_text_size);
+        TextView tvTextSizeValue = view.findViewById(R.id.tv_text_size_value);
+
+        switchUiHigh = view.findViewById(R.id.switch_ui_high);
+        switchUiMedium = view.findViewById(R.id.switch_ui_medium);
+        switchUiLow = view.findViewById(R.id.switch_ui_low);
 
         View btnBack = view.findViewById(R.id.btn_back);
         if (btnBack != null) {
@@ -63,79 +82,131 @@ public class SettingsFragment extends Fragment {
                 requireContext().getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE);
 
         boolean isDark = appPrefs.getBoolean(KEY_DARK, false);
+        boolean isVoice = appPrefs.getBoolean(KEY_VOICE, false);
+        boolean isSimple = appPrefs.getBoolean(KEY_SIMPLE, false);
+        int textProgress = appPrefs.getInt(KEY_TEXT_PROGRESS, 13);
 
         if (switchTheme != null) {
             switchTheme.setChecked(isDark);
             applyTheme(isDark);
-
             switchTheme.setOnCheckedChangeListener((buttonView, checked) -> {
                 appPrefs.edit().putBoolean(KEY_DARK, checked).apply();
                 applyTheme(checked);
             });
         }
 
-        if (systemMainRow != null && systemExpandable != null && chevron != null) {
-            systemMainRow.setOnClickListener(v -> {
-                boolean expand = systemExpandable.getVisibility() == View.GONE;
-                systemExpandable.setVisibility(expand ? View.VISIBLE : View.GONE);
-                chevron.setRotation(expand ? 90f : 0f);
+        if (switchVoice != null) {
+            switchVoice.setChecked(isVoice);
+            switchVoice.setOnCheckedChangeListener((buttonView, checked) ->
+                    appPrefs.edit().putBoolean(KEY_VOICE, checked).apply()
+            );
+        }
+
+        if (switchSimple != null) {
+            switchSimple.setChecked(isSimple);
+            switchSimple.setOnCheckedChangeListener((buttonView, checked) -> {
+                appPrefs.edit().putBoolean(KEY_SIMPLE, checked).apply();
+                Toast.makeText(requireContext(),
+                        checked ? "Simplified layout enabled" : "Simplified layout disabled",
+                        Toast.LENGTH_SHORT).show();
             });
         }
 
-        if (systemUiMainRow != null && systemUiExpandable != null && systemUiChevron != null) {
-            systemUiMainRow.setOnClickListener(v -> {
-                boolean expand = systemUiExpandable.getVisibility() == View.GONE;
-                systemUiExpandable.setVisibility(expand ? View.VISIBLE : View.GONE);
-                systemUiChevron.setRotation(expand ? 90f : 0f);
+        if (seekTextSize != null && tvTextSizeValue != null) {
+            seekTextSize.setMax(30);
+            seekTextSize.setProgress(textProgress);
+            updateTextSizeLabel(textProgress, tvTextSizeValue);
+
+            seekTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    updateTextSizeLabel(progress, tvTextSizeValue);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) { }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    int value = seekBar.getProgress();
+                    appPrefs.edit().putInt(KEY_TEXT_PROGRESS, value).apply();
+                    Toast.makeText(requireContext(),
+                            "Text size updated",
+                            Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
-        setupUiLevelToggleGroup();
+        bindExpandable(systemMainRow, systemExpandable, systemChevron);
+        bindExpandable(systemUiMainRow, systemUiExpandable, systemUiChevron);
+        bindExpandable(accessibilityMainRow, accessibilityExpandable, accessibilityChevron);
+
+        setupUiLevelSwitches();
         setupSwipeBack(view);
 
         return view;
     }
 
-    private void setupUiLevelToggleGroup() {
-        if (toggleGroup == null) return;
+    private void bindExpandable(@Nullable View mainRow,
+                                @Nullable View expandable,
+                                @Nullable ImageView chevron) {
+        if (mainRow == null || expandable == null || chevron == null) return;
 
-        String currentLevel = UiModeManager.getUiLevel(requireContext());
-        int initialCheckedId = idForLevel(currentLevel);
-        previousCheckedId = initialCheckedId;
-
-        suppressToggleListener = true;
-        toggleGroup.check(initialCheckedId);
-        suppressToggleListener = false;
-
-        toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (suppressToggleListener) return;
-            if (!isChecked) return;
-
-            final String clickedLevel = levelForId(checkedId);
-            final String previousLevel = levelForId(previousCheckedId);
-
-            if (clickedLevel.equals(previousLevel)) {
-                return;
-            }
-
-            boolean isRestrictiveChange =
-                    UiModeManager.HIGH.equals(previousLevel)
-                            && (UiModeManager.MEDIUM.equals(clickedLevel)
-                            || UiModeManager.LOW.equals(clickedLevel));
-
-            if (isRestrictiveChange) {
-                showConfirmRestrictDialog(clickedLevel,
-                        () -> applyUiLevelChange(clickedLevel, checkedId),
-                        this::revertUiSelection);
-            } else {
-                applyUiLevelChange(clickedLevel, checkedId);
-            }
+        mainRow.setOnClickListener(v -> {
+            boolean expand = expandable.getVisibility() == View.GONE;
+            expandable.setVisibility(expand ? View.VISIBLE : View.GONE);
+            chevron.animate().rotation(expand ? 90f : 0f).setDuration(180).start();
         });
     }
 
-    private void applyUiLevelChange(@NonNull String level, int checkedId) {
+    private void setupUiLevelSwitches() {
+        if (switchUiHigh == null || switchUiMedium == null || switchUiLow == null) return;
+
+        String currentLevel = UiModeManager.getUiLevel(requireContext());
+        applyUiSwitchState(currentLevel);
+
+        switchUiHigh.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (suppressUiSwitchListener || !isChecked) return;
+            onUiLevelSelected(UiModeManager.HIGH);
+        });
+
+        switchUiMedium.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (suppressUiSwitchListener || !isChecked) return;
+            onUiLevelSelected(UiModeManager.MEDIUM);
+        });
+
+        switchUiLow.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (suppressUiSwitchListener || !isChecked) return;
+            onUiLevelSelected(UiModeManager.LOW);
+        });
+    }
+
+    private void onUiLevelSelected(@NonNull String clickedLevel) {
+        String previousLevel = UiModeManager.getUiLevel(requireContext());
+
+        if (clickedLevel.equals(previousLevel)) {
+            return;
+        }
+
+        boolean isRestrictiveChange =
+                UiModeManager.HIGH.equals(previousLevel)
+                        && (UiModeManager.MEDIUM.equals(clickedLevel)
+                        || UiModeManager.LOW.equals(clickedLevel));
+
+        if (isRestrictiveChange) {
+            showConfirmRestrictDialog(
+                    clickedLevel,
+                    () -> applyUiLevelChange(clickedLevel),
+                    () -> applyUiSwitchState(previousLevel)
+            );
+        } else {
+            applyUiLevelChange(clickedLevel);
+        }
+    }
+
+    private void applyUiLevelChange(@NonNull String level) {
         UiModeManager.setUiLevel(requireContext(), level);
-        previousCheckedId = checkedId;
+        applyUiSwitchState(level);
 
         Toast.makeText(requireContext(),
                 labelForLevel(level) + " selected",
@@ -146,12 +217,20 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private void revertUiSelection() {
-        if (toggleGroup == null) return;
+    private void applyUiSwitchState(@NonNull String level) {
+        suppressUiSwitchListener = true;
 
-        suppressToggleListener = true;
-        toggleGroup.check(previousCheckedId);
-        suppressToggleListener = false;
+        if (switchUiHigh != null) {
+            switchUiHigh.setChecked(UiModeManager.HIGH.equals(level));
+        }
+        if (switchUiMedium != null) {
+            switchUiMedium.setChecked(UiModeManager.MEDIUM.equals(level));
+        }
+        if (switchUiLow != null) {
+            switchUiLow.setChecked(UiModeManager.LOW.equals(level));
+        }
+
+        suppressUiSwitchListener = false;
     }
 
     private void setupSwipeBack(@NonNull View rootView) {
@@ -229,19 +308,6 @@ public class SettingsFragment extends Fragment {
                 .show();
     }
 
-    private int idForLevel(@Nullable String level) {
-        if (UiModeManager.MEDIUM.equals(level)) return R.id.btn_ui_medium;
-        if (UiModeManager.LOW.equals(level)) return R.id.btn_ui_low;
-        return R.id.btn_ui_high;
-    }
-
-    @NonNull
-    private String levelForId(int id) {
-        if (id == R.id.btn_ui_medium) return UiModeManager.MEDIUM;
-        if (id == R.id.btn_ui_low) return UiModeManager.LOW;
-        return UiModeManager.HIGH;
-    }
-
     @NonNull
     private String labelForLevel(@NonNull String level) {
         switch (level) {
@@ -252,6 +318,11 @@ public class SettingsFragment extends Fragment {
             default:
                 return "High Level UI";
         }
+    }
+
+    private void updateTextSizeLabel(int progress, @NonNull TextView tvTextSizeValue) {
+        float scale = 0.85f + (progress / 30f) * 0.45f;
+        tvTextSizeValue.setText(String.format(Locale.getDefault(), "%.2fx", scale));
     }
 
     private void applyTheme(boolean dark) {
