@@ -41,6 +41,8 @@ public class SettingsFragment extends Fragment {
     private SwitchMaterial switchUiLow;
     private boolean suppressUiSwitchListener = false;
 
+    private VoiceGuidanceManager voiceGuidanceManager;
+
     public SettingsFragment() { }
 
     @Nullable
@@ -50,6 +52,9 @@ public class SettingsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
+
+        voiceGuidanceManager = new VoiceGuidanceManager(requireContext());
+        voiceGuidanceManager.init();
 
         RelativeLayout systemMainRow = view.findViewById(R.id.system_main_row);
         LinearLayout systemExpandable = view.findViewById(R.id.system_expandable);
@@ -75,7 +80,12 @@ public class SettingsFragment extends Fragment {
 
         View btnBack = view.findViewById(R.id.btn_back);
         if (btnBack != null) {
-            btnBack.setOnClickListener(v -> goBackToSelectedHome());
+            btnBack.setOnClickListener(v -> {
+                if (voiceGuidanceManager != null) {
+                    voiceGuidanceManager.stop();
+                }
+                goBackToSelectedHome();
+            });
         }
 
         final SharedPreferences appPrefs =
@@ -97,9 +107,17 @@ public class SettingsFragment extends Fragment {
 
         if (switchVoice != null) {
             switchVoice.setChecked(isVoice);
-            switchVoice.setOnCheckedChangeListener((buttonView, checked) ->
-                    appPrefs.edit().putBoolean(KEY_VOICE, checked).apply()
-            );
+            switchVoice.setOnCheckedChangeListener((buttonView, checked) -> {
+                appPrefs.edit().putBoolean(KEY_VOICE, checked).apply();
+
+                if (voiceGuidanceManager != null) {
+                    if (checked) {
+                        voiceGuidanceManager.speak("Voice guidance enabled");
+                    } else {
+                        voiceGuidanceManager.stop();
+                    }
+                }
+            });
         }
 
         if (switchSimple != null) {
@@ -143,6 +161,12 @@ public class SettingsFragment extends Fragment {
 
         setupUiLevelSwitches();
         setupSwipeBack(view);
+
+        view.postDelayed(() -> {
+            if (isAdded() && voiceGuidanceManager != null) {
+                voiceGuidanceManager.speak("Settings screen opened");
+            }
+        }, 400);
 
         return view;
     }
@@ -220,15 +244,9 @@ public class SettingsFragment extends Fragment {
     private void applyUiSwitchState(@NonNull String level) {
         suppressUiSwitchListener = true;
 
-        if (switchUiHigh != null) {
-            switchUiHigh.setChecked(UiModeManager.HIGH.equals(level));
-        }
-        if (switchUiMedium != null) {
-            switchUiMedium.setChecked(UiModeManager.MEDIUM.equals(level));
-        }
-        if (switchUiLow != null) {
-            switchUiLow.setChecked(UiModeManager.LOW.equals(level));
-        }
+        if (switchUiHigh != null) switchUiHigh.setChecked(UiModeManager.HIGH.equals(level));
+        if (switchUiMedium != null) switchUiMedium.setChecked(UiModeManager.MEDIUM.equals(level));
+        if (switchUiLow != null) switchUiLow.setChecked(UiModeManager.LOW.equals(level));
 
         suppressUiSwitchListener = false;
     }
@@ -330,6 +348,15 @@ public class SettingsFragment extends Fragment {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (voiceGuidanceManager != null) {
+            voiceGuidanceManager.shutdown();
+            voiceGuidanceManager = null;
         }
     }
 }

@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +25,6 @@ import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.woil.R;
-import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -60,10 +58,6 @@ public class ProfileFragment extends Fragment {
     private TextView tvIdMatch;
     private TextView tvIdStatus;
 
-    private SwitchMaterial switchDigital, switchVoice, switchSimplified;
-    private SeekBar seekTextSize;
-    private TextView tvTextSizeValue;
-
     private EditText etName;
     private EditText etLocation;
     private Button btnChooseImage;
@@ -76,6 +70,8 @@ public class ProfileFragment extends Fragment {
 
     private ListenerRegistration userListener;
     private ListenerRegistration profileListener;
+
+    private VoiceGuidanceManager voiceGuidanceManager;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -106,14 +102,6 @@ public class ProfileFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        TextView txtViewSkillDetails = view.findViewById(R.id.txt_view_skill_details);
-        if (txtViewSkillDetails != null) {
-            txtViewSkillDetails.setOnClickListener(v -> {
-                Intent intent = new Intent(requireContext(), SkillShowcaseActivity.class);
-                startActivity(intent);
-            });
-        }
-
         ivProfile = view.findViewById(R.id.profile_image_main);
         tvUsername = view.findViewById(R.id.username);
         tvSubtitle = view.findViewById(R.id.subtitle);
@@ -134,16 +122,32 @@ public class ProfileFragment extends Fragment {
         tvIdMatch = view.findViewById(R.id.tv_id_match);
         tvIdStatus = view.findViewById(R.id.tv_id_status);
 
-
-
         etName = view.findViewById(R.id.et_name);
         etLocation = view.findViewById(R.id.et_location);
         btnChooseImage = view.findViewById(R.id.btn_choose_image);
 
+        voiceGuidanceManager = new VoiceGuidanceManager(requireContext());
+        voiceGuidanceManager.init();
+
         setPlaceholders();
+
+        TextView txtViewSkillDetails = view.findViewById(R.id.txt_view_skill_details);
+        if (txtViewSkillDetails != null) {
+            txtViewSkillDetails.setOnClickListener(v -> {
+                if (voiceGuidanceManager != null) {
+                    voiceGuidanceManager.speak("Opening skill showcase");
+                }
+                Intent intent = new Intent(requireContext(), SkillShowcaseActivity.class);
+                startActivity(intent);
+            });
+        }
 
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> {
+                if (voiceGuidanceManager != null) {
+                    voiceGuidanceManager.stop();
+                }
+
                 if (requireActivity() instanceof MainActivity) {
                     ((MainActivity) requireActivity()).onFragmentArrowBackToHome();
                 } else {
@@ -154,16 +158,30 @@ public class ProfileFragment extends Fragment {
 
         Button btnClient = view.findViewById(R.id.btn_client);
         if (btnClient != null) {
-            btnClient.setOnClickListener(v -> switchRole("client"));
+            btnClient.setOnClickListener(v -> {
+                if (voiceGuidanceManager != null) {
+                    voiceGuidanceManager.speak("Switching to client profile");
+                }
+                switchRole("client");
+            });
         }
 
         Button btnWorker = view.findViewById(R.id.btn_worker);
         if (btnWorker != null) {
-            btnWorker.setOnClickListener(v -> switchRole("worker"));
+            btnWorker.setOnClickListener(v -> {
+                if (voiceGuidanceManager != null) {
+                    voiceGuidanceManager.speak("Switching to worker profile");
+                }
+                switchRole("worker");
+            });
         }
 
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {
+                if (voiceGuidanceManager != null) {
+                    voiceGuidanceManager.speak(isEditMode ? "Saving profile" : "Edit profile");
+                }
+
                 if (!isEditMode) {
                     enterEditMode();
                 } else {
@@ -173,34 +191,46 @@ public class ProfileFragment extends Fragment {
         }
 
         if (btnChooseImage != null) {
-            btnChooseImage.setOnClickListener(v -> openImagePicker());
+            btnChooseImage.setOnClickListener(v -> {
+                if (voiceGuidanceManager != null) {
+                    voiceGuidanceManager.speak("Choose profile image");
+                }
+                openImagePicker();
+            });
         }
 
-        if (switchDigital != null) switchDigital.setChecked(true);
-        if (switchVoice != null) switchVoice.setChecked(false);
-        if (switchSimplified != null) switchSimplified.setChecked(false);
+        setupVoiceHints();
+        announceProfileScreen();
+        attachListeners();
+    }
 
-        if (seekTextSize != null) {
-            seekTextSize.setMax(100);
-            seekTextSize.setProgress(50);
-            updateTextSizeLabel(50);
-            seekTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    updateTextSizeLabel(progress);
-                }
+    private void announceProfileScreen() {
+        View root = getView();
+        if (root == null) return;
 
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                }
+        root.postDelayed(() -> {
+            if (isAdded() && voiceGuidanceManager != null) {
+                voiceGuidanceManager.speak("Profile screen opened");
+            }
+        }, 500);
+    }
 
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
+    private void setupVoiceHints() {
+        if (etName != null) {
+            etName.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus && voiceGuidanceManager != null) {
+                    voiceGuidanceManager.speak("Name field");
                 }
             });
         }
 
-        attachListeners();
+        if (etLocation != null) {
+            etLocation.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus && voiceGuidanceManager != null) {
+                    voiceGuidanceManager.speak("Address field");
+                }
+            });
+        }
     }
 
     private void switchRole(String role) {
@@ -588,12 +618,6 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private void updateTextSizeLabel(int progress) {
-        double val = 0.8 + (progress / 100.0);
-        DecimalFormat df = new DecimalFormat("0.0");
-        if (tvTextSizeValue != null) tvTextSizeValue.setText(df.format(val) + "x");
-    }
-
     private String capitalize(String s) {
         if (TextUtils.isEmpty(s)) return s;
         return s.substring(0, 1).toUpperCase() + s.substring(1);
@@ -613,6 +637,11 @@ public class ProfileFragment extends Fragment {
         if (profileListener != null) {
             profileListener.remove();
             profileListener = null;
+        }
+
+        if (voiceGuidanceManager != null) {
+            voiceGuidanceManager.shutdown();
+            voiceGuidanceManager = null;
         }
     }
 }
