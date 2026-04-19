@@ -66,7 +66,9 @@ public class ClientActivity extends AppCompatActivity {
     private ProgressBar wpTask1Progress, wpTask2Progress;
     private TextView wpTask1Title, wpTask1Date, wpTask2Title, wpTask2Date;
 
-    private Button btnClientToggle, btnWorkerToggle;
+    private TextView btnClientToggle, btnWorkerToggle;
+    private View togglePill;
+    private String currentRole = "client";
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -112,7 +114,7 @@ public class ClientActivity extends AppCompatActivity {
         btnEditProfile = findViewById(R.id.btn_edit_profile);
         btnBack = findViewById(R.id.btn_back);
 
-        tvPending = findViewById(R.id.tv_pending); // may be null in some layouts
+        //tvPending = findViewById(R.id.tv_pending); // may be null in some layouts
 
         etName = findViewById(R.id.et_name);
         etLocation = findViewById(R.id.et_location);
@@ -134,6 +136,7 @@ public class ClientActivity extends AppCompatActivity {
 
         btnClientToggle = findViewById(R.id.btn_client);
         btnWorkerToggle = findViewById(R.id.btn_worker);
+        togglePill = findViewById(R.id.toggle_pill);
 
         setPlaceholders();
 
@@ -167,11 +170,21 @@ public class ClientActivity extends AppCompatActivity {
         }
 
         if (btnClientToggle != null) {
-            btnClientToggle.setEnabled(false);
+            btnClientToggle.setOnClickListener(v -> applyToggleState("client", true));
         }
 
         if (btnWorkerToggle != null) {
-            btnWorkerToggle.setOnClickListener(v -> switchRoleToWorker());
+            btnWorkerToggle.setOnClickListener(v -> {
+                if (!"worker".equalsIgnoreCase(currentRole)) {
+                    applyToggleState("worker", true);
+                    btnWorkerToggle.postDelayed(this::switchRoleToWorker, 220);
+                }
+            });
+        }
+
+        View toggleGroup = findViewById(R.id.toggle_group);
+        if (toggleGroup != null) {
+            toggleGroup.post(() -> applyToggleState("client", false));
         }
 
         attachListeners();
@@ -200,6 +213,37 @@ public class ClientActivity extends AppCompatActivity {
         if (ad1Title != null) ad1Title.setText("");
         if (ad2Date != null) ad2Date.setText("");
         if (ad2Title != null) ad2Title.setText("");
+
+        currentRole = "client";
+    }
+
+    private void applyToggleState(String role, boolean animate) {
+        currentRole = role == null ? "client" : role.toLowerCase();
+
+        if (togglePill == null || btnClientToggle == null || btnWorkerToggle == null) return;
+
+        btnClientToggle.post(() -> {
+            float targetX = "worker".equalsIgnoreCase(currentRole)
+                    ? btnWorkerToggle.getLeft()
+                    : btnClientToggle.getLeft();
+
+            if (animate) {
+                togglePill.animate()
+                        .translationX(targetX)
+                        .setDuration(220)
+                        .start();
+            } else {
+                togglePill.setTranslationX(targetX);
+            }
+
+            if ("worker".equalsIgnoreCase(currentRole)) {
+                btnClientToggle.setTextColor(Color.WHITE);
+                btnWorkerToggle.setTextColor(Color.parseColor("#222222"));
+            } else {
+                btnClientToggle.setTextColor(Color.parseColor("#222222"));
+                btnWorkerToggle.setTextColor(Color.WHITE);
+            }
+        });
     }
 
     private void attachListeners() {
@@ -220,6 +264,7 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private void populateFromUserSnapshot(DocumentSnapshot snap) {
+        applyToggleState("client", false);
         String phoneFromDoc = snap.getString("phone");
 
         if (mAuth.getCurrentUser() != null) {

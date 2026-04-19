@@ -17,6 +17,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.animation.ValueAnimator;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -51,6 +53,10 @@ public class ProfileFragment extends Fragment {
     private Button btnEditProfile;
     private ImageButton btnBack;
     private TextView tvPending;
+    private View togglePill;
+    private TextView btnClient;
+    private TextView btnWorker;
+    private String currentRole = "worker";
 
     private TextView tvVerificationSubtitle;
     private TextView tvIdParsedDob;
@@ -115,6 +121,9 @@ public class ProfileFragment extends Fragment {
         btnEditProfile = view.findViewById(R.id.btn_edit_profile);
         btnBack = view.findViewById(R.id.btn_back);
         tvPending = view.findViewById(R.id.tv_pending);
+        togglePill = view.findViewById(R.id.toggle_pill);
+        btnClient = view.findViewById(R.id.btn_client);
+        btnWorker = view.findViewById(R.id.btn_worker);
 
         tvVerificationSubtitle = view.findViewById(R.id.tv_verification_subtitle);
         tvIdParsedDob = view.findViewById(R.id.tv_id_parsed_dob);
@@ -155,25 +164,33 @@ public class ProfileFragment extends Fragment {
                 }
             });
         }
-
-        Button btnClient = view.findViewById(R.id.btn_client);
         if (btnClient != null) {
             btnClient.setOnClickListener(v -> {
-                if (voiceGuidanceManager != null) {
-                    voiceGuidanceManager.speak("Switching to client profile");
+                if (!"client".equalsIgnoreCase(currentRole)) {
+                    if (voiceGuidanceManager != null) {
+                        voiceGuidanceManager.speak("Switching to client profile");
+                    }
+                    applyToggleState("client", true);
+                    btnClient.postDelayed(() -> switchRole("client"), 220);
                 }
-                switchRole("client");
             });
         }
 
-        Button btnWorker = view.findViewById(R.id.btn_worker);
         if (btnWorker != null) {
             btnWorker.setOnClickListener(v -> {
-                if (voiceGuidanceManager != null) {
-                    voiceGuidanceManager.speak("Switching to worker profile");
+                if (!"worker".equalsIgnoreCase(currentRole)) {
+                    if (voiceGuidanceManager != null) {
+                        voiceGuidanceManager.speak("Switching to worker profile");
+                    }
+                    applyToggleState("worker", true);
+                    btnWorker.postDelayed(() -> switchRole("worker"), 220);
                 }
-                switchRole("worker");
             });
+        }
+
+        View toggleGroup = view.findViewById(R.id.toggle_group);
+        if (toggleGroup != null) {
+            toggleGroup.post(() -> applyToggleState(currentRole, false));
         }
 
         if (btnEditProfile != null) {
@@ -231,6 +248,35 @@ public class ProfileFragment extends Fragment {
                 }
             });
         }
+    }
+
+    private void applyToggleState(String role, boolean animate) {
+        currentRole = role == null ? "worker" : role.toLowerCase();
+
+        if (togglePill == null || btnClient == null || btnWorker == null) return;
+
+        btnClient.post(() -> {
+            float targetX = "worker".equalsIgnoreCase(currentRole)
+                    ? btnWorker.getLeft()
+                    : btnClient.getLeft();
+
+            if (animate) {
+                togglePill.animate()
+                        .translationX(targetX)
+                        .setDuration(220)
+                        .start();
+            } else {
+                togglePill.setTranslationX(targetX);
+            }
+
+            if ("worker".equalsIgnoreCase(currentRole)) {
+                btnClient.setTextColor(Color.WHITE);
+                btnWorker.setTextColor(Color.parseColor("#222222"));
+            } else {
+                btnClient.setTextColor(Color.parseColor("#222222"));
+                btnWorker.setTextColor(Color.WHITE);
+            }
+        });
     }
 
     private void switchRole(String role) {
@@ -317,6 +363,8 @@ public class ProfileFragment extends Fragment {
             tvPending.setText("⏱ Pending");
             tvPending.setTextColor(Color.parseColor("#6B4B00"));
         }
+
+        currentRole = "worker";
     }
 
     private void attachListeners() {
@@ -338,6 +386,9 @@ public class ProfileFragment extends Fragment {
 
     private void populateFromUserSnapshot(DocumentSnapshot snap) {
         String role = snap.getString("role");
+        if (!TextUtils.isEmpty(role)) {
+            applyToggleState(role, false);
+        }
         String phoneFromDoc = snap.getString("phone");
         Boolean userNicVerified = snap.getBoolean("nicVerified");
 

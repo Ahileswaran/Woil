@@ -353,4 +353,5 @@ public class HomeLowFragment extends Fragment {
         }
     }
 
+
 }
