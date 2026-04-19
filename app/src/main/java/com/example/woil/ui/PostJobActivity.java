@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -21,7 +22,10 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
@@ -56,21 +60,17 @@ public class PostJobActivity extends AppCompatActivity {
     private TextView tvWageRangeBadge;
     private Switch switchAllowOffers;
 
-    // selected location
     private String selectedAddress = "";
     private Double selectedLat = null;
     private Double selectedLng = null;
     private String selectedSnapshotPath = "";
 
-    // date/time state
     private final Calendar startCal = Calendar.getInstance();
     private final Calendar endCal = Calendar.getInstance();
 
-    // Firebase
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
-    // formatters
     private final SimpleDateFormat dateFormatter = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
     private final SimpleDateFormat timeFormatter = new SimpleDateFormat("hh:mm a", Locale.getDefault());
 
@@ -86,7 +86,6 @@ public class PostJobActivity extends AppCompatActivity {
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-        // find views
         btnPostJob = findViewById(R.id.btn_post_job);
         btnBack = findViewById(R.id.btn_back);
         etDescription = findViewById(R.id.et_description);
@@ -101,7 +100,8 @@ public class PostJobActivity extends AppCompatActivity {
         tvWageRangeBadge = findViewById(R.id.tv_wage_range_badge);
         switchAllowOffers = findViewById(R.id.switch_allow_offers);
 
-        // categories list
+        applyBottomInsetToPostButton();
+
         String[] categories = new String[] {
                 "Cleaning",
                 "Electrician",
@@ -122,7 +122,6 @@ public class PostJobActivity extends AppCompatActivity {
         );
         spinnerCategory.setAdapter(catAdapter);
 
-        // Initialize date/time defaults
         setDefaultStartEndTimes();
         refreshDateTimeText();
 
@@ -139,7 +138,6 @@ public class PostJobActivity extends AppCompatActivity {
             tvLocationName.setOnClickListener(openMapPicker);
         }
 
-        // Date picker
         tvDate.setOnClickListener(v -> {
             int y = startCal.get(Calendar.YEAR);
             int m = startCal.get(Calendar.MONTH);
@@ -159,7 +157,6 @@ public class PostJobActivity extends AppCompatActivity {
             dp.show();
         });
 
-        // Time range picker
         tvTimeRange.setOnClickListener(v -> pickStartTime());
 
         btnPostJob.setOnClickListener(v -> {
@@ -182,6 +179,26 @@ public class PostJobActivity extends AppCompatActivity {
 
             ensureAuthenticatedThenPost();
         });
+    }
+
+    private void applyBottomInsetToPostButton() {
+        if (btnPostJob == null) return;
+
+        ViewCompat.setOnApplyWindowInsetsListener(btnPostJob, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            lp.bottomMargin = systemBars.bottom + dpToPx(16);
+            v.setLayoutParams(lp);
+
+            return insets;
+        });
+
+        ViewCompat.requestApplyInsets(btnPostJob);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
     private void setDefaultStartEndTimes() {
@@ -299,8 +316,6 @@ public class PostJobActivity extends AppCompatActivity {
                 if (bitmap != null) {
                     imgMap.setImageBitmap(bitmap);
                     return;
-                } else {
-                    Log.e(TAG, "BitmapFactory.decodeFile returned null");
                 }
             }
         }
