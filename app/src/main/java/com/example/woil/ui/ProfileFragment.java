@@ -1,5 +1,7 @@
 package com.example.woil.ui;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -10,11 +12,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -27,10 +32,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.SetOptions;
 
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -56,11 +64,32 @@ public class ProfileFragment extends Fragment {
     private SeekBar seekTextSize;
     private TextView tvTextSizeValue;
 
+    private EditText etName;
+    private EditText etLocation;
+    private Button btnChooseImage;
+
+    private boolean isEditMode = false;
+    private Uri selectedImageUri;
+
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
     private ListenerRegistration userListener;
     private ListenerRegistration profileListener;
+
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK &&
+                        result.getData() != null &&
+                        result.getData().getData() != null) {
+
+                    selectedImageUri = result.getData().getData();
+
+                    if (ivProfile != null) {
+                        ivProfile.setImageURI(selectedImageUri);
+                    }
+                }
+            });
 
     public ProfileFragment() {
     }
@@ -109,6 +138,10 @@ public class ProfileFragment extends Fragment {
         seekTextSize = view.findViewById(R.id.seek_text_size);
         tvTextSizeValue = view.findViewById(R.id.tv_text_size_value);
 
+        etName = view.findViewById(R.id.et_name);
+        etLocation = view.findViewById(R.id.et_location);
+        btnChooseImage = view.findViewById(R.id.btn_choose_image);
+
         setPlaceholders();
 
         if (btnBack != null) {
@@ -133,12 +166,16 @@ public class ProfileFragment extends Fragment {
 
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {
-                try {
-                    startActivity(new Intent(requireContext(), Class.forName("com.example.woil.ui.ProfileSetupActivity")));
-                } catch (ClassNotFoundException e) {
-                    Toast.makeText(requireContext(), "Profile editor not available", Toast.LENGTH_SHORT).show();
+                if (!isEditMode) {
+                    enterEditMode();
+                } else {
+                    saveEditableProfileFields();
                 }
             });
+        }
+
+        if (btnChooseImage != null) {
+            btnChooseImage.setOnClickListener(v -> openImagePicker());
         }
 
         if (switchDigital != null) switchDigital.setChecked(true);
@@ -230,8 +267,11 @@ public class ProfileFragment extends Fragment {
 
         if (tvFullName != null) tvFullName.setText("—");
         if (tvPhone != null) tvPhone.setText("");
-        if (tvEmail != null) tvEmail.setText("");
         if (tvLocation != null) tvLocation.setText("—");
+
+        if (etName != null) etName.setVisibility(View.GONE);
+        if (etLocation != null) etLocation.setVisibility(View.GONE);
+        if (btnChooseImage != null) btnChooseImage.setVisibility(View.GONE);
 
         if (tvVerificationSubtitle != null) tvVerificationSubtitle.setText("Awaiting admin review");
         if (tvIdParsedDob != null) tvIdParsedDob.setText("ID Parsed DOB: -");
@@ -277,12 +317,6 @@ public class ProfileFragment extends Fragment {
             if (tvPhone != null) {
                 tvPhone.setText(!TextUtils.isEmpty(phone) ? phone : safe(phoneFromDoc));
             }
-            if (tvEmail != null) {
-                tvEmail.setText(!TextUtils.isEmpty(email) ? email : safe(emailFromDoc));
-            }
-        } else {
-            if (tvPhone != null) tvPhone.setText(safe(phoneFromDoc));
-            if (tvEmail != null) tvEmail.setText(safe(emailFromDoc));
         }
 
         if (Boolean.TRUE.equals(userNicVerified) && tvPending != null) {
@@ -314,7 +348,7 @@ public class ProfileFragment extends Fragment {
 
         if (TextUtils.isEmpty(fullName)) fullName = "—";
 
-        if (tvFullName != null) tvFullName.setText(fullName);
+        if (!isEditMode && tvFullName != null) tvFullName.setText(fullName);
 
         String handle = "@" + fullName.replaceAll("\\s+", "");
         if ("@".equals(handle)) {
@@ -327,7 +361,7 @@ public class ProfileFragment extends Fragment {
                 + (!TextUtils.isEmpty(locationText) ? " · " + locationText : " · —");
         if (tvSubtitle != null) tvSubtitle.setText(subtitle);
 
-        if (tvLocation != null) tvLocation.setText(!TextUtils.isEmpty(locationText) ? locationText : "—");
+        if (!isEditMode && tvLocation != null) tvLocation.setText(!TextUtils.isEmpty(locationText) ? locationText : "—");
 
         Object ratingObj = snap.get("rating");
         if (ratingObj != null && tvRatingValue != null) {
@@ -440,22 +474,114 @@ public class ProfileFragment extends Fragment {
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("nicFrontUri");
 
-        if (!TextUtils.isEmpty(photoUrl)) {
-            try {
-                Glide.with(this)
-                        .load(photoUrl)
-                        .placeholder(R.drawable.photo_placeholder)
-                        .error(R.drawable.photo_placeholder)
-                        .into(ivProfile);
-            } catch (Exception ex) {
+        if (!isEditMode) {
+            if (!TextUtils.isEmpty(photoUrl)) {
                 try {
-                    ivProfile.setImageURI(Uri.parse(photoUrl));
-                } catch (Exception ignored) {
-                    ivProfile.setImageResource(R.drawable.photo_placeholder);
+                    Glide.with(this)
+                            .load(photoUrl)
+                            .placeholder(R.drawable.photo_placeholder)
+                            .error(R.drawable.photo_placeholder)
+                            .into(ivProfile);
+                } catch (Exception ex) {
+                    try {
+                        ivProfile.setImageURI(Uri.parse(photoUrl));
+                    } catch (Exception ignored) {
+                        ivProfile.setImageResource(R.drawable.photo_placeholder);
+                    }
                 }
+            } else {
+                ivProfile.setImageResource(R.drawable.photo_placeholder);
             }
-        } else {
-            ivProfile.setImageResource(R.drawable.photo_placeholder);
+        }
+    }
+
+    private void enterEditMode() {
+        isEditMode = true;
+
+        if (btnEditProfile != null) btnEditProfile.setText("Save");
+        if (btnChooseImage != null) btnChooseImage.setVisibility(View.VISIBLE);
+
+        if (tvFullName != null && etName != null) {
+            etName.setText(tvFullName.getText().toString());
+            tvFullName.setVisibility(View.GONE);
+            etName.setVisibility(View.VISIBLE);
+        }
+
+        if (tvLocation != null && etLocation != null) {
+            etLocation.setText(tvLocation.getText().toString());
+            tvLocation.setVisibility(View.GONE);
+            etLocation.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void exitEditMode() {
+        isEditMode = false;
+
+        if (btnEditProfile != null) btnEditProfile.setText("Edit profile");
+        if (btnChooseImage != null) btnChooseImage.setVisibility(View.GONE);
+
+        if (tvFullName != null) tvFullName.setVisibility(View.VISIBLE);
+        if (etName != null) etName.setVisibility(View.GONE);
+
+        if (tvLocation != null) tvLocation.setVisibility(View.VISIBLE);
+        if (etLocation != null) etLocation.setVisibility(View.GONE);
+    }
+
+    private void saveEditableProfileFields() {
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(requireContext(), "Please sign in first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String uid = mAuth.getCurrentUser().getUid();
+
+        String updatedName = etName != null ? etName.getText().toString().trim() : "";
+        String updatedLocation = etLocation != null ? etLocation.getText().toString().trim() : "";
+
+        if (TextUtils.isEmpty(updatedName)) {
+            if (etName != null) etName.setError("Enter name");
+            return;
+        }
+
+        String firstName = updatedName;
+        String lastName = "";
+
+        String[] parts = updatedName.split("\\s+", 2);
+        if (parts.length > 0) firstName = parts[0];
+        if (parts.length > 1) lastName = parts[1];
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("displayName", updatedName);
+        updates.put("firstName", firstName);
+        updates.put("lastName", lastName);
+        updates.put("locationText", updatedLocation);
+        updates.put("address", updatedLocation);
+
+        if (selectedImageUri != null) {
+            updates.put("photoUrl", selectedImageUri.toString());
+        }
+
+        db.collection("profiles").document(uid)
+                .set(updates, SetOptions.merge())
+                .addOnSuccessListener(unused -> {
+                    if (tvFullName != null) tvFullName.setText(updatedName);
+                    if (tvLocation != null) tvLocation.setText(updatedLocation);
+
+                    exitEditMode();
+                    Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(requireContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+    }
+
+    private void openImagePicker() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            imagePickerLauncher.launch(Intent.createChooser(intent, "Select profile image"));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), "No image picker found", Toast.LENGTH_SHORT).show();
         }
     }
 
