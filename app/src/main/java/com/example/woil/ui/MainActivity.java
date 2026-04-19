@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
             if (guardItem != null) {
                 if ("client".equalsIgnoreCase(role)) {
                     guardItem.setTitle("Matching");
-                    guardItem.setIcon(R.drawable.ic_matching_hands);
+                    guardItem.setIcon(R.drawable.handshake);
                 } else {
                     guardItem.setTitle("Woil Guard");
                     guardItem.setIcon(R.drawable.ic_woil_guard);
