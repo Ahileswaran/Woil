@@ -11,7 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
-        android:layout_height="332dp"
+        android:layout_height="300dp"
         android:background="@drawable/bg_orange_gradient"
         android:paddingTop="12dp">
 
@@ -210,7 +210,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="296dp"
+        android:layout_marginTop="266dp"
         android:layout_marginEnd="16dp"
         android:background="@drawable/white_card_top_rounded"
         android:elevation="10dp"
@@ -224,21 +224,23 @@
             android:layout_height="44dp"
             android:layout_marginEnd="10dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_purple_gradient_pill"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:minHeight="0dp"
+            android:background="@drawable/bg_pink_purple_pill"
+            android:backgroundTint="@null"
+            app:backgroundTint="@null"
             android:text="@string/edit_profile"
             android:textAllCaps="false"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:textSize="12sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:minHeight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp" />
 
         <FrameLayout
             android:id="@+id/toggle_group"
             android:layout_width="190dp"
             android:layout_height="44dp"
-            android:background="@drawable/bg_toggle_purple_outline"
+            android:background="@drawable/bg_toggle_gradient"
             android:padding="3dp">
 
             <View
@@ -246,7 +248,7 @@
                 android:layout_width="92dp"
                 android:layout_height="match_parent"
                 android:layout_gravity="start|center_vertical"
-                android:background="@drawable/bg_toggle_unselected" />
+                android:background="@drawable/bg_toggle_white_pill" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -290,7 +292,7 @@
         android:id="@+id/root_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="382dp"
+        android:layout_marginTop="342dp"
         android:clipToPadding="false"
         android:fillViewport="true"
         android:paddingBottom="24dp">
