@@ -3,7 +3,7 @@
 
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="true" />
+        android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -63,6 +63,7 @@
 
         <activity
             android:name=".ui.MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true" />
 
         <activity android:name=".ui.ClientActivity"
@@ -98,6 +99,9 @@
 
         <activity android:name=".ui.JobsByCategoryActivity"/>
         <activity android:name=".ui.JobDetailActivity"/>
+
+
+
 
 
 
