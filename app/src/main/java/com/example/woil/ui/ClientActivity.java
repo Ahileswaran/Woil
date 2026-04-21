@@ -284,15 +284,19 @@ public class ClientActivity extends AppCompatActivity {
         String locationText = snap.getString("locationText");
         if (TextUtils.isEmpty(locationText)) locationText = snap.getString("address");
 
-        String fullName = !TextUtils.isEmpty(displayName)
-                ? displayName
-                : ((safe(first) + " " + safe(last)).trim());
+        String fullName;
+
+        if (!TextUtils.isEmpty(displayName)) {
+            fullName = displayName.trim().replaceAll("\\s+", " ");
+        } else {
+            fullName = (safe(first).trim() + " " + safe(last).trim()).trim().replaceAll("\\s+", " ");
+        }
 
         if (TextUtils.isEmpty(fullName)) fullName = "—";
 
         if (!isEditMode && tvFullName != null) tvFullName.setText(fullName);
 
-        String handle = "@" + fullName.replaceAll("\\s+", "");
+        String handle = "@" + fullName.trim().replaceAll("\\s+", " ");
         if ("@".equals(handle)) {
             handle = "@" + (mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "user");
         }

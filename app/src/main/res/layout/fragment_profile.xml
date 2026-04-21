@@ -84,7 +84,8 @@
                 android:layout_height="22dp"
                 android:layout_marginStart="8dp"
                 android:contentDescription="@string/cd_verified"
-                android:src="@drawable/ic_verified" />
+                android:src="@drawable/ic_verified"
+                android:visibility="gone" />
         </LinearLayout>
 
         <TextView
