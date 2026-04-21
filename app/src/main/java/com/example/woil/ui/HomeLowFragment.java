@@ -177,7 +177,6 @@ public class HomeLowFragment extends Fragment {
         String photoUrl = snap.getString("photoUrl");
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("photo");
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
-        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("nicFrontUri");
 
         if (!TextUtils.isEmpty(photoUrl) && profileImage != null) {
             Glide.with(this)

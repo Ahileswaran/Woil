@@ -569,7 +569,7 @@
         android:layout_gravity="bottom"
         android:paddingStart="18dp"
         android:paddingEnd="18dp"
-        android:paddingBottom="14dp">
+        android:paddingBottom="16dp">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/bottom_bar"
