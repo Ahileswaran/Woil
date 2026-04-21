@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -39,7 +38,7 @@ import java.util.Map;
 public class ProfileSetupActivity extends AppCompatActivity {
 
     private EditText etFirstName, etLastName, etAddress, etNic, etDob;
-    private TextView tvSelectLocation, tvSkipNic, tvSkillsLabel;
+    private TextView tvSelectLocation, tvSkillsLabel;
     private ImageButton btnUploadNic;
     private RadioGroup rgGender;
     private RadioButton rbMale, rbFemale;
@@ -107,7 +106,6 @@ public class ProfileSetupActivity extends AppCompatActivity {
         tvSelectLocation = findViewById(R.id.tvSelectLocation);
         etNic = findViewById(R.id.etNic);
         btnUploadNic = findViewById(R.id.btnUploadNic);
-        tvSkipNic = findViewById(R.id.tvSkipNic);
         rgGender = findViewById(R.id.rgGender);
         rbMale = findViewById(R.id.rbMale);
         rbFemale = findViewById(R.id.rbFemale);
@@ -127,11 +125,11 @@ public class ProfileSetupActivity extends AppCompatActivity {
         }
 
         if (!"worker".equalsIgnoreCase(role)) {
-            spinnerSkills.setVisibility(View.GONE);
-            tvSkillsLabel.setVisibility(View.GONE);
+            spinnerSkills.setVisibility(android.view.View.GONE);
+            tvSkillsLabel.setVisibility(android.view.View.GONE);
         } else {
-            spinnerSkills.setVisibility(View.VISIBLE);
-            tvSkillsLabel.setVisibility(View.VISIBLE);
+            spinnerSkills.setVisibility(android.view.View.VISIBLE);
+            tvSkillsLabel.setVisibility(android.view.View.VISIBLE);
         }
 
         ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(
@@ -143,19 +141,6 @@ public class ProfileSetupActivity extends AppCompatActivity {
         spinnerSkills.setAdapter(adapter);
 
         btnUploadNic.setOnClickListener(v -> openNicVerification());
-
-        tvSkipNic.setOnClickListener(v -> {
-            nicFrontUriString = null;
-            nicBackUriString = null;
-            nicParsedDob = null;
-            nicParsedGender = null;
-            nicMatch = false;
-            nicDobMatch = false;
-            nicGenderMatch = false;
-            nicVerificationStatus = "NOT_PROVIDED";
-            etNic.setText("");
-            Toast.makeText(this, "NIC skipped", Toast.LENGTH_SHORT).show();
-        });
 
         tvSelectLocation.setOnClickListener(v -> {
             String q = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
@@ -214,12 +199,10 @@ public class ProfileSetupActivity extends AppCompatActivity {
     private void showDatePicker() {
         final Calendar today = Calendar.getInstance();
 
-        // Default picker year for DOB selection
         int year = 2000;
         int month = Calendar.JANUARY;
         int day = 1;
 
-        // If DOB already selected, reopen on that date
         String currentDob = etDob.getText() != null ? etDob.getText().toString().trim() : "";
         if (!TextUtils.isEmpty(currentDob) && currentDob.matches("\\d{4}-\\d{2}-\\d{2}")) {
             try {
@@ -249,10 +232,8 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 day
         );
 
-        // Prevent future dates
         dpd.getDatePicker().setMaxDate(today.getTimeInMillis());
 
-        // Make year/month/day easier with spinner style
         try {
             dpd.getDatePicker().setCalendarViewShown(false);
             dpd.getDatePicker().setSpinnersShown(true);

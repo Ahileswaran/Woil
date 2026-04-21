@@ -62,14 +62,6 @@
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-black" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="@string/enter_the_otp_sent_to_your_mobile_number"
-                        android:textColor="#FFF3E6"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

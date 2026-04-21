@@ -275,7 +275,9 @@
                                     android:padding="12dp"
                                     android:src="@android:drawable/ic_menu_camera"
                                     app:tint="@color/purple_500" />
+
                             </RelativeLayout>
+
 
                             <TextView
                                 android:layout_width="wrap_content"
