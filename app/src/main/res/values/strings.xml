@@ -65,7 +65,7 @@
     <string name="hint_first_name">First Name</string>
     <string name="hint_last_name">Last Name</string>
     <string name="hint_address">Address</string>
-    <string name="hint_nic_optional">NIC (Optional)</string>
+    <string name="hint_nic_optional">NIC</string>
     <string name="hint_date_of_birth">Date of Birth</string>
     <string name="cd_woil_logo">Woil logo</string>
     <string name="cd_upload_nic">Upload NIC</string>

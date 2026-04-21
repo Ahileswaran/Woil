@@ -33,15 +33,16 @@ public class MessageActivity extends AppCompatActivity implements MessageUserAda
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message);
 
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().setNavigationBarColor(Color.TRANSPARENT);
-
         bindViews();
         setupClicks();
         setupRecyclerView();
         loadDummyUsers();
+
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
     }
+
 
     private void bindViews() {
         btnBack = findViewById(R.id.btn_back);
