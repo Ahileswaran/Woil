@@ -49,7 +49,10 @@ public class JobDetailActivity extends AppCompatActivity {
     private TextView tvPostedTime;
     private TextView tvLocationPreviewText;
     private TextView tvDuration;
+
+    private ImageView ivJobImage;
     private ImageView imgLocationPreview;
+
     private ImageButton btnBack;
     private MaterialButton btnApply;
     private MaterialButton btnApplyNowBottom;
@@ -85,7 +88,10 @@ public class JobDetailActivity extends AppCompatActivity {
         tvPostedTime = findViewById(R.id.tv_posted_time);
         tvLocationPreviewText = findViewById(R.id.tv_location_preview_text);
         tvDuration = findViewById(R.id.tv_duration);
+
+        ivJobImage = findViewById(R.id.iv_job_image);
         imgLocationPreview = findViewById(R.id.img_location_preview);
+
         btnBack = findViewById(R.id.btn_back);
         btnApply = findViewById(R.id.btn_apply);
         btnApplyNowBottom = findViewById(R.id.btn_apply_now_bottom);
@@ -206,6 +212,8 @@ public class JobDetailActivity extends AppCompatActivity {
 
         tvTitle.setText(currentTitle);
         tvCategoryChip.setText(safe(job.category, "General"));
+        setJobCategoryImage(job.category);
+
         tvLocation.setText(currentLocationText);
         tvDescription.setText(safe(job.description, "No description available"));
         tvLocationPreviewText.setText(currentLocationText);
@@ -226,7 +234,8 @@ public class JobDetailActivity extends AppCompatActivity {
             if (job.endAt != null) {
                 currentTimeText =
                         fmt.format(job.startAt.toDate()) + " - " +
-                                new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(job.endAt.toDate());
+                                new SimpleDateFormat("hh:mm a", Locale.getDefault())
+                                        .format(job.endAt.toDate());
                 tvTime.setText(currentTimeText);
             } else {
                 currentTimeText = fmt.format(job.startAt.toDate());
@@ -270,6 +279,61 @@ public class JobDetailActivity extends AppCompatActivity {
             Log.d(TAG, "Lat/lng missing. Trying geocode from address: " + address);
             geocodeAddressAndLoadPreview(address);
         }
+    }
+
+    private void setJobCategoryImage(String category) {
+        if (ivJobImage == null) return;
+
+        String value = category == null ? "" : category.trim().toLowerCase(Locale.ROOT);
+        int imageRes;
+
+        switch (value) {
+            case "cleaning":
+                imageRes = R.drawable.cleaning;
+                break;
+
+            case "electrician":
+                imageRes = R.drawable.electic;
+                break;
+
+            case "caregiver":
+                imageRes = R.drawable.caregiver;
+                break;
+
+            case "appliance repair":
+                imageRes = R.drawable.repair;
+                break;
+
+            case "masonry":
+                imageRes = R.drawable.masanory;
+                break;
+
+            case "laundry":
+                imageRes = R.drawable.landury;
+                break;
+
+            case "painting":
+                imageRes = R.drawable.painting;
+                break;
+
+            case "plumbing":
+                imageRes = R.drawable.plumbing;
+                break;
+
+            case "gardening":
+                imageRes = R.drawable.gardining;
+                break;
+
+            case "carpentry":
+                imageRes = R.drawable.carpentary;
+                break;
+
+            default:
+                imageRes = R.drawable.cleaning;
+                break;
+        }
+
+        ivJobImage.setImageResource(imageRes);
     }
 
     private void openApplyScreen() {
