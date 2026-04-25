@@ -214,27 +214,41 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
         if (uid == null) return;
 
         db.collection("users").document(uid).get()
-                .addOnSuccessListener(doc -> {
-                    FirebaseDebugLogger.read("client_location_read", "users/" + uid, doc.exists() ? 1 : 0);
-                    if (!doc.exists()) return;
+                .addOnSuccessListener(userDoc -> {
+                    FirebaseDebugLogger.read("client_location_read", "users/" + uid, userDoc.exists() ? 1 : 0);
 
-                    Object locationObj = doc.get("location");
-                    Object locationTextObj = firstExisting(doc, "locationText", "address");
-
-                    if (locationTextObj != null) {
-                        selectedAddress = String.valueOf(locationTextObj);
-                        selectedArea = extractArea(selectedAddress);
-                        selectedProvince = extractProvince(selectedAddress);
-                        tvSelectedLocation.setText(selectedAddress);
+                    if (applyClientLocationFromDoc(userDoc)) {
+                        return;
                     }
 
-                    LatLng loc = readLatLng(locationObj);
-                    if (loc != null) {
-                        selectedLatLng = loc;
-                        updateMapForClientLocation();
-                    }
+                    db.collection("profiles").document(uid).get()
+                            .addOnSuccessListener(profileDoc -> {
+                                FirebaseDebugLogger.read("client_profile_location_read", "profiles/" + uid, profileDoc.exists() ? 1 : 0);
+                                applyClientLocationFromDoc(profileDoc);
+                            })
+                            .addOnFailureListener(e -> FirebaseDebugLogger.failure("client_profile_location_read", "profiles/" + uid, e));
                 })
                 .addOnFailureListener(e -> FirebaseDebugLogger.failure("client_location_read", "users/" + uid, e));
+    }
+
+    private boolean applyClientLocationFromDoc(DocumentSnapshot doc) {
+        if (doc == null || !doc.exists()) return false;
+
+        Object locationTextObj = firstExisting(doc, "locationText", "address");
+        if (locationTextObj != null) {
+            selectedAddress = String.valueOf(locationTextObj);
+            selectedArea = firstNonEmpty(stringValue(doc.get("area")), extractArea(selectedAddress));
+            selectedProvince = firstNonEmpty(stringValue(doc.get("province")), extractProvince(selectedAddress));
+            tvSelectedLocation.setText(selectedAddress);
+        }
+
+        LatLng loc = readLatLngFromData(doc.getData());
+        if (loc != null) {
+            selectedLatLng = loc;
+            updateMapForClientLocation();
+            return true;
+        }
+        return false;
     }
 
     private void openMapPicker() {
@@ -400,7 +414,7 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
 
         if (!skillMatches(data, effectiveCategory)) return null;
 
-        LatLng loc = readLatLng(data.get("location"));
+        LatLng loc = readLatLngFromData(data);
         if (loc == null) return null;
 
         float[] results = new float[1];
@@ -526,6 +540,34 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
     private Object firstExisting(DocumentSnapshot doc, String... keys) {
         for (String key : keys) {
             Object value = doc.get(key);
+            if (value != null) return value;
+        }
+        return null;
+    }
+
+    private LatLng readLatLngFromData(Map<String, Object> data) {
+        if (data == null) return null;
+
+        LatLng fromLocationMap = readLatLng(data.get("location"));
+        if (fromLocationMap != null) return fromLocationMap;
+
+        Object latObj = firstNonNull(data.get("lat"), data.get("latitude"), data.get("selectedLatitude"));
+        Object lngObj = firstNonNull(data.get("lng"), data.get("longitude"), data.get("selectedLongitude"));
+        if (latObj instanceof Number && lngObj instanceof Number) {
+            return new LatLng(((Number) latObj).doubleValue(), ((Number) lngObj).doubleValue());
+        }
+        try {
+            if (latObj != null && lngObj != null) {
+                return new LatLng(Double.parseDouble(String.valueOf(latObj)), Double.parseDouble(String.valueOf(lngObj)));
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private Object firstNonNull(Object... values) {
+        if (values == null) return null;
+        for (Object value : values) {
             if (value != null) return value;
         }
         return null;

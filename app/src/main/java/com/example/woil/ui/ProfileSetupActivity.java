@@ -1,7 +1,6 @@
 package com.example.woil.ui;
 
 import android.app.DatePickerDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -47,6 +46,13 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
     private String role = "worker";
 
+    private Double selectedLatitude = null;
+    private Double selectedLongitude = null;
+    private String selectedMapAddress = "";
+    private String selectedArea = "";
+    private String selectedProvince = "";
+    private String selectedMapSnapshotPath = "";
+
     private String nicFrontUriString = null;
     private String nicBackUriString = null;
     private String nicParsedDob = null;
@@ -90,6 +96,44 @@ public class ProfileSetupActivity extends AppCompatActivity {
                             }
                         }
                     });
+
+    private final ActivityResultLauncher<Intent> mapPickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    selectedLatitude = data.getDoubleExtra("lat", 0.0);
+                    selectedLongitude = data.getDoubleExtra("lng", 0.0);
+                    selectedMapAddress = data.getStringExtra("address");
+                    selectedMapSnapshotPath = data.getStringExtra("snapshot_path");
+
+                    if (TextUtils.isEmpty(selectedMapAddress)) {
+                        selectedMapAddress = String.format(
+                                Locale.US,
+                                "%.6f, %.6f",
+                                selectedLatitude,
+                                selectedLongitude
+                        );
+                    }
+
+                    selectedArea = extractArea(selectedMapAddress);
+                    selectedProvince = extractProvince(selectedMapAddress);
+
+                    etAddress.setText(selectedMapAddress);
+                    etAddress.setError(null);
+
+                    FirebaseDebugLogger.success(
+                            "profile_location_selected",
+                            "lat=" + selectedLatitude + ", lng=" + selectedLongitude,
+                            selectedMapAddress
+                    );
+
+                    Toast.makeText(
+                            ProfileSetupActivity.this,
+                            "Location selected for matching",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,27 +186,10 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
         btnUploadNic.setOnClickListener(v -> openNicVerification());
 
-        tvSelectLocation.setOnClickListener(v -> {
-            String q = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
-            if (TextUtils.isEmpty(q)) q = "my location";
-
-            android.net.Uri gmmIntentUri =
-                    android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode(q));
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
-            try {
-                startActivity(mapIntent);
-            } catch (ActivityNotFoundException e) {
-                Intent alt = new Intent(
-                        Intent.ACTION_VIEW,
-                        android.net.Uri.parse(
-                                "https://www.google.com/maps/search/?api=1&query=" +
-                                        android.net.Uri.encode(q)
-                        )
-                );
-                startActivity(alt);
-            }
-        });
+        tvSelectLocation.setOnClickListener(v -> openMapPicker());
+        etAddress.setOnClickListener(v -> openMapPicker());
+        etAddress.setFocusable(false);
+        etAddress.setCursorVisible(false);
 
         etDob.setOnClickListener(v -> showDatePicker());
 
@@ -194,6 +221,39 @@ public class ProfileSetupActivity extends AppCompatActivity {
         intent.putExtra(NicVerificationActivity.EXTRA_ENTERED_DOB, dob);
         intent.putExtra(NicVerificationActivity.EXTRA_ENTERED_GENDER, gender);
         nicVerificationLauncher.launch(intent);
+    }
+
+    private void openMapPicker() {
+        Intent intent = new Intent(ProfileSetupActivity.this, MapPickerActivity.class);
+        String currentAddress = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
+        if (!TextUtils.isEmpty(currentAddress)) {
+            intent.putExtra("address", currentAddress);
+        }
+        mapPickerLauncher.launch(intent);
+    }
+
+    private String extractProvince(String address) {
+        if (TextUtils.isEmpty(address)) return "";
+        String[] parts = address.split(",");
+        for (String p : parts) {
+            String t = p.trim();
+            if (t.toLowerCase(Locale.US).contains("province")) return t;
+        }
+        return parts.length >= 2 ? parts[parts.length - 2].trim() : "";
+    }
+
+    private String extractArea(String address) {
+        if (TextUtils.isEmpty(address)) return "";
+        String[] parts = address.split(",");
+        for (String p : parts) {
+            String t = p.trim();
+            String low = t.toLowerCase(Locale.US);
+            if (TextUtils.isEmpty(t)) continue;
+            if (low.contains("province") || low.equals("sri lanka")) continue;
+            if (low.contains("road") || low.contains("street") || low.contains("lane")) continue;
+            return t;
+        }
+        return parts.length > 0 ? parts[0].trim() : "";
     }
 
     private void showDatePicker() {
@@ -275,8 +335,13 @@ public class ProfileSetupActivity extends AppCompatActivity {
             return;
         }
         if (TextUtils.isEmpty(address)) {
-            etAddress.setError("Enter address");
+            etAddress.setError("Select address on map");
             etAddress.requestFocus();
+            return;
+        }
+        if (selectedLatitude == null || selectedLongitude == null) {
+            etAddress.setError("Please select location on the map");
+            Toast.makeText(this, "Tap Select location on the map and confirm a pin", Toast.LENGTH_SHORT).show();
             return;
         }
         if (TextUtils.isEmpty(dob)) {
@@ -313,10 +378,22 @@ public class ProfileSetupActivity extends AppCompatActivity {
             return;
         }
 
+        Map<String, Object> locationMap = new HashMap<>();
+        locationMap.put("lat", selectedLatitude);
+        locationMap.put("lng", selectedLongitude);
+
+        String finalArea = !TextUtils.isEmpty(selectedArea) ? selectedArea : extractArea(address);
+        String finalProvince = !TextUtils.isEmpty(selectedProvince) ? selectedProvince : extractProvince(address);
+
         Map<String, Object> userDoc = new HashMap<>();
         userDoc.put("uid", uid);
         userDoc.put("role", role);
         userDoc.put("nicVerified", false);
+        userDoc.put("location", locationMap);
+        userDoc.put("locationText", address);
+        userDoc.put("address", address);
+        userDoc.put("area", finalArea);
+        userDoc.put("province", finalProvince);
         userDoc.put("lastSeenAt", FieldValue.serverTimestamp());
 
         Map<String, Object> nicProcessingConsent = new HashMap<>();
@@ -332,8 +409,14 @@ public class ProfileSetupActivity extends AppCompatActivity {
         profileDoc.put("firstName", first);
         profileDoc.put("lastName", last);
         profileDoc.put("displayName", (first + " " + last).trim());
+        profileDoc.put("location", locationMap);
+        profileDoc.put("lat", selectedLatitude);
+        profileDoc.put("lng", selectedLongitude);
         profileDoc.put("locationText", address);
         profileDoc.put("address", address);
+        profileDoc.put("area", finalArea);
+        profileDoc.put("province", finalProvince);
+        profileDoc.put("mapSnapshotPath", selectedMapSnapshotPath);
         profileDoc.put("role", role);
         profileDoc.put("isWorker", "worker".equalsIgnoreCase(role));
 
@@ -368,7 +451,11 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 .continueWithTask(task -> db.collection("profiles").document(uid)
                         .set(profileDoc, SetOptions.merge()))
                 .addOnSuccessListener(unused -> {
-                    FirebaseDebugLogger.success("profile_setup_write", "users/" + uid + ", profiles/" + uid, uid);
+                    FirebaseDebugLogger.success(
+                            "profile_setup_write",
+                            "users/" + uid + ", profiles/" + uid,
+                            "location=" + selectedLatitude + "," + selectedLongitude + ", area=" + finalArea + ", province=" + finalProvince
+                    );
                     Toast.makeText(ProfileSetupActivity.this,
                             "Profile saved successfully", Toast.LENGTH_SHORT).show();
 
