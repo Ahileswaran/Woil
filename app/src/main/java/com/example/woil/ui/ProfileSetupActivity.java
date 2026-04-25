@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -37,7 +38,7 @@ import java.util.Map;
 public class ProfileSetupActivity extends AppCompatActivity {
 
     private EditText etFirstName, etLastName, etAddress, etNic, etDob;
-    private TextView tvSelectLocation, tvSkillsLabel;
+    private TextView tvSelectLocation, tvSkillsLabel, tvLocationWarning;
     private ImageButton btnUploadNic;
     private RadioGroup rgGender;
     private RadioButton rbMale, rbFemale;
@@ -120,6 +121,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
                     etAddress.setText(selectedMapAddress);
                     etAddress.setError(null);
+                    refreshLocationRequiredUi(false);
 
                     FirebaseDebugLogger.success(
                             "profile_location_selected",
@@ -148,6 +150,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         etLastName = findViewById(R.id.etLastName);
         etAddress = findViewById(R.id.etAddress);
         tvSelectLocation = findViewById(R.id.tvSelectLocation);
+        tvLocationWarning = findViewById(R.id.tvLocationWarning);
         etNic = findViewById(R.id.etNic);
         btnUploadNic = findViewById(R.id.btnUploadNic);
         rgGender = findViewById(R.id.rgGender);
@@ -190,10 +193,34 @@ public class ProfileSetupActivity extends AppCompatActivity {
         etAddress.setOnClickListener(v -> openMapPicker());
         etAddress.setFocusable(false);
         etAddress.setCursorVisible(false);
+        refreshLocationRequiredUi(false);
 
         etDob.setOnClickListener(v -> showDatePicker());
 
         btnSubmit.setOnClickListener(v -> submitProfile());
+    }
+
+    private void showLocationRequiredWarning() {
+        etAddress.setError("Map location is required");
+        etAddress.requestFocus();
+        refreshLocationRequiredUi(true);
+        Toast.makeText(this, "Please select and confirm your location on the map", Toast.LENGTH_LONG).show();
+    }
+
+    private void refreshLocationRequiredUi(boolean showWarning) {
+        if (tvLocationWarning != null) {
+            tvLocationWarning.setVisibility(showWarning ? View.VISIBLE : View.GONE);
+        }
+
+        if (tvSelectLocation != null) {
+            if (selectedLatitude != null && selectedLongitude != null) {
+                tvSelectLocation.setText("Location selected ✓ Tap to change");
+                tvSelectLocation.setTextColor(Color.parseColor("#16A34A"));
+            } else {
+                tvSelectLocation.setText("Select location on the map *");
+                tvSelectLocation.setTextColor(showWarning ? Color.parseColor("#DC2626") : Color.parseColor("#F59E0B"));
+            }
+        }
     }
 
     private void openNicVerification() {
@@ -334,14 +361,8 @@ public class ProfileSetupActivity extends AppCompatActivity {
             etLastName.requestFocus();
             return;
         }
-        if (TextUtils.isEmpty(address)) {
-            etAddress.setError("Select address on map");
-            etAddress.requestFocus();
-            return;
-        }
-        if (selectedLatitude == null || selectedLongitude == null) {
-            etAddress.setError("Please select location on the map");
-            Toast.makeText(this, "Tap Select location on the map and confirm a pin", Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(address) || selectedLatitude == null || selectedLongitude == null) {
+            showLocationRequiredWarning();
             return;
         }
         if (TextUtils.isEmpty(dob)) {
