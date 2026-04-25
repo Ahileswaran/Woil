@@ -292,7 +292,9 @@
                                 android:textColor="#2563EB"
                                 android:textSize="13sp"
                                 android:textStyle="bold"
-                                android:fontFamily="sans-serif-black" />
+                                android:fontFamily="sans-serif-black"
+                                android:clickable="true"
+                                android:focusable="true" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>

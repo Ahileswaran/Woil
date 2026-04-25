@@ -31,7 +31,7 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText etPhone;
     private RadioGroup rgRole;
     private MaterialButton btnSignUp;
-    private TextView tvAlready;
+    private TextView tvAlready, tvLogin;
 
     private FirebaseAuth mAuth;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
@@ -46,6 +46,7 @@ public class SignUpActivity extends AppCompatActivity {
         rgRole = findViewById(R.id.rgRole);
         btnSignUp = findViewById(R.id.btnSignUp);
         tvAlready = findViewById(R.id.tvAlready);
+        tvLogin = findViewById(R.id.tvLogin);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -91,9 +92,15 @@ public class SignUpActivity extends AppCompatActivity {
             startPhoneNumberVerification(fullPhone);
         });
 
-        tvAlready.setOnClickListener(v -> {
-            Toast.makeText(this, "Open Login screen (not implemented)", Toast.LENGTH_SHORT).show();
-        });
+        android.view.View.OnClickListener openLoginListener = v -> {
+            Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        };
+
+        tvAlready.setOnClickListener(openLoginListener);
+        tvLogin.setOnClickListener(openLoginListener);
     }
 
     private String getRoleFromUi() {
