@@ -67,10 +67,11 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
     }
 
     private void createPendingMatchRequest() {
-        if (mAuth.getCurrentUser() == null) return;
+        String clientUid = FirebaseDebugLogger.requireUid(this, mAuth, "provider_response_create");
+        if (clientUid == null) return;
 
         Map<String, Object> request = new HashMap<>();
-        request.put("clientUid", mAuth.getCurrentUser().getUid());
+        request.put("clientUid", clientUid);
         request.put("workerUid", workerUid);
         request.put("category", selectedCategory);
         request.put("clientAddress", clientAddress);
@@ -79,7 +80,13 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
 
         db.collection("provider_responses")
                 .add(request)
-                .addOnSuccessListener(doc -> Toast.makeText(this, "Match request sent", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnSuccessListener(doc -> {
+                    FirebaseDebugLogger.success("provider_response_create", "provider_responses", doc.getId());
+                    Toast.makeText(this, "Match request sent", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("provider_response_create", "provider_responses", e);
+                    Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }

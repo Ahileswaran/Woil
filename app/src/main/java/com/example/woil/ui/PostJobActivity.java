@@ -324,30 +324,14 @@ public class PostJobActivity extends AppCompatActivity {
     }
 
     private void ensureAuthenticatedThenPost() {
-        if (mAuth.getCurrentUser() != null) {
-            postJobToFirestore();
-            return;
-        }
-
-        mAuth.signInAnonymously()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                        postJobToFirestore();
-                    } else {
-                        String err = task.getException() != null
-                                ? task.getException().getMessage()
-                                : "Anonymous signin failed";
-                        Toast.makeText(PostJobActivity.this, "Auth error: " + err, Toast.LENGTH_LONG).show();
-                    }
-                });
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "post_job_create");
+        if (uid == null) return;
+        postJobToFirestore();
     }
 
     private void postJobToFirestore() {
-        String uid = (mAuth.getCurrentUser() != null) ? mAuth.getCurrentUser().getUid() : null;
-        if (uid == null) {
-            Toast.makeText(this, "Authentication required", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "post_job_write");
+        if (uid == null) return;
 
         Map<String, Object> job = new HashMap<>();
         job.put("clientUid", uid);
@@ -395,14 +379,16 @@ public class PostJobActivity extends AppCompatActivity {
         db.collection("jobs")
                 .add(job)
                 .addOnSuccessListener(docRef -> {
+                    FirebaseDebugLogger.success("post_job_write", "jobs", docRef.getId());
                     Toast.makeText(PostJobActivity.this, "Job posted (id: " + docRef.getId() + ")", Toast.LENGTH_SHORT).show();
                     Intent result = new Intent();
                     result.putExtra("jobId", docRef.getId());
                     setResult(Activity.RESULT_OK, result);
                     finish();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(PostJobActivity.this, "Failed to post job: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("post_job_write", "jobs", e);
+                    Toast.makeText(PostJobActivity.this, "Failed to post job: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }

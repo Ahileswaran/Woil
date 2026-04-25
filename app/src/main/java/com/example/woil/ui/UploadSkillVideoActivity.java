@@ -26,7 +26,15 @@ import androidx.core.view.WindowCompat;
 import com.example.woil.R;
 import com.example.woil.models.SkillVideo;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class UploadSkillVideoActivity extends AppCompatActivity {
@@ -42,32 +50,27 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
     private AutoCompleteTextView spinnerCategory;
     private LinearLayout videoPlaceholderContainer;
 
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private FirebaseStorage storage;
+
     private Uri selectedVideoUri;
     private SkillVideo editVideo;
     private int editPosition = -1;
 
     private final String[] categories = {
-            "Cleaning",
-            "Cooking",
-            "Gardening",
-            "Babysitting",
-            "Elder Care",
-            "Laundry",
-            "Housekeeping",
-            "Other"
+            "Cleaning", "Cooking", "Gardening", "Babysitting", "Elder Care", "Laundry", "Housekeeping", "Other"
     };
 
     private final ActivityResultLauncher<Intent> pickVideoLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     selectedVideoUri = result.getData().getData();
-
                     if (selectedVideoUri != null) {
-                        getContentResolver().takePersistableUriPermission(
-                                selectedVideoUri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        );
-
+                        try {
+                            getContentResolver().takePersistableUriPermission(selectedVideoUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        } catch (SecurityException ignored) {
+                        }
                         showSelectedVideo(selectedVideoUri);
                     }
                 }
@@ -81,6 +84,10 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
+
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
 
         bindViews();
         setupCategoryDropdown();
@@ -102,11 +109,7 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
     }
 
     private void setupCategoryDropdown() {
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                categories
-        );
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categories);
         spinnerCategory.setAdapter(categoryAdapter);
         spinnerCategory.setThreshold(1);
         spinnerCategory.setText(categories[0], false);
@@ -114,32 +117,16 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
 
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
-
         btnSelectVideo.setOnClickListener(v -> openVideoPicker());
-
-        btnUploadVideo.setOnClickListener(v -> validateAndReturnResult());
-
-        videoPreview.setOnPreparedListener(mp -> {
-            mp.setLooping(true);
-            videoPreview.start();
-        });
-
+        btnUploadVideo.setOnClickListener(v -> validateAndUploadToFirebase());
+        videoPreview.setOnPreparedListener(mp -> { mp.setLooping(true); videoPreview.start(); });
         videoPreview.setOnClickListener(v -> {
             if (selectedVideoUri != null) {
-                if (videoPreview.isPlaying()) {
-                    videoPreview.pause();
-                } else {
-                    videoPreview.start();
-                }
+                if (videoPreview.isPlaying()) videoPreview.pause(); else videoPreview.start();
             }
         });
-
         spinnerCategory.setOnClickListener(v -> spinnerCategory.showDropDown());
-        spinnerCategory.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                spinnerCategory.showDropDown();
-            }
-        });
+        spinnerCategory.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) spinnerCategory.showDropDown(); });
     }
 
     private void openVideoPicker() {
@@ -153,23 +140,13 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
 
     private void readEditDataIfAvailable() {
         Intent intent = getIntent();
-        if (intent == null || !intent.hasExtra("skill_video")) {
-            return;
-        }
-
+        if (intent == null || !intent.hasExtra("skill_video")) return;
         editVideo = (SkillVideo) intent.getSerializableExtra("skill_video");
         editPosition = intent.getIntExtra("edit_position", -1);
-
         if (editVideo == null) return;
-
         edtTitle.setText(editVideo.getTitle());
         edtDescription.setText(editVideo.getDescription());
-
-        String editCategory = editVideo.getCategory();
-        if (!TextUtils.isEmpty(editCategory)) {
-            spinnerCategory.setText(editCategory, false);
-        }
-
+        if (!TextUtils.isEmpty(editVideo.getCategory())) spinnerCategory.setText(editVideo.getCategory(), false);
         if (!TextUtils.isEmpty(editVideo.getVideoUriString())) {
             selectedVideoUri = Uri.parse(editVideo.getVideoUriString());
             showSelectedVideo(selectedVideoUri);
@@ -179,86 +156,104 @@ public class UploadSkillVideoActivity extends AppCompatActivity {
     private void showSelectedVideo(Uri videoUri) {
         videoPreview.setVideoURI(videoUri);
         videoPreview.seekTo(150);
-
-        if (videoPlaceholderContainer != null) {
-            videoPlaceholderContainer.setVisibility(View.GONE);
-        }
-
-        if (txtVideoPlaceholder != null) {
-            txtVideoPlaceholder.setText("");
-        }
-
+        if (videoPlaceholderContainer != null) videoPlaceholderContainer.setVisibility(View.GONE);
+        if (txtVideoPlaceholder != null) txtVideoPlaceholder.setText("");
         txtSelectedVideoName.setText(getFileName(videoUri));
     }
 
-    private void validateAndReturnResult() {
+    private void validateAndUploadToFirebase() {
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "skill_video_upload");
+        if (uid == null) return;
+
         String title = edtTitle.getText() != null ? edtTitle.getText().toString().trim() : "";
         String category = spinnerCategory.getText() != null ? spinnerCategory.getText().toString().trim() : "";
         String description = edtDescription.getText() != null ? edtDescription.getText().toString().trim() : "";
 
-        if (selectedVideoUri == null) {
-            Toast.makeText(this, "Please select a video", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (selectedVideoUri == null) { Toast.makeText(this, "Please select a video", Toast.LENGTH_SHORT).show(); return; }
+        if (TextUtils.isEmpty(title)) { edtTitle.setError("Enter title"); edtTitle.requestFocus(); return; }
+        if (TextUtils.isEmpty(category)) { spinnerCategory.setError("Select category"); spinnerCategory.requestFocus(); return; }
+        if (TextUtils.isEmpty(description)) { edtDescription.setError("Enter description"); edtDescription.requestFocus(); return; }
 
-        if (TextUtils.isEmpty(title)) {
-            edtTitle.setError("Enter title");
-            edtTitle.requestFocus();
-            return;
-        }
+        btnUploadVideo.setEnabled(false);
+        btnUploadVideo.setText("Uploading...");
 
-        if (TextUtils.isEmpty(category)) {
-            spinnerCategory.setError("Select category");
-            spinnerCategory.requestFocus();
-            return;
-        }
+        String videoId = editVideo != null && !TextUtils.isEmpty(editVideo.getId()) ? editVideo.getId() : UUID.randomUUID().toString();
+        String path = "skill_videos/" + uid + "/" + videoId + ".mp4";
+        StorageReference ref = storage.getReference().child(path);
 
-        if (TextUtils.isEmpty(description)) {
-            edtDescription.setError("Enter description");
-            edtDescription.requestFocus();
-            return;
-        }
+        ref.putFile(selectedVideoUri)
+                .addOnProgressListener(snapshot -> FirebaseDebugLogger.read("skill_video_upload_progress", path,
+                        (int) Math.min(100, (100 * snapshot.getBytesTransferred()) / Math.max(1, snapshot.getTotalByteCount()))))
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() && task.getException() != null) throw task.getException();
+                    return ref.getDownloadUrl();
+                })
+                .addOnSuccessListener(downloadUri -> writeSkillVideoDocs(uid, videoId, title, category, description, downloadUri.toString(), path))
+                .addOnFailureListener(e -> {
+                    btnUploadVideo.setEnabled(true);
+                    btnUploadVideo.setText("Upload Video");
+                    FirebaseDebugLogger.failure("skill_video_upload", path, e);
+                    Toast.makeText(this, "Video upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
 
-        SkillVideo resultVideo;
-        if (editVideo != null) {
-            resultVideo = new SkillVideo(
-                    editVideo.getId(),
-                    title,
-                    category,
-                    description,
-                    editVideo.getStatus(),
-                    selectedVideoUri.toString()
-            );
-        } else {
-            resultVideo = new SkillVideo(
-                    UUID.randomUUID().toString(),
-                    title,
-                    category,
-                    description,
-                    "PENDING",
-                    selectedVideoUri.toString()
-            );
-        }
+    private void writeSkillVideoDocs(String uid, String videoId, String title, String category,
+                                     String description, String downloadUrl, String storagePath) {
+        Map<String, Object> media = new HashMap<>();
+        media.put("uid", uid);
+        media.put("ownerUid", uid);
+        media.put("type", "skill_video");
+        media.put("title", title);
+        media.put("category", category);
+        media.put("description", description);
+        media.put("storagePath", storagePath);
+        media.put("url", downloadUrl);
+        media.put("createdAt", FieldValue.serverTimestamp());
+        media.put("updatedAt", FieldValue.serverTimestamp());
 
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra("skill_video", resultVideo);
-        resultIntent.putExtra("edit_position", editPosition);
-        setResult(RESULT_OK, resultIntent);
-        finish();
+        Map<String, Object> skillVideo = new HashMap<>();
+        skillVideo.put("uid", uid);
+        skillVideo.put("videoUrl", downloadUrl);
+        skillVideo.put("videoUri", downloadUrl);
+        skillVideo.put("title", title);
+        skillVideo.put("category", category);
+        skillVideo.put("description", description);
+        skillVideo.put("status", "PENDING");
+        skillVideo.put("storagePath", storagePath);
+        skillVideo.put("uploadedAt", FieldValue.serverTimestamp());
+        skillVideo.put("updatedAt", FieldValue.serverTimestamp());
+
+        db.collection("media").document(videoId).set(media, SetOptions.merge())
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() && task.getException() != null) throw task.getException();
+                    return db.collection("profile_showcase_skill_videos").document(videoId).set(skillVideo, SetOptions.merge());
+                })
+                .addOnSuccessListener(unused -> {
+                    FirebaseDebugLogger.success("skill_video_firestore_write", "profile_showcase_skill_videos", videoId);
+                    SkillVideo resultVideo = new SkillVideo(videoId, title, category, description, "PENDING", downloadUrl);
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("skill_video", resultVideo);
+                    resultIntent.putExtra("edit_position", editPosition);
+                    setResult(RESULT_OK, resultIntent);
+                    Toast.makeText(this, "Video submitted for approval", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnUploadVideo.setEnabled(true);
+                    btnUploadVideo.setText("Upload Video");
+                    FirebaseDebugLogger.failure("skill_video_firestore_write", "profile_showcase_skill_videos/" + videoId, e);
+                    Toast.makeText(this, "Firestore save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private String getFileName(Uri uri) {
         String result = "video_file";
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-
         if (cursor != null) {
             int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            if (cursor.moveToFirst() && nameIndex >= 0) {
-                result = cursor.getString(nameIndex);
-            }
+            if (cursor.moveToFirst() && nameIndex >= 0) result = cursor.getString(nameIndex);
             cursor.close();
         }
-
         return result;
     }
 }

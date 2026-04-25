@@ -247,18 +247,22 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private void attachListeners() {
-        if (mAuth.getCurrentUser() == null) return;
-        String uid = mAuth.getCurrentUser().getUid();
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "client_profile_listen");
+        if (uid == null) return;
 
         userListener = db.collection("users").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null || snap == null || !snap.exists()) return;
+                    if (e != null) { FirebaseDebugLogger.failure("client_user_listen", "users/" + uid, e); return; }
+                    if (snap == null || !snap.exists()) return;
+                    FirebaseDebugLogger.read("client_user_listen", "users/" + uid, 1);
                     populateFromUserSnapshot(snap);
                 });
 
         profileListener = db.collection("profiles").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null || snap == null || !snap.exists()) return;
+                    if (e != null) { FirebaseDebugLogger.failure("client_profile_listen", "profiles/" + uid, e); return; }
+                    if (snap == null || !snap.exists()) return;
+                    FirebaseDebugLogger.read("client_profile_listen", "profiles/" + uid, 1);
                     populateFromProfileSnapshot(snap);
                 });
     }
@@ -405,12 +409,8 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private void saveEditableProfileFields() {
-        if (mAuth.getCurrentUser() == null) {
-            Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String uid = mAuth.getCurrentUser().getUid();
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "client_profile_edit_update");
+        if (uid == null) return;
 
         String updatedName = etName != null ? etName.getText().toString().trim() : "";
         String updatedLocation = etLocation != null ? etLocation.getText().toString().trim() : "";
@@ -443,15 +443,17 @@ public class ClientActivity extends AppCompatActivity {
         db.collection("profiles").document(uid)
                 .set(updates, SetOptions.merge())
                 .addOnSuccessListener(unused -> {
+                    FirebaseDebugLogger.success("client_profile_edit_update", "profiles", uid);
                     if (tvFullName != null) tvFullName.setText(updatedName);
                     if (tvLocation != null) tvLocation.setText(updatedLocation);
 
                     exitEditMode();
                     Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("client_profile_edit_update", "profiles/" + uid, e);
+                    Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void openImagePicker() {
@@ -465,12 +467,8 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private void switchRoleToWorker() {
-        if (mAuth.getCurrentUser() == null) {
-            Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String uid = mAuth.getCurrentUser().getUid();
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "client_switch_worker_update");
+        if (uid == null) return;
 
         Map<String, Object> userUpdates = new HashMap<>();
         userUpdates.put("role", "worker");
@@ -481,22 +479,28 @@ public class ClientActivity extends AppCompatActivity {
 
         db.collection("users").document(uid)
                 .set(userUpdates, SetOptions.merge())
-                .addOnSuccessListener(unused ->
-                        db.collection("profiles").document(uid)
+                .addOnSuccessListener(unused -> {
+                    FirebaseDebugLogger.success("client_switch_worker_user_update", "users", uid);
+                    db.collection("profiles").document(uid)
                                 .set(profileUpdates, SetOptions.merge())
                                 .addOnSuccessListener(unused2 -> {
                                     saveActiveRole("worker");
                                     Toast.makeText(this, "Switched to Worker", Toast.LENGTH_SHORT).show();
                                     finish();
                                 })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(this,
-                                                "Role switch failed: " + e.getMessage(),
-                                                Toast.LENGTH_LONG).show()))
-                .addOnFailureListener(e ->
-                        Toast.makeText(this,
-                                "Role switch failed: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show());
+                                .addOnFailureListener(e -> {
+                                    FirebaseDebugLogger.failure("client_switch_worker_profile_update", "profiles/" + uid, e);
+                                    Toast.makeText(this,
+                                            "Role switch failed: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+                                });
+                })
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("client_switch_worker_user_update", "users/" + uid, e);
+                    Toast.makeText(this,
+                            "Role switch failed: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
     }
 
     private void saveActiveRole(String role) {

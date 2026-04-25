@@ -30,14 +30,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.woil.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ChatFragment extends Fragment {
 
@@ -66,6 +72,9 @@ public class ChatFragment extends Fragment {
     private final List<Message> messageList = new ArrayList<>();
 
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private ListenerRegistration messageListener;
+    private String chatId;
 
     private String contactUid;
     private String contactNameArg;
@@ -134,14 +143,15 @@ public class ChatFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
         readArguments();
         bindViews(view);
         setupWindowInsets(view);
         setupRecyclerView();
         setupClickListeners();
-        loadDummyMessages();
         loadChatHeader();
+        listenForMessages();
     }
 
     private void readArguments() {
@@ -265,26 +275,96 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    private void loadDummyMessages() {
-        messageList.clear();
+    private String buildChatId(String uid1, String uid2) {
+        if (TextUtils.isEmpty(uid1) || TextUtils.isEmpty(uid2)) return null;
+        return uid1.compareTo(uid2) < 0 ? uid1 + "_" + uid2 : uid2 + "_" + uid1;
+    }
 
-        messageList.add(new Message("Hi Kavitha, can you come to clean my apartment tomorrow?", "2:10 PM", true));
-        messageList.add(new Message("Hi Ravi, yes I’ll be available from 2 PM to 4 PM", "2:12 PM", false));
-        messageList.add(new Message("Sounds great! See you tomorrow", "2:15 PM", true));
+    private void listenForMessages() {
+        String myUid = FirebaseDebugLogger.requireUid(requireContext(), mAuth, "chat_messages_listen");
+        if (myUid == null || TextUtils.isEmpty(contactUid)) return;
 
-        chatAdapter.notifyDataSetChanged();
-        scrollToBottom();
+        chatId = buildChatId(myUid, contactUid);
+        if (TextUtils.isEmpty(chatId)) return;
+
+        if (messageListener != null) {
+            messageListener.remove();
+            messageListener = null;
+        }
+
+        messageListener = db.collection("chats")
+                .document(chatId)
+                .collection("messages")
+                .orderBy("createdAt", Query.Direction.ASCENDING)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null) {
+                        FirebaseDebugLogger.failure("chat_messages_listen", "chats/" + chatId + "/messages", e);
+                        return;
+                    }
+
+                    messageList.clear();
+                    if (snap != null) {
+                        FirebaseDebugLogger.read("chat_messages_listen", "chats/" + chatId + "/messages", snap.size());
+                        String now = new SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date());
+                        for (DocumentSnapshot doc : snap.getDocuments()) {
+                            String text = doc.getString("content");
+                            String senderUid = doc.getString("senderUid");
+                            String time = doc.getString("timeText");
+                            if (TextUtils.isEmpty(time)) time = now;
+                            if (!TextUtils.isEmpty(text)) {
+                                messageList.add(new Message(text, time, myUid.equals(senderUid)));
+                            }
+                        }
+                    }
+                    chatAdapter.notifyDataSetChanged();
+                    scrollToBottom();
+                });
     }
 
     private void sendMessage() {
         String text = etMessage.getText().toString().trim();
         if (TextUtils.isEmpty(text)) return;
 
+        String myUid = FirebaseDebugLogger.requireUid(requireContext(), mAuth, "chat_message_send");
+        if (myUid == null || TextUtils.isEmpty(contactUid)) return;
+
+        if (TextUtils.isEmpty(chatId)) {
+            chatId = buildChatId(myUid, contactUid);
+        }
+        if (TextUtils.isEmpty(chatId)) return;
+
         String currentTime = new SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date());
-        messageList.add(new Message(text, currentTime, true));
-        chatAdapter.notifyItemInserted(messageList.size() - 1);
+
+        Map<String, Object> chat = new HashMap<>();
+        chat.put("chatId", chatId);
+        chat.put("participants", java.util.Arrays.asList(myUid, contactUid));
+        chat.put("lastMessage", text);
+        chat.put("lastMessageAt", FieldValue.serverTimestamp());
+        chat.put("updatedAt", FieldValue.serverTimestamp());
+
+        Map<String, Object> message = new HashMap<>();
+        message.put("chatId", chatId);
+        message.put("senderUid", myUid);
+        message.put("receiverUid", contactUid);
+        message.put("type", "text");
+        message.put("content", text);
+        message.put("timeText", currentTime);
+        message.put("createdAt", FieldValue.serverTimestamp());
+
         etMessage.setText("");
-        scrollToBottom();
+
+        db.collection("chats").document(chatId).set(chat, com.google.firebase.firestore.SetOptions.merge())
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() && task.getException() != null) throw task.getException();
+                    return db.collection("chats").document(chatId).collection("messages").add(message);
+                })
+                .addOnSuccessListener(docRef -> {
+                    FirebaseDebugLogger.success("chat_message_send", "chats/" + chatId + "/messages", docRef.getId());
+                })
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("chat_message_send", "chats/" + chatId + "/messages", e);
+                    Toast.makeText(requireContext(), "Message failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void scrollToBottom() {
@@ -298,8 +378,14 @@ public class ChatFragment extends Fragment {
             db.collection("profiles")
                     .document(contactUid)
                     .get()
-                    .addOnSuccessListener(this::bindProfileToHeader)
-                    .addOnFailureListener(e -> bindHeaderFromArguments());
+                    .addOnSuccessListener(doc -> {
+                        FirebaseDebugLogger.read("chat_header_read", "profiles/" + contactUid, doc.exists() ? 1 : 0);
+                        bindProfileToHeader(doc);
+                    })
+                    .addOnFailureListener(e -> {
+                        FirebaseDebugLogger.failure("chat_header_read", "profiles/" + contactUid, e);
+                        bindHeaderFromArguments();
+                    });
             return;
         }
 
@@ -367,5 +453,14 @@ public class ChatFragment extends Fragment {
 
     private int dpToPx(int dp) {
         return Math.round(dp * requireContext().getResources().getDisplayMetrics().density);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (messageListener != null) {
+            messageListener.remove();
+            messageListener = null;
+        }
     }
 }

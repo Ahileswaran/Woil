@@ -296,8 +296,9 @@ public class ProfileFragment extends Fragment {
 
         db.collection("users").document(uid)
                 .set(userUpdates, SetOptions.merge())
-                .addOnSuccessListener(unused ->
-                        db.collection("profiles").document(uid)
+                .addOnSuccessListener(unused -> {
+                    FirebaseDebugLogger.success("profile_role_user_update", "users", uid);
+                    db.collection("profiles").document(uid)
                                 .set(profileUpdates, SetOptions.merge())
                                 .addOnSuccessListener(unused2 -> {
                                     saveActiveRole(role);
@@ -321,14 +322,19 @@ public class ProfileFragment extends Fragment {
                                         }
                                     }
                                 })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(requireContext(),
-                                                "Role switch failed: " + e.getMessage(),
-                                                Toast.LENGTH_LONG).show()))
-                .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(),
-                                "Role switch failed: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show());
+                                .addOnFailureListener(e -> {
+                                    FirebaseDebugLogger.failure("profile_role_profile_update", "profiles/" + uid, e);
+                                    Toast.makeText(requireContext(),
+                                            "Role switch failed: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+                                });
+                })
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("profile_role_user_update", "users/" + uid, e);
+                    Toast.makeText(requireContext(),
+                            "Role switch failed: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
     }
 
     private void saveActiveRole(String role) {
@@ -368,18 +374,22 @@ public class ProfileFragment extends Fragment {
     }
 
     private void attachListeners() {
-        if (mAuth.getCurrentUser() == null) return;
-        String uid = mAuth.getCurrentUser().getUid();
+        String uid = FirebaseDebugLogger.requireUid(requireContext(), mAuth, "profile_listen");
+        if (uid == null) return;
 
         userListener = db.collection("users").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null || snap == null || !snap.exists()) return;
+                    if (e != null) { FirebaseDebugLogger.failure("profile_user_listen", "users/" + uid, e); return; }
+                    if (snap == null || !snap.exists()) return;
+                    FirebaseDebugLogger.read("profile_user_listen", "users/" + uid, 1);
                     populateFromUserSnapshot(snap);
                 });
 
         profileListener = db.collection("profiles").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null || snap == null || !snap.exists()) return;
+                    if (e != null) { FirebaseDebugLogger.failure("profile_profile_listen", "profiles/" + uid, e); return; }
+                    if (snap == null || !snap.exists()) return;
+                    FirebaseDebugLogger.read("profile_profile_listen", "profiles/" + uid, 1);
                     populateFromProfileSnapshot(snap);
                 });
     }
@@ -652,15 +662,17 @@ public class ProfileFragment extends Fragment {
         db.collection("profiles").document(uid)
                 .set(updates, SetOptions.merge())
                 .addOnSuccessListener(unused -> {
+                    FirebaseDebugLogger.success("profile_edit_update", "profiles", uid);
                     if (tvFullName != null) tvFullName.setText(updatedName);
                     if (tvLocation != null) tvLocation.setText(updatedLocation);
 
                     exitEditMode();
                     Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("profile_edit_update", "profiles/" + uid, e);
+                    Toast.makeText(requireContext(), "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
 

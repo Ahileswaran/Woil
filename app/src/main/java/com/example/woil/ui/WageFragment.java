@@ -269,19 +269,22 @@ public class WageFragment extends Fragment {
     }
 
     private void attachProfileListeners() {
-        if (auth.getCurrentUser() == null) return;
-
-        String uid = auth.getCurrentUser().getUid();
+        String uid = FirebaseDebugLogger.requireUid(requireContext(), auth, "wage_profile_listen");
+        if (uid == null) return;
 
         userListener = db.collection("users").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null || snap == null || !snap.exists()) return;
+                    if (e != null) { FirebaseDebugLogger.failure("wage_user_listen", "users/" + uid, e); return; }
+                    if (snap == null || !snap.exists()) return;
+                    FirebaseDebugLogger.read("wage_user_listen", "users/" + uid, 1);
                     populateFromUserSnapshot(snap);
                 });
 
         profileListener = db.collection("profiles").document(uid)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null || snap == null || !snap.exists()) return;
+                    if (e != null) { FirebaseDebugLogger.failure("wage_profile_listen", "profiles/" + uid, e); return; }
+                    if (snap == null || !snap.exists()) return;
+                    FirebaseDebugLogger.read("wage_profile_listen", "profiles/" + uid, 1);
                     populateFromProfileSnapshot(snap);
                 });
     }
@@ -439,20 +442,22 @@ public class WageFragment extends Fragment {
     }
 
     private void saveOfferToFirestore() {
-        if (auth.getCurrentUser() == null) {
-            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        String uid = FirebaseDebugLogger.requireUid(requireContext(), auth, "calculator_quote_create");
+        if (uid == null) return;
 
         Map<String, Object> data = buildQuoteMap();
         data.put("status", "SENT");
 
         db.collection("calculator_quotes")
                 .add(data)
-                .addOnSuccessListener(documentReference ->
-                        Toast.makeText(requireContext(), "Offer sent", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(), "Send failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(documentReference -> {
+                    FirebaseDebugLogger.success("calculator_quote_create", "calculator_quotes", documentReference.getId());
+                    Toast.makeText(requireContext(), "Offer sent", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("calculator_quote_create", "calculator_quotes", e);
+                    Toast.makeText(requireContext(), "Send failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private Map<String, Object> buildQuoteMap() {

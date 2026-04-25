@@ -57,9 +57,12 @@ public class FeedbackActivity extends AppCompatActivity {
     }
 
     private void submitFeedback() {
+        String fromUid = FirebaseDebugLogger.requireUid(this, mAuth, "feedback_create");
+        if (fromUid == null) return;
+
         Map<String, Object> feedback = new HashMap<>();
         feedback.put("jobId", jobId);
-        feedback.put("fromUid", mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null);
+        feedback.put("fromUid", fromUid);
         feedback.put("toUid", toUid);
         feedback.put("rating", ratingBar.getRating());
         feedback.put("comment", etFeedbackComment.getText().toString().trim());
@@ -68,10 +71,13 @@ public class FeedbackActivity extends AppCompatActivity {
         db.collection("feedback")
                 .add(feedback)
                 .addOnSuccessListener(doc -> {
+                    FirebaseDebugLogger.success("feedback_create", "feedback", doc.getId());
                     Toast.makeText(this, "Feedback submitted", Toast.LENGTH_SHORT).show();
                     finish();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("feedback_create", "feedback", e);
+                    Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }

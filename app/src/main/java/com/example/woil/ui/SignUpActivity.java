@@ -11,19 +11,20 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthProvider;
-import androidx.core.view.WindowInsetsControllerCompat;
-import java.util.concurrent.TimeUnit;
 import com.google.firebase.auth.PhoneAuthOptions;
-import com.google.firebase.FirebaseException;
-
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -35,10 +36,6 @@ public class SignUpActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     private PhoneAuthProvider.ForceResendingToken mResendToken;
-
-    // Toggle for testing - set to true to bypass OTP flow and accept any OTP
-    // Replace with BuildConfig.DEBUG or a runtime toggle if you prefer
-    private static final boolean SKIP_OTP_FOR_TESTING = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,16 +49,10 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-
-        // Allow content to lay out behind system bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-
-        // Transparent bars so fragment header can draw behind them
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
-        // Callbacks for phone verification (keep for later when you re-enable real OTP)
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(PhoneAuthCredential credential) {
@@ -70,50 +61,40 @@ public class SignUpActivity extends AppCompatActivity {
 
             @Override
             public void onVerificationFailed(FirebaseException e) {
+                btnSignUp.setEnabled(true);
                 String msg = e != null ? e.getMessage() : "Verification failed";
                 Toast.makeText(SignUpActivity.this, "Verification failed: " + msg, Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
+                btnSignUp.setEnabled(true);
                 mResendToken = token;
-                String phone = etPhone.getText().toString().trim();
+
+                String fullPhone = normalizeSriLankanPhone(etPhone.getText().toString().trim());
                 String role = getRoleFromUi();
 
-                Intent i = new Intent(SignUpActivity.this, VerifyOtpActivity.class);
-                i.putExtra("phone", "+94" + phone);
-                i.putExtra("role", role);
-                i.putExtra("verificationId", verificationId);
-                startActivity(i);
+                Intent intent = new Intent(SignUpActivity.this, VerifyOtpActivity.class);
+                intent.putExtra("phone", fullPhone);
+                intent.putExtra("role", role);
+                intent.putExtra("verificationId", verificationId);
+                startActivity(intent);
             }
         };
 
         btnSignUp.setOnClickListener(v -> {
-            String phone = etPhone.getText().toString().trim();
-            if (!validatePhone(phone)) return;
+            String phoneInput = etPhone.getText().toString().trim();
+            if (!validatePhone(phoneInput)) return;
 
-            String fullPhone = "+94" + phone;
-
-            if (SKIP_OTP_FOR_TESTING) {
-                // Launch VerifyOtpActivity in bypass mode (accept any OTP / sign in anonymously)
-                Intent i = new Intent(SignUpActivity.this, VerifyOtpActivity.class);
-                i.putExtra("phone", fullPhone);
-                i.putExtra("role", getRoleFromUi());
-                i.putExtra("bypass", true);
-                startActivity(i);
-            } else {
-                // Normal (real) OTP flow
-                startPhoneNumberVerification(fullPhone);
-            }
+            String fullPhone = normalizeSriLankanPhone(phoneInput);
+            btnSignUp.setEnabled(false);
+            startPhoneNumberVerification(fullPhone);
         });
 
         tvAlready.setOnClickListener(v -> {
             Toast.makeText(this, "Open Login screen (not implemented)", Toast.LENGTH_SHORT).show();
         });
     }
-
-
-
 
     private String getRoleFromUi() {
         int checkedId = rgRole.getCheckedRadioButtonId();
@@ -126,11 +107,27 @@ public class SignUpActivity extends AppCompatActivity {
             etPhone.setError("Enter phone number");
             return false;
         }
-        if (phone.length() < 7) {
-            etPhone.setError("Enter valid phone number");
+
+        String digits = phone.replace(" ", "").replace("-", "");
+        if (digits.startsWith("+94")) {
+            digits = "0" + digits.substring(3);
+        } else if (digits.startsWith("94")) {
+            digits = "0" + digits.substring(2);
+        }
+
+        if (!digits.matches("0\\d{9}")) {
+            etPhone.setError("Enter a valid Sri Lankan phone number");
             return false;
         }
         return true;
+    }
+
+    private String normalizeSriLankanPhone(String phone) {
+        String digits = phone.replace(" ", "").replace("-", "");
+        if (digits.startsWith("+94")) return digits;
+        if (digits.startsWith("94")) return "+" + digits;
+        if (digits.startsWith("0")) return "+94" + digits.substring(1);
+        return "+94" + digits;
     }
 
     private void startPhoneNumberVerification(String phoneNumber) {
@@ -146,21 +143,23 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential, String role) {
-        // This belongs to the 'real' flow and can stay as-is.
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
+                    btnSignUp.setEnabled(true);
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().getUser() != null) {
                         String uid = task.getResult().getUser().getUid();
-                        String phone = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getPhoneNumber() : null;
+                        String phone = task.getResult().getUser().getPhoneNumber();
 
                         createUserInFirestoreIfNotExists(uid, phone, role);
 
-                        Intent i = new Intent(SignUpActivity.this, ProfileSetupActivity.class);
-                        i.putExtra("role", role);
-                        startActivity(i);
+                        Intent intent = new Intent(SignUpActivity.this, ProfileSetupActivity.class);
+                        intent.putExtra("role", role);
+                        startActivity(intent);
                         finish();
                     } else {
-                        String err = (task.getException() != null) ? task.getException().getMessage() : "Authentication failed";
+                        String err = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "Authentication failed";
                         if (task.getException() instanceof com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
                             Toast.makeText(SignUpActivity.this, "Invalid code.", Toast.LENGTH_LONG).show();
                         } else {
@@ -170,26 +169,37 @@ public class SignUpActivity extends AppCompatActivity {
                 });
     }
 
-    // keep your existing Firestore helper or copy the one from VerifyOtpActivity / ProfileSetupActivity if needed
     private void createUserInFirestoreIfNotExists(String uid, String phone, String role) {
-        // Same method as you already have: either copy from your original code or call a shared helper.
-        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+            FirebaseDebugLogger.read("auth_user_read", "users/" + uid, documentSnapshot.exists() ? 1 : 0);
             if (!documentSnapshot.exists()) {
-                java.util.Map<String, Object> user = new java.util.HashMap<>();
+                Map<String, Object> user = new HashMap<>();
                 user.put("phone", phone);
                 user.put("role", role);
                 user.put("nicVerified", false);
                 user.put("consentNicProcessing", false);
-                user.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
-                user.put("lastSeenAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+                user.put("authProvider", "phone");
+                user.put("createdAt", FieldValue.serverTimestamp());
+                user.put("lastSeenAt", FieldValue.serverTimestamp());
 
                 db.collection("users").document(uid).set(user)
-                        .addOnSuccessListener(aVoid -> {
-                            // created successfully
-                        })
-                        .addOnFailureListener(e -> Toast.makeText(SignUpActivity.this, "Firestore error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                        .addOnSuccessListener(unused -> FirebaseDebugLogger.success("auth_user_create", "users", uid))
+                        .addOnFailureListener(e -> {
+                            FirebaseDebugLogger.failure("auth_user_create", "users/" + uid, e);
+                            Toast.makeText(SignUpActivity.this,
+                                "Firestore error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
+            } else {
+                db.collection("users").document(uid)
+                        .update("lastSeenAt", FieldValue.serverTimestamp(), "role", role, "authProvider", "phone")
+                        .addOnSuccessListener(unused -> FirebaseDebugLogger.success("auth_user_update", "users", uid))
+                        .addOnFailureListener(e -> FirebaseDebugLogger.failure("auth_user_update", "users/" + uid, e));
             }
-        }).addOnFailureListener(e -> Toast.makeText(SignUpActivity.this, "Firestore read error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+        }).addOnFailureListener(e -> {
+            FirebaseDebugLogger.failure("auth_user_read", "users/" + uid, e);
+            Toast.makeText(SignUpActivity.this,
+                "Firestore read error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        });
     }
 }

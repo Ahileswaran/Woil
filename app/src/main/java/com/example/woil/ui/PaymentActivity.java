@@ -62,9 +62,12 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void savePayment() {
+        String clientUid = FirebaseDebugLogger.requireUid(this, mAuth, "payment_create");
+        if (clientUid == null) return;
+
         Map<String, Object> payment = new HashMap<>();
         payment.put("jobId", jobId);
-        payment.put("clientUid", mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null);
+        payment.put("clientUid", clientUid);
         payment.put("workerUid", workerUid);
         payment.put("amount", amount);
         payment.put("tip", etTip.getText().toString().trim());
@@ -74,10 +77,13 @@ public class PaymentActivity extends AppCompatActivity {
         db.collection("payments")
                 .add(payment)
                 .addOnSuccessListener(doc -> {
+                    FirebaseDebugLogger.success("payment_create", "payments", doc.getId());
                     startActivity(new Intent(this, PaymentSuccessActivity.class));
                     finish();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Payment failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("payment_create", "payments", e);
+                    Toast.makeText(this, "Payment failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }

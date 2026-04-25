@@ -87,12 +87,8 @@ public class ApplyJobActivity extends AppCompatActivity {
 
 
     private void submitApplication() {
-        if (mAuth.getCurrentUser() == null) {
-            Toast.makeText(this, "Please sign in first", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        String workerUid = mAuth.getCurrentUser().getUid();
+        String workerUid = FirebaseDebugLogger.requireUid(this, mAuth, "apply_job_create_match");
+        if (workerUid == null) return;
 
         if (TextUtils.isEmpty(jobId) || TextUtils.isEmpty(clientUid)) {
             Toast.makeText(this, "Missing job info", Toast.LENGTH_LONG).show();
@@ -113,6 +109,7 @@ public class ApplyJobActivity extends AppCompatActivity {
         db.collection("matches")
                 .add(match)
                 .addOnSuccessListener(docRef -> {
+                    FirebaseDebugLogger.success("apply_job_create_match", "matches", docRef.getId());
                     Toast.makeText(this, "Application sent", Toast.LENGTH_SHORT).show();
                     Intent result = new Intent();
                     result.putExtra("matchId", docRef.getId());
@@ -120,6 +117,7 @@ public class ApplyJobActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("apply_job_create_match", "matches", e);
                     btnConfirmApply.setEnabled(true);
                     Toast.makeText(this, "Failed to apply: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });

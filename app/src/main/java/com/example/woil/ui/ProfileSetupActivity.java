@@ -294,19 +294,15 @@ public class ProfileSetupActivity extends AppCompatActivity {
         }
 
         if (mAuth.getCurrentUser() == null) {
-            mAuth.signInAnonymously().addOnCompleteListener(task -> {
-                if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                    writeProfileToFirestore(first, last, address, nic, dob, gender, skill);
-                } else {
-                    String err = task.getException() != null
-                            ? task.getException().getMessage()
-                            : "Anonymous signin failed";
-                    Toast.makeText(ProfileSetupActivity.this, "Auth error: " + err, Toast.LENGTH_LONG).show();
-                }
-            });
-        } else {
-            writeProfileToFirestore(first, last, address, nic, dob, gender, skill);
+            Toast.makeText(this, "Please verify your phone number before completing profile.", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(ProfileSetupActivity.this, SignUpActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
         }
+
+        writeProfileToFirestore(first, last, address, nic, dob, gender, skill);
     }
 
     private void writeProfileToFirestore(String first, String last, String address, String nic,
@@ -372,6 +368,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 .continueWithTask(task -> db.collection("profiles").document(uid)
                         .set(profileDoc, SetOptions.merge()))
                 .addOnSuccessListener(unused -> {
+                    FirebaseDebugLogger.success("profile_setup_write", "users/" + uid + ", profiles/" + uid, uid);
                     Toast.makeText(ProfileSetupActivity.this,
                             "Profile saved successfully", Toast.LENGTH_SHORT).show();
 
@@ -382,6 +379,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("profile_setup_write", "users/" + uid + ", profiles/" + uid, e);
                     Toast.makeText(ProfileSetupActivity.this,
                             "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });

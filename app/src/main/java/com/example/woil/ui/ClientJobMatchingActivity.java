@@ -191,12 +191,12 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
     }
 
     private void loadClientDefaultLocation() {
-        if (mAuth.getCurrentUser() == null) return;
-
-        String uid = mAuth.getCurrentUser().getUid();
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "client_location_read");
+        if (uid == null) return;
 
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(doc -> {
+                    FirebaseDebugLogger.read("client_location_read", "users/" + uid, doc.exists() ? 1 : 0);
                     if (!doc.exists()) return;
 
                     Object locationObj = doc.get("location");
@@ -220,7 +220,8 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
                             updateMapForClientLocation();
                         }
                     }
-                });
+                })
+                .addOnFailureListener(e -> FirebaseDebugLogger.failure("client_location_read", "users/" + uid, e));
     }
 
     private void openMapPicker() {
@@ -268,6 +269,7 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
                 .whereEqualTo("role", "worker")
                 .get()
                 .addOnSuccessListener(snap -> {
+                    FirebaseDebugLogger.read("worker_matching_query", "users?role=worker", snap.size());
                     for (DocumentSnapshot doc : snap.getDocuments()) {
                         MatchingWorkerModel worker = parseWorker(doc, effectiveCategory);
                         if (worker == null) continue;
@@ -298,6 +300,7 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
                     updateMapWorkerMarkers();
                 })
                 .addOnFailureListener(e -> {
+                    FirebaseDebugLogger.failure("worker_matching_query", "users?role=worker", e);
                     Log.e(TAG, "Matching failed", e);
                     Toast.makeText(this, "Failed to load workers: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
