@@ -31,20 +31,31 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ClientJobMatchingActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "ClientMatching";
     private static final int REQ_PICK_LOCATION = 4101;
+
+    // Matching coverage tiers. Main list is not limited to a small map-circle only.
+    private static final double IMMEDIATE_RADIUS_KM = 10.0;
+    private static final double AREA_RADIUS_KM = 25.0;
+    private static final double PROVINCE_RADIUS_KM = 120.0;
+    private static final double EXPANDED_RADIUS_KM = 250.0;
 
     private ImageButton btnBack;
     private ImageButton btnPickLocation;
@@ -67,6 +78,8 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
     private String selectedCategory = "Cleaning";
     private String selectedAddress = "";
     private LatLng selectedLatLng = null;
+    private String selectedArea = "";
+    private String selectedProvince = "";
 
     private final List<MatchingWorkerModel> nearbyWorkers = new ArrayList<>();
     private final List<MatchingWorkerModel> scheduleWorkers = new ArrayList<>();
@@ -93,20 +106,8 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
         tvScheduleTitle = findViewById(R.id.tv_schedule_title);
         btnMatchNow = findViewById(R.id.btn_match_now);
 
-        workerAdapter = new MatchingWorkerAdapter(worker -> {
-            Intent i = new Intent(this, ClientWorkerSelectionActivity.class);
-            i.putExtra("workerUid", worker.uid);
-            i.putExtra("workerName", worker.name);
-            i.putExtra("workerSkill", worker.skill);
-            i.putExtra("workerRating", worker.rating);
-            i.putExtra("workerDistanceKm", worker.distanceKm);
-            i.putExtra("workerEtaMinutes", worker.etaMinutes);
-            i.putExtra("clientAddress", selectedAddress);
-            i.putExtra("selectedCategory", getEffectiveCategory());
-            startActivity(i);
-        });
-
-        scheduleAdapter = new MatchingScheduleAdapter();
+        workerAdapter = new MatchingWorkerAdapter(this::openWorkerSelection);
+        scheduleAdapter = new MatchingScheduleAdapter(this::openWorkerSelection);
 
         rvMatchingWorkers.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -129,12 +130,31 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
 
         btnBack.setOnClickListener(v -> finish());
         btnPickLocation.setOnClickListener(v -> openMapPicker());
-
         tvSelectedLocation.setOnClickListener(v -> openMapPicker());
-
         btnMatchNow.setOnClickListener(v -> runMatching());
 
         loadClientDefaultLocation();
+    }
+
+    private void openWorkerSelection(MatchingWorkerModel worker) {
+        Intent i = new Intent(this, ClientWorkerSelectionActivity.class);
+        i.putExtra("workerUid", worker.uid);
+        i.putExtra("workerName", worker.name);
+        i.putExtra("workerSkill", worker.skill);
+        i.putExtra("workerRating", worker.rating);
+        i.putExtra("workerDistanceKm", worker.distanceKm);
+        i.putExtra("workerEtaMinutes", worker.etaMinutes);
+        i.putExtra("workerLocationText", worker.locationText);
+        i.putExtra("workerArea", worker.area);
+        i.putExtra("workerProvince", worker.province);
+        i.putExtra("matchLevel", worker.matchLevel);
+        i.putExtra("clientAddress", selectedAddress);
+        i.putExtra("clientArea", selectedArea);
+        i.putExtra("clientProvince", selectedProvince);
+        i.putExtra("clientLat", selectedLatLng != null ? selectedLatLng.latitude : 0.0);
+        i.putExtra("clientLng", selectedLatLng != null ? selectedLatLng.longitude : 0.0);
+        i.putExtra("selectedCategory", getEffectiveCategory());
+        startActivity(i);
     }
 
     private void setupCategories() {
@@ -156,7 +176,6 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
 
         for (CategoryModel category : categoryList) {
             TextView chip = new TextView(this);
-
             String categoryName = category.title != null ? category.title : "";
 
             chip.setText(categoryName);
@@ -200,25 +219,19 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
                     if (!doc.exists()) return;
 
                     Object locationObj = doc.get("location");
-                    Object locationTextObj = doc.get("locationText");
+                    Object locationTextObj = firstExisting(doc, "locationText", "address");
 
                     if (locationTextObj != null) {
                         selectedAddress = String.valueOf(locationTextObj);
+                        selectedArea = extractArea(selectedAddress);
+                        selectedProvince = extractProvince(selectedAddress);
                         tvSelectedLocation.setText(selectedAddress);
                     }
 
-                    if (locationObj instanceof java.util.Map) {
-                        java.util.Map<?, ?> map = (java.util.Map<?, ?>) locationObj;
-                        Object latObj = map.get("lat");
-                        Object lngObj = map.get("lng");
-
-                        if (latObj instanceof Number && lngObj instanceof Number) {
-                            selectedLatLng = new LatLng(
-                                    ((Number) latObj).doubleValue(),
-                                    ((Number) lngObj).doubleValue()
-                            );
-                            updateMapForClientLocation();
-                        }
+                    LatLng loc = readLatLng(locationObj);
+                    if (loc != null) {
+                        selectedLatLng = loc;
+                        updateMapForClientLocation();
                     }
                 })
                 .addOnFailureListener(e -> FirebaseDebugLogger.failure("client_location_read", "users/" + uid, e));
@@ -237,6 +250,8 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
             double lat = data.getDoubleExtra("lat", 0.0);
             double lng = data.getDoubleExtra("lng", 0.0);
             selectedAddress = data.getStringExtra("address");
+            selectedArea = extractArea(selectedAddress);
+            selectedProvince = extractProvince(selectedAddress);
 
             selectedLatLng = new LatLng(lat, lng);
             tvSelectedLocation.setText(!TextUtils.isEmpty(selectedAddress) ? selectedAddress : lat + ", " + lng);
@@ -264,19 +279,48 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
 
         nearbyWorkers.clear();
         scheduleWorkers.clear();
+        workerAdapter.submitList(nearbyWorkers);
+        scheduleAdapter.submitList(scheduleWorkers);
 
-        db.collection("users")
+        Task<QuerySnapshot> usersTask = db.collection("users")
                 .whereEqualTo("role", "worker")
-                .get()
-                .addOnSuccessListener(snap -> {
-                    FirebaseDebugLogger.read("worker_matching_query", "users?role=worker", snap.size());
-                    for (DocumentSnapshot doc : snap.getDocuments()) {
-                        MatchingWorkerModel worker = parseWorker(doc, effectiveCategory);
+                .get();
+        Task<QuerySnapshot> profilesTask = db.collection("profiles")
+                .whereEqualTo("isWorker", true)
+                .get();
+
+        Tasks.whenAllSuccess(usersTask, profilesTask)
+                .addOnSuccessListener(results -> {
+                    Map<String, Map<String, Object>> mergedWorkers = new HashMap<>();
+
+                    QuerySnapshot userSnap = (QuerySnapshot) results.get(0);
+                    QuerySnapshot profileSnap = (QuerySnapshot) results.get(1);
+
+                    for (DocumentSnapshot doc : userSnap.getDocuments()) {
+                        Map<String, Object> data = new HashMap<>(doc.getData() != null ? doc.getData() : Collections.emptyMap());
+                        data.put("uid", doc.getId());
+                        mergedWorkers.put(doc.getId(), data);
+                    }
+
+                    for (DocumentSnapshot doc : profileSnap.getDocuments()) {
+                        Map<String, Object> data = mergedWorkers.containsKey(doc.getId())
+                                ? mergedWorkers.get(doc.getId())
+                                : new HashMap<>();
+                        if (doc.getData() != null) data.putAll(doc.getData());
+                        data.put("uid", doc.getId());
+                        data.put("role", "worker");
+                        mergedWorkers.put(doc.getId(), data);
+                    }
+
+                    for (Map<String, Object> data : mergedWorkers.values()) {
+                        MatchingWorkerModel worker = parseWorker(data, effectiveCategory);
                         if (worker == null) continue;
 
-                        if (worker.distanceKm <= 10.0) {
+                        // Main matching list: same area, same province, or practical radius.
+                        if (isMainCoverage(worker)) {
                             nearbyWorkers.add(worker);
-                        } else {
+                        } else if (worker.distanceKm <= EXPANDED_RADIUS_KM) {
+                            worker.matchLevel = "EXPANDED_SCHEDULE";
                             scheduleWorkers.add(worker);
                         }
                     }
@@ -285,84 +329,171 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
                     sortWorkers(scheduleWorkers);
 
                     workerAdapter.submitList(nearbyWorkers);
+                    tvScheduleTitle.setVisibility(scheduleWorkers.isEmpty() ? View.GONE : View.VISIBLE);
+                    rvScheduleWorkers.setVisibility(scheduleWorkers.isEmpty() ? View.GONE : View.VISIBLE);
+                    scheduleAdapter.submitList(scheduleWorkers);
 
-                    if (nearbyWorkers.isEmpty()) {
-                        tvScheduleTitle.setVisibility(View.VISIBLE);
-                        rvScheduleWorkers.setVisibility(View.VISIBLE);
-                        scheduleAdapter.submitList(scheduleWorkers);
-                        Toast.makeText(this, "No nearby workers found. Showing schedule fallback.", Toast.LENGTH_SHORT).show();
+                    FirebaseDebugLogger.read(
+                            "worker_matching_query",
+                            "users+profiles workers, category=" + effectiveCategory + ", area=" + selectedArea + ", province=" + selectedProvince,
+                            nearbyWorkers.size() + scheduleWorkers.size()
+                    );
+
+                    if (nearbyWorkers.isEmpty() && scheduleWorkers.isEmpty()) {
+                        Toast.makeText(this, "No workers found for this category/coverage", Toast.LENGTH_LONG).show();
+                    } else if (nearbyWorkers.isEmpty()) {
+                        Toast.makeText(this, "No province/area workers found. Showing expanded schedule fallback.", Toast.LENGTH_LONG).show();
                     } else {
-                        tvScheduleTitle.setVisibility(scheduleWorkers.isEmpty() ? View.GONE : View.VISIBLE);
-                        rvScheduleWorkers.setVisibility(scheduleWorkers.isEmpty() ? View.GONE : View.VISIBLE);
-                        scheduleAdapter.submitList(scheduleWorkers);
+                        Toast.makeText(this,
+                                "Matched " + nearbyWorkers.size() + " worker(s) in area/province coverage",
+                                Toast.LENGTH_SHORT).show();
                     }
 
                     updateMapWorkerMarkers();
                 })
                 .addOnFailureListener(e -> {
-                    FirebaseDebugLogger.failure("worker_matching_query", "users?role=worker", e);
+                    FirebaseDebugLogger.failure("worker_matching_query", "users+profiles", e);
                     Log.e(TAG, "Matching failed", e);
                     Toast.makeText(this, "Failed to load workers: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 
-    private MatchingWorkerModel parseWorker(DocumentSnapshot doc, String effectiveCategory) {
-        String uid = doc.getId();
-        String role = doc.getString("role");
-        if (!"worker".equalsIgnoreCase(role)) return null;
-
-        String skill = doc.getString("skill");
-        if (TextUtils.isEmpty(skill)) skill = doc.getString("displaySkill");
-
-        if (!TextUtils.isEmpty(skill) && !skill.equalsIgnoreCase(effectiveCategory)) {
-            return null;
+    private boolean isMainCoverage(MatchingWorkerModel worker) {
+        if (worker.distanceKm <= IMMEDIATE_RADIUS_KM) {
+            worker.matchLevel = "IMMEDIATE_RADIUS";
+            return true;
         }
 
-        Object locationObj = doc.get("location");
-        if (!(locationObj instanceof java.util.Map)) return null;
+        if (!TextUtils.isEmpty(selectedArea)
+                && !TextUtils.isEmpty(worker.area)
+                && normalize(selectedArea).equals(normalize(worker.area))) {
+            worker.matchLevel = "SAME_AREA";
+            return true;
+        }
 
-        java.util.Map<?, ?> loc = (java.util.Map<?, ?>) locationObj;
-        Object latObj = loc.get("lat");
-        Object lngObj = loc.get("lng");
-        if (!(latObj instanceof Number) || !(lngObj instanceof Number)) return null;
+        if (worker.distanceKm <= AREA_RADIUS_KM) {
+            worker.matchLevel = "AREA_RADIUS";
+            return true;
+        }
 
-        double lat = ((Number) latObj).doubleValue();
-        double lng = ((Number) lngObj).doubleValue();
+        if (!TextUtils.isEmpty(selectedProvince)
+                && !TextUtils.isEmpty(worker.province)
+                && normalize(selectedProvince).equals(normalize(worker.province))) {
+            worker.matchLevel = "SAME_PROVINCE";
+            return true;
+        }
+
+        if (worker.distanceKm <= PROVINCE_RADIUS_KM) {
+            worker.matchLevel = "PROVINCE_RADIUS";
+            return true;
+        }
+
+        return false;
+    }
+
+    private MatchingWorkerModel parseWorker(Map<String, Object> data, String effectiveCategory) {
+        String uid = stringValue(data.get("uid"));
+        String role = stringValue(data.get("role"));
+        Object isWorkerObj = data.get("isWorker");
+        boolean isWorker = "worker".equalsIgnoreCase(role) || Boolean.TRUE.equals(isWorkerObj);
+        if (!isWorker) return null;
+
+        if (!skillMatches(data, effectiveCategory)) return null;
+
+        LatLng loc = readLatLng(data.get("location"));
+        if (loc == null) return null;
 
         float[] results = new float[1];
         Location.distanceBetween(
                 selectedLatLng.latitude, selectedLatLng.longitude,
-                lat, lng,
+                loc.latitude, loc.longitude,
                 results
         );
 
+        String locationText = firstNonEmpty(
+                stringValue(data.get("locationText")),
+                stringValue(data.get("address"))
+        );
+        String area = firstNonEmpty(
+                stringValue(data.get("area")),
+                stringValue(data.get("city")),
+                extractArea(locationText)
+        );
+        String province = firstNonEmpty(
+                stringValue(data.get("province")),
+                extractProvince(locationText)
+        );
+
         double distanceKm = results[0] / 1000.0;
-        long etaMinutes = Math.max(1, Math.round(distanceKm * 4.0)); // simple placeholder estimate
+        long etaMinutes = Math.max(1, Math.round(distanceKm * 4.0));
 
         MatchingWorkerModel worker = new MatchingWorkerModel();
         worker.uid = uid;
-        worker.name = buildName(doc);
-        worker.skill = !TextUtils.isEmpty(skill) ? skill : effectiveCategory;
+        worker.name = buildName(data);
+        worker.skill = displaySkill(data, effectiveCategory);
         worker.photoUrl = firstNonEmpty(
-                doc.getString("photoUrl"),
-                doc.getString("photo"),
-                doc.getString("avatar"),
-                doc.getString("nicImageUrl")
+                stringValue(data.get("photoUrl")),
+                stringValue(data.get("photo")),
+                stringValue(data.get("avatar")),
+                stringValue(data.get("nicImageUrl"))
         );
-        worker.rating = readDouble(doc, "rating", 0.0);
-        worker.lat = lat;
-        worker.lng = lng;
+        worker.rating = readDouble(data.get("rating"), 0.0);
+        worker.lat = loc.latitude;
+        worker.lng = loc.longitude;
         worker.distanceKm = distanceKm;
         worker.etaMinutes = etaMinutes;
-        worker.available = true;
+        worker.available = readBoolean(data.get("available"), true);
+        worker.locationText = locationText;
+        worker.area = area;
+        worker.province = province;
+        worker.matchLevel = "UNCLASSIFIED";
 
         return worker;
+    }
+
+    private boolean skillMatches(Map<String, Object> data, String effectiveCategory) {
+        if (TextUtils.isEmpty(effectiveCategory) || "Other".equalsIgnoreCase(effectiveCategory)) {
+            return true;
+        }
+
+        String target = normalize(effectiveCategory);
+        String skill = stringValue(data.get("skill"));
+        String displaySkill = stringValue(data.get("displaySkill"));
+        String category = stringValue(data.get("category"));
+
+        String nSkill = normalize(skill);
+        String nDisplaySkill = normalize(displaySkill);
+        String nCategory = normalize(category);
+
+        if (!TextUtils.isEmpty(nSkill) && (nSkill.contains(target) || target.contains(nSkill))) return true;
+        if (!TextUtils.isEmpty(nDisplaySkill) && (nDisplaySkill.contains(target) || target.contains(nDisplaySkill))) return true;
+        if (!TextUtils.isEmpty(nCategory) && (nCategory.contains(target) || target.contains(nCategory))) return true;
+
+        Object skillsObj = data.get("skills");
+        if (skillsObj instanceof List) {
+            for (Object item : (List<?>) skillsObj) {
+                String s = normalize(stringValue(item));
+                if (!TextUtils.isEmpty(s) && (s.contains(target) || target.contains(s))) return true;
+            }
+        }
+        return false;
+    }
+
+    private String displaySkill(Map<String, Object> data, String fallback) {
+        String skill = firstNonEmpty(
+                stringValue(data.get("skill")),
+                stringValue(data.get("displaySkill")),
+                stringValue(data.get("category"))
+        );
+        return !TextUtils.isEmpty(skill) ? skill : fallback;
     }
 
     private void sortWorkers(List<MatchingWorkerModel> list) {
         Collections.sort(list, new Comparator<MatchingWorkerModel>() {
             @Override
             public int compare(MatchingWorkerModel a, MatchingWorkerModel b) {
+                int tierCompare = Integer.compare(matchTierRank(a.matchLevel), matchTierRank(b.matchLevel));
+                if (tierCompare != 0) return tierCompare;
                 int etaCompare = Long.compare(a.etaMinutes, b.etaMinutes);
                 if (etaCompare != 0) return etaCompare;
                 int distanceCompare = Double.compare(a.distanceKm, b.distanceKm);
@@ -372,14 +503,70 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
         });
     }
 
-    private String buildName(DocumentSnapshot doc) {
-        String displayName = doc.getString("displayName");
+    private int matchTierRank(String level) {
+        if ("IMMEDIATE_RADIUS".equals(level)) return 0;
+        if ("SAME_AREA".equals(level)) return 1;
+        if ("AREA_RADIUS".equals(level)) return 2;
+        if ("SAME_PROVINCE".equals(level)) return 3;
+        if ("PROVINCE_RADIUS".equals(level)) return 4;
+        if ("EXPANDED_SCHEDULE".equals(level)) return 5;
+        return 9;
+    }
+
+    private String buildName(Map<String, Object> data) {
+        String displayName = stringValue(data.get("displayName"));
         if (!TextUtils.isEmpty(displayName)) return displayName;
 
-        String first = doc.getString("firstName");
-        String last = doc.getString("lastName");
+        String first = stringValue(data.get("firstName"));
+        String last = stringValue(data.get("lastName"));
         String full = ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
         return !TextUtils.isEmpty(full) ? full : "Worker";
+    }
+
+    private Object firstExisting(DocumentSnapshot doc, String... keys) {
+        for (String key : keys) {
+            Object value = doc.get(key);
+            if (value != null) return value;
+        }
+        return null;
+    }
+
+    private LatLng readLatLng(Object locationObj) {
+        if (!(locationObj instanceof Map)) return null;
+        Map<?, ?> loc = (Map<?, ?>) locationObj;
+        Object latObj = loc.get("lat");
+        Object lngObj = loc.get("lng");
+        if (!(latObj instanceof Number) || !(lngObj instanceof Number)) return null;
+        return new LatLng(((Number) latObj).doubleValue(), ((Number) lngObj).doubleValue());
+    }
+
+    private String extractProvince(String address) {
+        if (TextUtils.isEmpty(address)) return "";
+        String[] parts = address.split(",");
+        for (String p : parts) {
+            String t = p.trim();
+            if (t.toLowerCase(Locale.US).contains("province")) return t;
+        }
+        return parts.length >= 2 ? parts[parts.length - 2].trim() : "";
+    }
+
+    private String extractArea(String address) {
+        if (TextUtils.isEmpty(address)) return "";
+        String[] parts = address.split(",");
+        for (String p : parts) {
+            String t = p.trim();
+            String low = t.toLowerCase(Locale.US);
+            if (TextUtils.isEmpty(t)) continue;
+            if (low.contains("province") || low.equals("sri lanka")) continue;
+            if (low.contains("road") || low.contains("street") || low.contains("lane")) continue;
+            return t;
+        }
+        return parts.length > 0 ? parts[0].trim() : "";
+    }
+
+    private String normalize(String value) {
+        if (value == null) return "";
+        return value.trim().toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "");
     }
 
     private String firstNonEmpty(String... values) {
@@ -390,14 +577,23 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
         return null;
     }
 
-    private double readDouble(DocumentSnapshot doc, String key, double fallback) {
-        Object value = doc.get(key);
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private double readDouble(Object value, double fallback) {
         if (value instanceof Number) return ((Number) value).doubleValue();
         try {
             return value != null ? Double.parseDouble(String.valueOf(value)) : fallback;
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    private boolean readBoolean(Object value, boolean fallback) {
+        if (value instanceof Boolean) return (Boolean) value;
+        if (value instanceof String) return Boolean.parseBoolean((String) value);
+        return fallback;
     }
 
     private void updateMapForClientLocation() {
@@ -408,7 +604,7 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
                 .position(selectedLatLng)
                 .title("Client location")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedLatLng, 13f));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedLatLng, 11f));
     }
 
     private void updateMapWorkerMarkers() {
@@ -425,11 +621,19 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
             mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(worker.lat, worker.lng))
                     .title(worker.name)
-                    .snippet(String.format(Locale.getDefault(), "%s · ETA %d min", worker.skill, worker.etaMinutes))
+                    .snippet(String.format(Locale.getDefault(), "%s · %s · ETA %d min", worker.skill, worker.matchLevel, worker.etaMinutes))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
         }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedLatLng, 13f));
+        for (MatchingWorkerModel worker : scheduleWorkers) {
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(worker.lat, worker.lng))
+                    .title(worker.name)
+                    .snippet(String.format(Locale.getDefault(), "%s · Schedule fallback · %.1f km", worker.skill, worker.distanceKm))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+        }
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedLatLng, 9.5f));
     }
 
     @Override

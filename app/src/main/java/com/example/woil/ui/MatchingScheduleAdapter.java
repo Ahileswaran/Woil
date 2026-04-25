@@ -16,7 +16,20 @@ import java.util.Locale;
 
 public class MatchingScheduleAdapter extends RecyclerView.Adapter<MatchingScheduleAdapter.VH> {
 
+    public interface OnWorkerClickListener {
+        void onWorkerClick(MatchingWorkerModel worker);
+    }
+
     private final List<MatchingWorkerModel> items = new ArrayList<>();
+    private final OnWorkerClickListener listener;
+
+    public MatchingScheduleAdapter() {
+        this.listener = null;
+    }
+
+    public MatchingScheduleAdapter(OnWorkerClickListener listener) {
+        this.listener = listener;
+    }
 
     public void submitList(List<MatchingWorkerModel> list) {
         items.clear();
@@ -37,9 +50,20 @@ public class MatchingScheduleAdapter extends RecyclerView.Adapter<MatchingSchedu
         MatchingWorkerModel item = items.get(position);
 
         h.tvName.setText(item.name != null ? item.name : "Worker");
-        h.tvLocation.setText(String.format(Locale.getDefault(), "Distance: %.1f km away", item.distanceKm));
+        String areaProvince = "";
+        if (item.area != null && !item.area.trim().isEmpty()) areaProvince = item.area;
+        if (item.province != null && !item.province.trim().isEmpty()) {
+            areaProvince = areaProvince.isEmpty() ? item.province : areaProvince + ", " + item.province;
+        }
+        h.tvLocation.setText(String.format(Locale.getDefault(), "%s · %.1f km away",
+                areaProvince.isEmpty() ? "Expanded area" : areaProvince,
+                item.distanceKm));
         h.tvNextAvailable.setText("Next available: Schedule later");
         h.tvRating.setText(String.format(Locale.getDefault(), "★ %.1f", item.rating));
+
+        h.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onWorkerClick(item);
+        });
     }
 
     @Override

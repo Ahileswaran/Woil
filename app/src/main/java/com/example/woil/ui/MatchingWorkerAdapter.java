@@ -54,7 +54,7 @@ public class MatchingWorkerAdapter extends RecyclerView.Adapter<MatchingWorkerAd
         MatchingWorkerModel item = items.get(position);
 
         h.tvName.setText(item.name != null ? item.name : "Worker");
-        h.tvSkill.setText(item.skill != null ? item.skill : "General");
+        h.tvSkill.setText((item.skill != null ? item.skill : "General") + (item.matchLevel != null ? " · " + item.matchLevel : ""));
         h.tvEta.setText("ETA: " + item.etaMinutes + " min");
         h.tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.1f km", item.distanceKm));
         h.tvRating.setText(String.format(Locale.getDefault(), "★ %.1f", item.rating));

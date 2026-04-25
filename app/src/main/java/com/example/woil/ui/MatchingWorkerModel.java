@@ -11,6 +11,10 @@ public class MatchingWorkerModel {
     public double distanceKm;
     public long etaMinutes;
     public boolean available = true;
+    public String locationText;
+    public String area;
+    public String province;
+    public String matchLevel;
 
     public MatchingWorkerModel() {
     }
