@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
@@ -31,6 +32,8 @@ import androidx.fragment.app.Fragment;
 
 import com.example.woil.R;
 
+import java.nio.charset.StandardCharsets;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -48,6 +51,9 @@ public class WoilGuardFragment extends Fragment {
             UUID.fromString("12345678-1234-1234-1234-1234567890ac");
     private static final UUID CMD_UUID =
             UUID.fromString("12345678-1234-1234-1234-1234567890ad");
+
+    private static final UUID CCCD_UUID =
+            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private RadioGroup rgMode;
     private TextView tvConnectionStatus;
@@ -91,6 +97,9 @@ public class WoilGuardFragment extends Fragment {
     private String latestIncident = "NONE";
     private String latestMotion = "0.00";
     private String latestAudio = "0.00";
+    private String latestSeverity = "LOG";
+    private String latestFallProb = "0.00";
+    private String latestModel = "--";
     private String latestTimestamp = "";
     private String latestRawPayload = "";
 
@@ -335,6 +344,7 @@ public class WoilGuardFragment extends Fragment {
                         tvGuardData.setText("BLE characteristics not found");
                     } else {
                         tvGuardData.setText("BLE service discovered. Live monitoring started.");
+                        enableStatusNotifications();
                         startAutoRefresh();
                     }
                 });
@@ -363,7 +373,69 @@ public class WoilGuardFragment extends Fragment {
                 requireActivity().runOnUiThread(() -> applyWearablePayload(finalValue));
             }
         }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt,
+                                            BluetoothGattCharacteristic characteristic) {
+            if (getActivity() == null) return;
+
+            if (STATUS_UUID.equals(characteristic.getUuid())) {
+                String value;
+                try {
+                    value = characteristic.getStringValue(0);
+                } catch (Exception e) {
+                    value = "Unable to parse notification";
+                }
+
+                final String finalValue = value;
+                requireActivity().runOnUiThread(() -> applyWearablePayload(finalValue));
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt,
+                                            BluetoothGattCharacteristic characteristic,
+                                            byte[] value) {
+            if (getActivity() == null) return;
+
+            if (STATUS_UUID.equals(characteristic.getUuid())) {
+                final String finalValue = new String(value, StandardCharsets.UTF_8);
+                requireActivity().runOnUiThread(() -> applyWearablePayload(finalValue));
+            }
+        }
     };
+
+
+    private void enableStatusNotifications() {
+        if (bluetoothGatt == null || statusCharacteristic == null) {
+            return;
+        }
+
+        try {
+            if (!hasBluetoothConnectPermission()) {
+                requestBlePermissions();
+                return;
+            }
+
+            bluetoothGatt.setCharacteristicNotification(statusCharacteristic, true);
+
+            BluetoothGattDescriptor descriptor = statusCharacteristic.getDescriptor(CCCD_UUID);
+            if (descriptor != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    bluetoothGatt.writeDescriptor(
+                            descriptor,
+                            BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                    );
+                } else {
+                    descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                    bluetoothGatt.writeDescriptor(descriptor);
+                }
+            }
+
+        } catch (SecurityException e) {
+            toast("Notify enable failed: Bluetooth permission denied");
+        }
+    }
 
     private void readBleStatus() {
         if (bluetoothGatt == null || statusCharacteristic == null) {
@@ -435,17 +507,39 @@ public class WoilGuardFragment extends Fragment {
         latestState = parsed.getOrDefault("STATE", latestState);
         latestBattery = parsed.getOrDefault("BAT", latestBattery);
         latestIncident = parsed.getOrDefault("INCIDENT", latestIncident);
-        latestMotion = parsed.getOrDefault("MOTION", latestMotion);
-        latestAudio = parsed.getOrDefault("AUDIO", latestAudio);
+        latestSeverity = parsed.getOrDefault("SEVERITY", latestSeverity);
+        latestModel = parsed.getOrDefault("MODEL", latestModel);
         latestTimestamp = parsed.getOrDefault("TS", latestTimestamp);
 
-        tvDeviceState.setText("State: " + latestState);
-        tvBattery.setText("Battery: " + latestBattery + "%");
+        latestFallProb = parsed.getOrDefault(
+                "FALL_PROB",
+                parsed.getOrDefault("MOTION_CONF", parsed.getOrDefault("MOTION", latestFallProb))
+        );
+        latestMotion = latestFallProb;
+        latestAudio = parsed.getOrDefault("AUDIO", latestAudio);
+
+        tvDeviceState.setText("State: " + latestState + " | Severity: " + latestSeverity);
+
+        if ("-1".equals(latestBattery)) {
+            tvBattery.setText("Battery: disabled");
+        } else {
+            tvBattery.setText("Battery: " + latestBattery + "%");
+        }
+
         tvIncidentType.setText("Incident: " + latestIncident);
-        tvMotionScore.setText("Motion score: " + latestMotion);
-        tvAudioScore.setText("Audio score: " + latestAudio);
+        tvMotionScore.setText("Fall probability: " + latestFallProb);
+        tvAudioScore.setText("Audio: " + latestAudio + " | Model: " + latestModel);
 
         addIncidentLog(buildIncidentLogLine());
+
+        if ("MOTION_TINYML".equalsIgnoreCase(latestIncident)
+                || "MOTION_SUSPICIOUS".equalsIgnoreCase(latestIncident)
+                || "PANIC_BUTTON".equalsIgnoreCase(latestIncident)
+                || "HIGH".equalsIgnoreCase(latestSeverity)
+                || "CRITICAL".equalsIgnoreCase(latestSeverity)) {
+
+            tvConnectionStatus.setText("ALERT: " + latestIncident + " / " + latestSeverity);
+        }
     }
 
     private Map<String, String> parsePayload(String payload) {
@@ -465,8 +559,9 @@ public class WoilGuardFragment extends Fragment {
     private String buildIncidentLogLine() {
         StringBuilder builder = new StringBuilder();
         builder.append(latestIncident);
+        builder.append(" | severity=").append(latestSeverity);
         builder.append(" | state=").append(latestState);
-        builder.append(" | motion=").append(latestMotion);
+        builder.append(" | fall=").append(latestFallProb);
         builder.append(" | audio=").append(latestAudio);
 
         if (!TextUtils.isEmpty(latestTimestamp)) {
@@ -501,24 +596,30 @@ public class WoilGuardFragment extends Fragment {
     private void openCccFlow() {
         Intent intent = new Intent(requireContext(), CccActivity.class);
         intent.putExtra("incidentType", latestIncident);
-        intent.putExtra("severity", deriveSeverity(latestIncident, latestMotion, latestAudio));
+        intent.putExtra("severity", deriveSeverity(latestIncident, latestSeverity, latestFallProb, latestAudio));
         intent.putExtra("state", latestState);
         intent.putExtra("battery", latestBattery);
-        intent.putExtra("motion", latestMotion);
+        intent.putExtra("motion", latestFallProb);
         intent.putExtra("audio", latestAudio);
         startActivity(intent);
     }
 
-    private String deriveSeverity(String incident, String motion, String audio) {
-        if ("PANIC_BUTTON".equalsIgnoreCase(incident) || "PANIC_TEST".equalsIgnoreCase(incident)) {
-            return "HIGH";
+    private String deriveSeverity(String incident, String severity, String fallProb, String audio) {
+        if (!TextUtils.isEmpty(severity)
+                && !"LOG".equalsIgnoreCase(severity)
+                && !"NONE".equalsIgnoreCase(severity)) {
+            return severity;
         }
 
-        float motionValue = safeParseFloat(motion);
+        if ("PANIC_BUTTON".equalsIgnoreCase(incident) || "PANIC_TEST".equalsIgnoreCase(incident)) {
+            return "CRITICAL";
+        }
+
+        float motionValue = safeParseFloat(fallProb);
         float audioValue = safeParseFloat(audio);
 
-        if (motionValue >= 0.80f && audioValue >= 0.80f) return "HIGH";
-        if (motionValue >= 0.50f || audioValue >= 0.50f) return "MEDIUM";
+        if (motionValue >= 0.85f) return "HIGH";
+        if (motionValue >= 0.65f || audioValue >= 0.50f) return "MEDIUM";
         return "LOW";
     }
 
