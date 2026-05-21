@@ -103,12 +103,19 @@ public class ApplyJobActivity extends AppCompatActivity {
         match.put("acceptedAt", null);
         match.put("wageAgreed", wageSuggested != null && wageSuggested > 0 ? wageSuggested : null);
         match.put("createdAt", FieldValue.serverTimestamp());
+        match.put("updatedAt", FieldValue.serverTimestamp());
+        match.put("jobTitle", safe(title, "Untitled Job"));
+        match.put("locationText", safe(locationText, ""));
+        match.put("category", getIntent().getStringExtra("category"));
+        match.put("distanceKm", getIntent().getDoubleExtra("distanceKm", 0.0));
+        match.put("etaMinutes", getIntent().getLongExtra("etaMinutes", 0L));
 
         btnConfirmApply.setEnabled(false);
 
         db.collection("matches")
                 .add(match)
                 .addOnSuccessListener(docRef -> {
+                    db.collection("matching_requests").document(docRef.getId()).set(match);
                     FirebaseDebugLogger.success("apply_job_create_match", "matches", docRef.getId());
                     Toast.makeText(this, "Application sent", Toast.LENGTH_SHORT).show();
                     Intent result = new Intent();
