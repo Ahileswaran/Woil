@@ -1,13 +1,16 @@
 package com.example.woil.ui;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.woil.R;
 
 import java.util.List;
@@ -36,10 +39,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (viewType == VIEW_TYPE_SENT) {
             View view = inflater.inflate(R.layout.item_chat_sent, parent, false);
             return new SentMessageViewHolder(view);
-        } else {
-            View view = inflater.inflate(R.layout.item_chat_received, parent, false);
-            return new ReceivedMessageViewHolder(view);
         }
+
+        View view = inflater.inflate(R.layout.item_chat_received, parent, false);
+        return new ReceivedMessageViewHolder(view);
     }
 
     @Override
@@ -50,10 +53,21 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             SentMessageViewHolder sentHolder = (SentMessageViewHolder) holder;
             sentHolder.tvMessageSent.setText(message.getText());
             sentHolder.tvTimeSent.setText(message.getTime());
-        } else if (holder instanceof ReceivedMessageViewHolder) {
-            ReceivedMessageViewHolder receivedHolder = (ReceivedMessageViewHolder) holder;
-            receivedHolder.tvMessageReceived.setText(message.getText());
-            receivedHolder.tvTimeReceived.setText(message.getTime());
+            return;
+        }
+
+        ReceivedMessageViewHolder receivedHolder = (ReceivedMessageViewHolder) holder;
+        receivedHolder.tvMessageReceived.setText(message.getText());
+        receivedHolder.tvTimeReceived.setText(message.getTime());
+
+        if (!TextUtils.isEmpty(message.getSenderPhotoUrl())) {
+            Glide.with(receivedHolder.itemView)
+                    .load(message.getSenderPhotoUrl())
+                    .placeholder(R.drawable.photo_placeholder)
+                    .error(R.drawable.photo_placeholder)
+                    .into(receivedHolder.imgSender);
+        } else {
+            receivedHolder.imgSender.setImageResource(R.drawable.photo_placeholder);
         }
     }
 
@@ -63,10 +77,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static class SentMessageViewHolder extends RecyclerView.ViewHolder {
-        TextView tvMessageSent;
-        TextView tvTimeSent;
+        final TextView tvMessageSent;
+        final TextView tvTimeSent;
 
-        public SentMessageViewHolder(@NonNull View itemView) {
+        SentMessageViewHolder(@NonNull View itemView) {
             super(itemView);
             tvMessageSent = itemView.findViewById(R.id.tv_message_sent);
             tvTimeSent = itemView.findViewById(R.id.tv_time_sent);
@@ -74,11 +88,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static class ReceivedMessageViewHolder extends RecyclerView.ViewHolder {
-        TextView tvMessageReceived;
-        TextView tvTimeReceived;
+        final ImageView imgSender;
+        final TextView tvMessageReceived;
+        final TextView tvTimeReceived;
 
-        public ReceivedMessageViewHolder(@NonNull View itemView) {
+        ReceivedMessageViewHolder(@NonNull View itemView) {
             super(itemView);
+            imgSender = itemView.findViewById(R.id.img_sender);
             tvMessageReceived = itemView.findViewById(R.id.tv_message_received);
             tvTimeReceived = itemView.findViewById(R.id.tv_time_received);
         }

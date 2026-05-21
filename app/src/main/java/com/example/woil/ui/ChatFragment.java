@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,15 +31,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.woil.R;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.SetOptions;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -47,13 +53,17 @@ import java.util.Map;
 
 public class ChatFragment extends Fragment {
 
+    public static final String ARG_CHAT_ID = "chat_id";
     public static final String ARG_CONTACT_UID = "contact_uid";
     public static final String ARG_CONTACT_NAME = "contact_name";
     public static final String ARG_CONTACT_ROLE = "contact_role";
     public static final String ARG_CONTACT_PHOTO = "contact_photo";
+    public static final String ARG_JOB_ID = "job_id";
 
     private RecyclerView rvMessages;
     private EditText etMessage;
+    private ProgressBar progressMessages;
+    private TextView tvEmptyMessages;
 
     private ImageButton btnSend;
     private ImageButton btnBack;
@@ -75,23 +85,32 @@ public class ChatFragment extends Fragment {
     private FirebaseAuth mAuth;
     private ListenerRegistration messageListener;
     private String chatId;
+    private String jobId;
 
+    private String currentUid;
     private String contactUid;
     private String contactNameArg;
     private String contactRoleArg;
     private String contactPhotoArg;
+    private String receiverPhotoUrl;
 
     public ChatFragment() {
     }
 
-    public static ChatFragment newInstance(String contactUid, String contactName,
-                                           String contactRole, String contactPhoto) {
+    public static ChatFragment newInstance(String chatId,
+                                           String contactUid,
+                                           String contactName,
+                                           String contactRole,
+                                           String contactPhoto,
+                                           String jobId) {
         ChatFragment fragment = new ChatFragment();
         Bundle args = new Bundle();
+        args.putString(ARG_CHAT_ID, chatId);
         args.putString(ARG_CONTACT_UID, contactUid);
         args.putString(ARG_CONTACT_NAME, contactName);
         args.putString(ARG_CONTACT_ROLE, contactRole);
         args.putString(ARG_CONTACT_PHOTO, contactPhoto);
+        args.putString(ARG_JOB_ID, jobId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -99,9 +118,7 @@ public class ChatFragment extends Fragment {
     private final ActivityResultLauncher<Intent> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == android.app.Activity.RESULT_OK) {
-                    Toast.makeText(requireContext(), "Image captured", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(requireContext(), "Camera cancelled", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Camera capture ready. Attach upload can be added next.", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -119,15 +136,9 @@ public class ChatFragment extends Fragment {
                 if (result.getResultCode() == android.app.Activity.RESULT_OK &&
                         result.getData() != null &&
                         result.getData().getData() != null) {
-
                     Uri selectedFileUri = result.getData().getData();
                     String fileName = selectedFileUri.getLastPathSegment();
-
-                    if (TextUtils.isEmpty(fileName)) {
-                        fileName = "File selected";
-                    }
-
-                    Toast.makeText(requireContext(), fileName, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), TextUtils.isEmpty(fileName) ? "File selected" : fileName, Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -144,6 +155,7 @@ public class ChatFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+        currentUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
 
         readArguments();
         bindViews(view);
@@ -151,13 +163,15 @@ public class ChatFragment extends Fragment {
         setupRecyclerView();
         setupClickListeners();
         loadChatHeader();
-        listenForMessages();
+        resolveChatAndListen();
     }
 
     private void readArguments() {
         Bundle args = getArguments();
         if (args == null) return;
 
+        chatId = args.getString(ARG_CHAT_ID);
+        jobId = args.getString(ARG_JOB_ID);
         contactUid = args.getString(ARG_CONTACT_UID);
         contactNameArg = args.getString(ARG_CONTACT_NAME);
         contactRoleArg = args.getString(ARG_CONTACT_ROLE);
@@ -167,6 +181,8 @@ public class ChatFragment extends Fragment {
     private void bindViews(@NonNull View view) {
         rvMessages = view.findViewById(R.id.rv_messages);
         etMessage = view.findViewById(R.id.et_message);
+        progressMessages = view.findViewById(R.id.progress_messages);
+        tvEmptyMessages = view.findViewById(R.id.tv_empty_messages);
 
         btnSend = view.findViewById(R.id.btn_send);
         btnBack = view.findViewById(R.id.btn_back);
@@ -179,7 +195,6 @@ public class ChatFragment extends Fragment {
         ivProfileImage = view.findViewById(R.id.profile_image_card);
         tvContactName = view.findViewById(R.id.contact_name_card);
         tvContactRole = view.findViewById(R.id.contact_role_card);
-
         inputWrapper = view.findViewById(R.id.input_wrapper);
     }
 
@@ -197,12 +212,10 @@ public class ChatFragment extends Fragment {
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
-
             int bottomInset = Math.max(systemBars.bottom, ime.bottom);
 
             inputWrapper.setPadding(inputStart, inputTop, inputEnd, inputBottom + bottomInset);
             rvMessages.setPadding(rvStart, rvTop, rvEnd, rvBottom + bottomInset + dpToPx(8));
-
             scrollToBottom();
             return insets;
         });
@@ -210,39 +223,186 @@ public class ChatFragment extends Fragment {
 
     private void setupRecyclerView() {
         chatAdapter = new ChatAdapter(messageList);
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
         layoutManager.setStackFromEnd(true);
-
         rvMessages.setLayoutManager(layoutManager);
         rvMessages.setAdapter(chatAdapter);
     }
 
     private void setupClickListeners() {
         btnSend.setOnClickListener(v -> sendMessage());
-
-        btnBack.setOnClickListener(v -> {
-            if (requireActivity() instanceof MainActivity) {
-                ((MainActivity) requireActivity()).onFragmentArrowBackToHome();
-            } else {
-                requireActivity().onBackPressed();
-            }
-        });
-
-        btnCall.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Call button clicked", Toast.LENGTH_SHORT).show()
-        );
-
-        btnVideo.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Video button clicked", Toast.LENGTH_SHORT).show()
-        );
-
-        btnMore.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "More options", Toast.LENGTH_SHORT).show()
-        );
-
+        btnBack.setOnClickListener(v -> requireActivity().finish());
+        btnCall.setOnClickListener(v -> Toast.makeText(requireContext(), "Call integration can be added after permission flow", Toast.LENGTH_SHORT).show());
+        btnVideo.setOnClickListener(v -> Toast.makeText(requireContext(), "Video call can be added later", Toast.LENGTH_SHORT).show());
+        btnMore.setOnClickListener(v -> Toast.makeText(requireContext(), "Chat options can be extended with block/report actions", Toast.LENGTH_SHORT).show());
         btnCamera.setOnClickListener(v -> openCamera());
         btnAttach.setOnClickListener(v -> openFilePicker());
+    }
+
+    private void resolveChatAndListen() {
+        if (TextUtils.isEmpty(currentUid) || TextUtils.isEmpty(contactUid)) {
+            progressMessages.setVisibility(View.GONE);
+            tvEmptyMessages.setVisibility(View.VISIBLE);
+            tvEmptyMessages.setText("Chat is unavailable until both users are identified.");
+            return;
+        }
+
+        if (TextUtils.isEmpty(chatId)) {
+            chatId = buildChatId(currentUid, contactUid);
+        }
+        ensureChatDocument().addOnCompleteListener(task -> listenForMessages());
+    }
+
+    private Task<Void> ensureChatDocument() {
+        Map<String, Object> chat = new HashMap<>();
+        chat.put("chatId", chatId);
+        chat.put("participants", Arrays.asList(currentUid, contactUid));
+        chat.put("createdAt", FieldValue.serverTimestamp());
+        chat.put("updatedAt", FieldValue.serverTimestamp());
+        if (!TextUtils.isEmpty(jobId)) {
+            chat.put("jobId", jobId);
+        }
+        if (!TextUtils.isEmpty(contactNameArg)) {
+            Map<String, Object> participantNames = new HashMap<>();
+            participantNames.put(contactUid, contactNameArg);
+            chat.put("participantNames", participantNames);
+        }
+        if (!TextUtils.isEmpty(contactPhotoArg)) {
+            Map<String, Object> participantPhotos = new HashMap<>();
+            participantPhotos.put(contactUid, contactPhotoArg);
+            chat.put("participantPhotos", participantPhotos);
+        }
+        Map<String, Object> unread = new HashMap<>();
+        unread.put(currentUid, 0L);
+        unread.put(contactUid, 0L);
+        chat.put("unreadCount", unread);
+        return db.collection("chats").document(chatId).set(chat, SetOptions.merge());
+    }
+
+    private void listenForMessages() {
+        if (TextUtils.isEmpty(chatId)) return;
+        progressMessages.setVisibility(View.VISIBLE);
+        tvEmptyMessages.setVisibility(View.GONE);
+
+        if (messageListener != null) {
+            messageListener.remove();
+            messageListener = null;
+        }
+
+        messageListener = db.collection("chats")
+                .document(chatId)
+                .collection("messages")
+                .orderBy("createdAt", Query.Direction.ASCENDING)
+                .addSnapshotListener((snap, e) -> {
+                    progressMessages.setVisibility(View.GONE);
+                    if (e != null) {
+                        tvEmptyMessages.setVisibility(View.VISIBLE);
+                        tvEmptyMessages.setText("Unable to load messages.");
+                        Toast.makeText(requireContext(), "Messages failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    messageList.clear();
+                    if (snap != null) {
+                        for (DocumentSnapshot doc : snap.getDocuments()) {
+                            String text = doc.getString("content");
+                            String senderUid = doc.getString("senderUid");
+                            String type = firstNonEmpty(doc.getString("type"), "text");
+                            if (TextUtils.isEmpty(text) && TextUtils.equals(type, "text")) {
+                                continue;
+                            }
+                            Timestamp createdAt = doc.getTimestamp("createdAt");
+                            long createdAtMillis = createdAt != null ? createdAt.toDate().getTime() : 0L;
+                            String time = formatTime(createdAtMillis);
+                            if (TextUtils.isEmpty(time)) {
+                                time = firstNonEmpty(doc.getString("timeText"), "Sending...");
+                            }
+                            String photoUrl = TextUtils.equals(senderUid, contactUid) ? receiverPhotoUrl : null;
+                            messageList.add(new Message(
+                                    doc.getId(),
+                                    firstNonEmpty(text, ""),
+                                    time,
+                                    TextUtils.equals(currentUid, senderUid),
+                                    senderUid,
+                                    photoUrl,
+                                    createdAtMillis,
+                                    type
+                            ));
+                        }
+                    }
+
+                    chatAdapter.notifyDataSetChanged();
+                    if (messageList.isEmpty()) {
+                        tvEmptyMessages.setVisibility(View.VISIBLE);
+                        tvEmptyMessages.setText("No messages yet. Start the conversation.");
+                    } else {
+                        tvEmptyMessages.setVisibility(View.GONE);
+                    }
+                    scrollToBottom();
+                    markChatRead();
+                });
+    }
+
+    private void sendMessage() {
+        String text = etMessage.getText().toString().trim();
+        if (TextUtils.isEmpty(text)) {
+            return;
+        }
+        if (TextUtils.isEmpty(currentUid) || TextUtils.isEmpty(contactUid) || TextUtils.isEmpty(chatId)) {
+            Toast.makeText(requireContext(), "Unable to send message right now.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        etMessage.setText("");
+
+        DocumentReference messageRef = db.collection("chats").document(chatId).collection("messages").document();
+        Map<String, Object> message = new HashMap<>();
+        message.put("messageId", messageRef.getId());
+        message.put("chatId", chatId);
+        message.put("senderUid", currentUid);
+        message.put("receiverUid", contactUid);
+        message.put("type", "text");
+        message.put("content", text);
+        message.put("createdAt", FieldValue.serverTimestamp());
+
+        Map<String, Object> chat = new HashMap<>();
+        chat.put("chatId", chatId);
+        chat.put("participants", Arrays.asList(currentUid, contactUid));
+        chat.put("lastMessage", text);
+        chat.put("lastMessageText", text);
+        chat.put("lastMessageType", "text");
+        chat.put("lastSenderUid", currentUid);
+        chat.put("lastMessageAt", FieldValue.serverTimestamp());
+        chat.put("updatedAt", FieldValue.serverTimestamp());
+        chat.put("createdAt", FieldValue.serverTimestamp());
+        if (!TextUtils.isEmpty(jobId)) {
+            chat.put("jobId", jobId);
+        }
+        chat.put("unreadCount." + currentUid, 0L);
+        chat.put("unreadCount." + contactUid, FieldValue.increment(1));
+
+        db.collection("chats")
+                .document(chatId)
+                .set(chat, SetOptions.merge())
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() && task.getException() != null) {
+                        throw task.getException();
+                    }
+                    return messageRef.set(message);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Message failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    etMessage.setText(text);
+                    etMessage.setSelection(etMessage.getText().length());
+                });
+    }
+
+    private void markChatRead() {
+        if (TextUtils.isEmpty(chatId) || TextUtils.isEmpty(currentUid)) return;
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("unreadCount." + currentUid, 0L);
+        updates.put("updatedAt", FieldValue.serverTimestamp());
+        db.collection("chats").document(chatId).set(updates, SetOptions.merge());
     }
 
     private void openCamera() {
@@ -256,11 +416,10 @@ public class ChatFragment extends Fragment {
 
     private void launchCameraIntent() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
         if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
             cameraLauncher.launch(intent);
         } else {
-            Toast.makeText(requireContext(), "No camera app found on this device", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "No camera app found", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -280,125 +439,24 @@ public class ChatFragment extends Fragment {
         return uid1.compareTo(uid2) < 0 ? uid1 + "_" + uid2 : uid2 + "_" + uid1;
     }
 
-    private void listenForMessages() {
-        String myUid = FirebaseDebugLogger.requireUid(requireContext(), mAuth, "chat_messages_listen");
-        if (myUid == null || TextUtils.isEmpty(contactUid)) return;
-
-        chatId = buildChatId(myUid, contactUid);
-        if (TextUtils.isEmpty(chatId)) return;
-
-        if (messageListener != null) {
-            messageListener.remove();
-            messageListener = null;
-        }
-
-        messageListener = db.collection("chats")
-                .document(chatId)
-                .collection("messages")
-                .orderBy("createdAt", Query.Direction.ASCENDING)
-                .addSnapshotListener((snap, e) -> {
-                    if (e != null) {
-                        FirebaseDebugLogger.failure("chat_messages_listen", "chats/" + chatId + "/messages", e);
-                        return;
-                    }
-
-                    messageList.clear();
-                    if (snap != null) {
-                        FirebaseDebugLogger.read("chat_messages_listen", "chats/" + chatId + "/messages", snap.size());
-                        String now = new SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date());
-                        for (DocumentSnapshot doc : snap.getDocuments()) {
-                            String text = doc.getString("content");
-                            String senderUid = doc.getString("senderUid");
-                            String time = doc.getString("timeText");
-                            if (TextUtils.isEmpty(time)) time = now;
-                            if (!TextUtils.isEmpty(text)) {
-                                messageList.add(new Message(text, time, myUid.equals(senderUid)));
-                            }
-                        }
-                    }
-                    chatAdapter.notifyDataSetChanged();
-                    scrollToBottom();
-                });
-    }
-
-    private void sendMessage() {
-        String text = etMessage.getText().toString().trim();
-        if (TextUtils.isEmpty(text)) return;
-
-        String myUid = FirebaseDebugLogger.requireUid(requireContext(), mAuth, "chat_message_send");
-        if (myUid == null || TextUtils.isEmpty(contactUid)) return;
-
-        if (TextUtils.isEmpty(chatId)) {
-            chatId = buildChatId(myUid, contactUid);
-        }
-        if (TextUtils.isEmpty(chatId)) return;
-
-        String currentTime = new SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date());
-
-        Map<String, Object> chat = new HashMap<>();
-        chat.put("chatId", chatId);
-        chat.put("participants", java.util.Arrays.asList(myUid, contactUid));
-        chat.put("lastMessage", text);
-        chat.put("lastMessageAt", FieldValue.serverTimestamp());
-        chat.put("updatedAt", FieldValue.serverTimestamp());
-
-        Map<String, Object> message = new HashMap<>();
-        message.put("chatId", chatId);
-        message.put("senderUid", myUid);
-        message.put("receiverUid", contactUid);
-        message.put("type", "text");
-        message.put("content", text);
-        message.put("timeText", currentTime);
-        message.put("createdAt", FieldValue.serverTimestamp());
-
-        etMessage.setText("");
-
-        db.collection("chats").document(chatId).set(chat, com.google.firebase.firestore.SetOptions.merge())
-                .continueWithTask(task -> {
-                    if (!task.isSuccessful() && task.getException() != null) throw task.getException();
-                    return db.collection("chats").document(chatId).collection("messages").add(message);
-                })
-                .addOnSuccessListener(docRef -> {
-                    FirebaseDebugLogger.success("chat_message_send", "chats/" + chatId + "/messages", docRef.getId());
-                })
-                .addOnFailureListener(e -> {
-                    FirebaseDebugLogger.failure("chat_message_send", "chats/" + chatId + "/messages", e);
-                    Toast.makeText(requireContext(), "Message failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-    }
-
-    private void scrollToBottom() {
-        if (rvMessages != null && !messageList.isEmpty()) {
-            rvMessages.post(() -> rvMessages.scrollToPosition(messageList.size() - 1));
-        }
-    }
-
     private void loadChatHeader() {
         if (!TextUtils.isEmpty(contactUid)) {
             db.collection("profiles")
                     .document(contactUid)
                     .get()
-                    .addOnSuccessListener(doc -> {
-                        FirebaseDebugLogger.read("chat_header_read", "profiles/" + contactUid, doc.exists() ? 1 : 0);
-                        bindProfileToHeader(doc);
-                    })
-                    .addOnFailureListener(e -> {
-                        FirebaseDebugLogger.failure("chat_header_read", "profiles/" + contactUid, e);
-                        bindHeaderFromArguments();
-                    });
+                    .addOnSuccessListener(this::bindProfileToHeader)
+                    .addOnFailureListener(e -> bindHeaderFromArguments());
             return;
         }
-
         bindHeaderFromArguments();
     }
 
     private void bindHeaderFromArguments() {
         String name = TextUtils.isEmpty(contactNameArg) ? "User" : contactNameArg.trim();
-        String role = TextUtils.isEmpty(contactRoleArg) ? "Worker" : capitalize(contactRoleArg.trim());
-
+        String role = TextUtils.isEmpty(contactRoleArg) ? "Participant" : capitalize(contactRoleArg.trim());
         tvContactName.setText(name);
         tvContactRole.setText(role);
-
+        receiverPhotoUrl = contactPhotoArg;
         loadImageIntoHeader(contactPhotoArg);
     }
 
@@ -408,37 +466,30 @@ public class ChatFragment extends Fragment {
             return;
         }
 
+        String fullName = buildDisplayName(snapshot);
+        String role = firstNonEmpty(snapshot.getString("role"), contactRoleArg, "Participant");
+        receiverPhotoUrl = firstNonEmpty(snapshot.getString("photoUrl"), snapshot.getString("photo"), snapshot.getString("avatar"), contactPhotoArg);
+
+        tvContactName.setText(firstNonEmpty(fullName, "User"));
+        tvContactRole.setText(capitalize(role));
+        loadImageIntoHeader(receiverPhotoUrl);
+    }
+
+    private String buildDisplayName(DocumentSnapshot snapshot) {
+        String displayName = snapshot.getString("displayName");
+        if (!TextUtils.isEmpty(displayName)) return displayName.trim();
         String firstName = snapshot.getString("firstName");
         String lastName = snapshot.getString("lastName");
-        String displayName = snapshot.getString("displayName");
-        String role = snapshot.getString("role");
-
-        String fullName = !TextUtils.isEmpty(displayName)
-                ? displayName.trim()
-                : ((firstName == null ? "" : firstName.trim()) + " " +
-                (lastName == null ? "" : lastName.trim())).trim();
-
-        if (TextUtils.isEmpty(fullName)) fullName = "User";
-        if (TextUtils.isEmpty(role)) role = "Worker";
-
-        tvContactName.setText(fullName);
-        tvContactRole.setText(capitalize(role));
-
-        String photoUrl = snapshot.getString("photoUrl");
-        if (TextUtils.isEmpty(photoUrl)) photoUrl = snapshot.getString("photo");
-        if (TextUtils.isEmpty(photoUrl)) photoUrl = snapshot.getString("avatar");
-
-        loadImageIntoHeader(photoUrl);
+        String full = ((firstName == null ? "" : firstName.trim()) + " " + (lastName == null ? "" : lastName.trim())).trim();
+        return TextUtils.isEmpty(full) ? null : full;
     }
 
     private void loadImageIntoHeader(@Nullable String photoUrl) {
         if (!isAdded() || ivProfileImage == null) return;
-
         if (TextUtils.isEmpty(photoUrl)) {
             ivProfileImage.setImageResource(R.drawable.photo_placeholder);
             return;
         }
-
         Glide.with(this)
                 .load(photoUrl)
                 .placeholder(R.drawable.photo_placeholder)
@@ -446,9 +497,28 @@ public class ChatFragment extends Fragment {
                 .into(ivProfileImage);
     }
 
+    private String firstNonEmpty(String... values) {
+        if (values == null) return null;
+        for (String value : values) {
+            if (!TextUtils.isEmpty(value)) return value;
+        }
+        return null;
+    }
+
     private String capitalize(String value) {
-        if (TextUtils.isEmpty(value)) return "";
-        return value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
+        if (TextUtils.isEmpty(value)) return "Participant";
+        return value.substring(0, 1).toUpperCase(Locale.getDefault()) + value.substring(1);
+    }
+
+    private String formatTime(long millis) {
+        if (millis <= 0L) return null;
+        return new SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date(millis));
+    }
+
+    private void scrollToBottom() {
+        if (rvMessages != null && !messageList.isEmpty()) {
+            rvMessages.post(() -> rvMessages.scrollToPosition(messageList.size() - 1));
+        }
     }
 
     private int dpToPx(int dp) {

@@ -67,18 +67,24 @@ public class MessageUserAdapter extends RecyclerView.Adapter<MessageUserAdapter.
             holder.ivProfile.setImageResource(R.drawable.photo_placeholder);
         }
 
-        holder.itemView.setOnClickListener(v -> listener.onUserClick(item));
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onUserClick(item);
+        });
     }
 
     @Override
     public int getItemCount() {
-        return items.size();
+        return items == null ? 0 : items.size();
     }
 
     static class UserViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivProfile;
-        View viewOnline;
-        TextView tvName, tvRole, tvMessage, tvTime, tvUnread;
+        final ImageView ivProfile;
+        final View viewOnline;
+        final TextView tvName;
+        final TextView tvRole;
+        final TextView tvMessage;
+        final TextView tvTime;
+        final TextView tvUnread;
 
         UserViewHolder(@NonNull View itemView) {
             super(itemView);
