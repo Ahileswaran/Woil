@@ -216,13 +216,7 @@ public class HomeLowFragment extends Fragment {
         ImageButton btnVideo = view.findViewById(R.id.btn_video);
 
         if (panicButton != null) {
-            panicButton.setOnClickListener(v ->
-                    startActivity(new android.content.Intent(requireContext(), PanicAlertStatusActivity.class)
-                            .putExtra("incidentType", "APP_PANIC")
-                            .putExtra("severity", "CRITICAL")
-                            .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
-                            .putExtra("state", "OPEN"))
-            );
+            panicButton.setOnClickListener(v -> openPanicAlert());
         }
 
         if (callAlert1 != null) {
@@ -271,6 +265,19 @@ public class HomeLowFragment extends Fragment {
             btnVideo.setOnClickListener(v ->
                     Toast.makeText(requireContext(), "Video action", Toast.LENGTH_SHORT).show()
             );
+        }
+    }
+
+
+    private void openPanicAlert() {
+        try {
+            startActivity(new android.content.Intent(requireContext(), PanicAlertStatusActivity.class)
+                    .putExtra("incidentType", "APP_PANIC")
+                    .putExtra("severity", "CRITICAL")
+                    .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
+                    .putExtra("state", "OPEN"));
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Unable to start emergency alert.", Toast.LENGTH_SHORT).show();
         }
     }
 

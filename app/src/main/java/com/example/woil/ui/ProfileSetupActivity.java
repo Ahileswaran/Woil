@@ -26,7 +26,6 @@ import com.example.woil.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -472,7 +471,6 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 .set(userDoc, SetOptions.merge())
                 .continueWithTask(task -> db.collection("profiles").document(uid)
                         .set(profileDoc, SetOptions.merge()))
-                .continueWithTask(task -> maybeEnqueueNicVerification(uid, first, last, nic, dob, gender, profileDoc))
                 .addOnSuccessListener(unused -> {
                     FirebaseDebugLogger.success(
                             "profile_setup_write",
@@ -494,56 +492,4 @@ public class ProfileSetupActivity extends AppCompatActivity {
                             "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
-
-private com.google.android.gms.tasks.Task<Void> maybeEnqueueNicVerification(String uid,
-                                                                            String first,
-                                                                            String last,
-                                                                            String nic,
-                                                                            String dob,
-                                                                            String gender,
-                                                                            Map<String, Object> profileDoc) {
-    if (TextUtils.isEmpty(nic)) {
-        return com.google.android.gms.tasks.Tasks.forResult(null);
-    }
-
-    final String queueStatus;
-    if (nicMatch) {
-        queueStatus = "AUTO_MATCHED_PENDING_ADMIN";
-    } else if (nicDobMatch || nicGenderMatch) {
-        queueStatus = "PENDING_MANUAL_REVIEW";
-    } else {
-        queueStatus = "MISMATCH";
-    }
-
-    Map<String, Object> queueDoc = new HashMap<>();
-    queueDoc.put("uid", uid);
-    queueDoc.put("displayName", (first + " " + last).trim());
-    queueDoc.put("nicNumberParsed", nic);
-    queueDoc.put("nicFrontUri", nicFrontUriString);
-    queueDoc.put("nicBackUri", nicBackUriString);
-    queueDoc.put("nicParsedDob", nicParsedDob);
-    queueDoc.put("nicParsedGender", nicParsedGender);
-    queueDoc.put("enteredDob", dob);
-    queueDoc.put("enteredGender", gender);
-    queueDoc.put("nicMatch", nicMatch);
-    queueDoc.put("nicDobMatch", nicDobMatch);
-    queueDoc.put("nicGenderMatch", nicGenderMatch);
-    queueDoc.put("status", queueStatus);
-    queueDoc.put("reviewReason", null);
-    queueDoc.put("submittedAt", FieldValue.serverTimestamp());
-    queueDoc.put("updatedAt", FieldValue.serverTimestamp());
-    queueDoc.put("source", "mobile_profile_setup");
-    queueDoc.put("profileLocationText", selectedMapAddress);
-
-    return db.collection("nic_verification_queue")
-            .document(uid)
-            .set(queueDoc, SetOptions.merge())
-            .continueWithTask(task -> db.collection("profiles").document(uid)
-                    .set(new HashMap<String, Object>() {{
-                        put("nicVerificationStatus", queueStatus);
-                        put("nicQueueId", uid);
-                        put("nicSubmittedAt", FieldValue.serverTimestamp());
-                    }}, SetOptions.merge()));
-}
-
 }

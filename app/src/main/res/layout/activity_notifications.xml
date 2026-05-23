@@ -40,15 +40,4 @@
         android:layout_height="match_parent"
         android:layout_marginTop="70dp"
         android:padding="16dp" />
-
-    <TextView
-        android:id="@+id/tv_empty_notifications"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:text="No notifications yet."
-        android:textColor="#6D6D6D"
-        android:padding="24dp"
-        android:visibility="gone" />
 </FrameLayout>

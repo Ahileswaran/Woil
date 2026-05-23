@@ -45,7 +45,7 @@ public class NotificationsActivity extends AppCompatActivity implements Notifica
 
         btnBack = findViewById(R.id.btn_back_arrow_settings);
         rvNotifications = findViewById(R.id.rv_notifications);
-        tvEmpty = findViewById(R.id.tv_empty_notifications);
+       // tvEmpty = findViewById(R.id.tv_empty_notifications);
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();

@@ -158,13 +158,7 @@ public class HomeMediumFragment extends Fragment {
         ImageButton btnVideo = view.findViewById(R.id.btn_video);
 
         if (panicButton != null) {
-            panicButton.setOnClickListener(v ->
-                    startActivity(new android.content.Intent(requireContext(), PanicAlertStatusActivity.class)
-                            .putExtra("incidentType", "APP_PANIC")
-                            .putExtra("severity", "CRITICAL")
-                            .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
-                            .putExtra("state", "OPEN"))
-            );
+            panicButton.setOnClickListener(v -> openPanicAlert());
         }
 
         if (profileCard != null) {
@@ -271,6 +265,19 @@ public class HomeMediumFragment extends Fragment {
         boolean expand = content.getVisibility() == View.GONE;
         content.setVisibility(expand ? View.VISIBLE : View.GONE);
         chevron.animate().rotation(expand ? 180f : 0f).setDuration(180).start();
+    }
+
+
+    private void openPanicAlert() {
+        try {
+            startActivity(new android.content.Intent(requireContext(), PanicAlertStatusActivity.class)
+                    .putExtra("incidentType", "APP_PANIC")
+                    .putExtra("severity", "CRITICAL")
+                    .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
+                    .putExtra("state", "OPEN"));
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Unable to start emergency alert.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupSwipeToSettings(@NonNull View rootView) {
