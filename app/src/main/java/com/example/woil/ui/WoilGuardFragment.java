@@ -594,7 +594,8 @@ public class WoilGuardFragment extends Fragment {
     // ----------------------------------------------------
 
     private void openCccFlow() {
-        Intent intent = new Intent(requireContext(), CccActivity.class);
+        Intent intent = new Intent(requireContext(), PanicAlertStatusActivity.class);
+        intent.putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "wearable");
         intent.putExtra("incidentType", latestIncident);
         intent.putExtra("severity", deriveSeverity(latestIncident, latestSeverity, latestFallProb, latestAudio));
         intent.putExtra("state", latestState);

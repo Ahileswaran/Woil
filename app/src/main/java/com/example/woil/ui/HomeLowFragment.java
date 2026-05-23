@@ -217,9 +217,10 @@ public class HomeLowFragment extends Fragment {
 
         if (panicButton != null) {
             panicButton.setOnClickListener(v ->
-                    startActivity(new android.content.Intent(requireContext(), CccActivity.class)
+                    startActivity(new android.content.Intent(requireContext(), PanicAlertStatusActivity.class)
                             .putExtra("incidentType", "APP_PANIC")
                             .putExtra("severity", "CRITICAL")
+                            .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
                             .putExtra("state", "OPEN"))
             );
         }

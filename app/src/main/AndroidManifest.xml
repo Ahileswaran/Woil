@@ -76,6 +76,10 @@
 
         <activity android:name=".ui.ClientJobApplicationsActivity" />
         <activity android:name=".ui.NotificationsActivity" />
+
+        <activity android:name=".ui.CoreControlCenterHubActivity" />
+        <activity android:name=".ui.EmergencyContactsActivity" />
+        <activity android:name=".ui.PanicAlertStatusActivity" />
         <activity android:name=".ui.PaymentActivity" />
         <activity android:name=".ui.PaymentSuccessActivity" />
         <activity android:name=".ui.FeedbackActivity" />
@@ -108,11 +112,6 @@
         <activity
             android:name=".ui.LoginVerifyOtpActivity"
             android:exported="false" />
-
-        <activity android:name=".ui.ClientApplicationDetailActivity" />
-        <activity android:name=".ui.CccCaseQueueActivity" />
-        <activity android:name=".ui.CccActivity" />
-        <activity android:name=".ui.DisputeReportActivity" />
 
 
 

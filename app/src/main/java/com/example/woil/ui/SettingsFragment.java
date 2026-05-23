@@ -79,6 +79,12 @@ public class SettingsFragment extends Fragment {
         ImageView languageChevron = view.findViewById(R.id.ic_language_chevron);
 
         RelativeLayout woilGuardMainRow = view.findViewById(R.id.woil_guard_main_row);
+
+        RelativeLayout cccMainRow = view.findViewById(R.id.ccc_main_row);
+        if (cccMainRow != null) {
+            cccMainRow.setOnClickListener(v ->
+                    startActivity(new android.content.Intent(requireContext(), CoreControlCenterHubActivity.class)));
+        }
         LinearLayout woilGuardExpandable = view.findViewById(R.id.woil_guard_expandable);
         ImageView woilGuardChevron = view.findViewById(R.id.ic_guard_chevron);
 

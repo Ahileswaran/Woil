@@ -813,6 +813,56 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+
+            <!-- Core Control Center -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_ccc_settings"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="3dp"
+                app:strokeColor="#ECECEC"
+                app:strokeWidth="1dp">
+
+                <RelativeLayout
+                    android:id="@+id/ccc_main_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:id="@+id/ic_ccc"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_system_blue" />
+
+                    <TextView
+                        android:id="@+id/tv_ccc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="14dp"
+                        android:layout_toEndOf="@id/ic_ccc"
+                        android:text="Core Control Center"
+                        android:textColor="#222222"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_chevron_right" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
             <!-- Privacy -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
