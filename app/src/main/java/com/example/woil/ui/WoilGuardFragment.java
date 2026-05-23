@@ -601,6 +601,7 @@ public class WoilGuardFragment extends Fragment {
         intent.putExtra("battery", latestBattery);
         intent.putExtra("motion", latestFallProb);
         intent.putExtra("audio", latestAudio);
+        intent.putExtra("source", "wearable");
         startActivity(intent);
     }
 

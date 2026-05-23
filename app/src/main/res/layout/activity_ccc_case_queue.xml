@@ -14,40 +14,46 @@
             android:id="@+id/btn_back_arrow_settings"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_alignParentStart="true"
             android:layout_marginStart="12dp"
             android:layout_marginTop="16dp"
+            android:layout_alignParentStart="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
             app:tint="@android:color/white" />
 
         <TextView
-            android:id="@+id/settings_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="28dp"
-            android:text="@string/action_notifications"
+            android:text="CCC Cases"
             android:textColor="@android:color/white"
             android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="28dp"/>
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_notifications"
+        android:id="@+id/rv_ccc_cases"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="70dp"
         android:padding="16dp" />
 
+    <ProgressBar
+        android:id="@+id/progress_cases"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
     <TextView
-        android:id="@+id/tv_empty_notifications"
+        android:id="@+id/tv_empty_cases"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:text="No notifications yet."
+        android:text="No CCC cases yet."
         android:textColor="#6D6D6D"
         android:padding="24dp"
         android:visibility="gone" />

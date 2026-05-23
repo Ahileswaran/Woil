@@ -110,6 +110,9 @@
             android:exported="false" />
 
         <activity android:name=".ui.ClientApplicationDetailActivity" />
+        <activity android:name=".ui.CccCaseQueueActivity" />
+        <activity android:name=".ui.CccActivity" />
+        <activity android:name=".ui.DisputeReportActivity" />
 
 
 
