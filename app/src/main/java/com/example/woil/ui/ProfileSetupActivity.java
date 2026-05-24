@@ -38,7 +38,7 @@ import java.util.Map;
 public class ProfileSetupActivity extends AppCompatActivity {
 
     private EditText etFirstName, etLastName, etAddress, etNic, etDob;
-    private TextView tvSelectLocation, tvSkillsLabel, tvLocationWarning;
+    private TextView tvSelectLocation, tvSkillsLabel, tvLocationWarning, tvNicStatusBadge;
     private ImageButton btnUploadNic;
     private RadioGroup rgGender;
     private RadioButton rbMale, rbFemale;
@@ -84,10 +84,13 @@ public class ProfileSetupActivity extends AppCompatActivity {
                                 nicDobMatch = data.getBooleanExtra("nicDobMatch", false);
                                 nicGenderMatch = data.getBooleanExtra("nicGenderMatch", false);
                                 nicVerificationStatus = data.getStringExtra("nicVerificationStatus");
+                                if (TextUtils.isEmpty(nicVerificationStatus)) nicVerificationStatus = "NOT_PROVIDED";
 
                                 if (!TextUtils.isEmpty(detectedNic)) {
                                     etNic.setText(detectedNic);
                                 }
+
+                                refreshNicStatusUi();
 
                                 Toast.makeText(
                                         ProfileSetupActivity.this,
@@ -122,6 +125,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                     etAddress.setText(selectedMapAddress);
                     etAddress.setError(null);
                     refreshLocationRequiredUi(false);
+        refreshNicStatusUi();
 
                     FirebaseDebugLogger.success(
                             "profile_location_selected",
@@ -151,6 +155,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         etAddress = findViewById(R.id.etAddress);
         tvSelectLocation = findViewById(R.id.tvSelectLocation);
         tvLocationWarning = findViewById(R.id.tvLocationWarning);
+        tvNicStatusBadge = findViewById(R.id.tvNicStatusBadge);
         etNic = findViewById(R.id.etNic);
         btnUploadNic = findViewById(R.id.btnUploadNic);
         rgGender = findViewById(R.id.rgGender);
@@ -194,6 +199,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         etAddress.setFocusable(false);
         etAddress.setCursorVisible(false);
         refreshLocationRequiredUi(false);
+        refreshNicStatusUi();
 
         etDob.setOnClickListener(v -> showDatePicker());
 
@@ -219,6 +225,38 @@ public class ProfileSetupActivity extends AppCompatActivity {
             } else {
                 tvSelectLocation.setText("Select location on the map *");
                 tvSelectLocation.setTextColor(showWarning ? Color.parseColor("#DC2626") : Color.parseColor("#F59E0B"));
+            }
+        }
+    }
+
+
+    private void refreshNicStatusUi() {
+        if (tvNicStatusBadge != null) {
+            if ("AUTO_MATCHED_PENDING_ADMIN".equalsIgnoreCase(nicVerificationStatus)) {
+                tvNicStatusBadge.setVisibility(View.VISIBLE);
+                tvNicStatusBadge.setText("Auto matched • pending admin review");
+                tvNicStatusBadge.setTextColor(Color.parseColor("#166534"));
+                tvNicStatusBadge.setBackgroundResource(R.drawable.pending_pill_bg);
+            } else if ("MISMATCH".equalsIgnoreCase(nicVerificationStatus)) {
+                tvNicStatusBadge.setVisibility(View.VISIBLE);
+                tvNicStatusBadge.setText("NIC details mismatch");
+                tvNicStatusBadge.setTextColor(Color.parseColor("#B91C1C"));
+                tvNicStatusBadge.setBackgroundResource(R.drawable.pending_pill_bg);
+            } else if (!TextUtils.isEmpty(nicVerificationStatus) && !"NOT_PROVIDED".equalsIgnoreCase(nicVerificationStatus)) {
+                tvNicStatusBadge.setVisibility(View.VISIBLE);
+                tvNicStatusBadge.setText(nicVerificationStatus.replace('_', ' '));
+                tvNicStatusBadge.setTextColor(Color.parseColor("#1D4ED8"));
+                tvNicStatusBadge.setBackgroundResource(R.drawable.pending_pill_bg);
+            } else {
+                tvNicStatusBadge.setVisibility(View.GONE);
+            }
+        }
+
+        if (btnSubmit != null) {
+            if ("AUTO_MATCHED_PENDING_ADMIN".equalsIgnoreCase(nicVerificationStatus)) {
+                btnSubmit.setText("Use this result to proceed");
+            } else {
+                btnSubmit.setText("Submit Profile");
             }
         }
     }
@@ -467,14 +505,38 @@ public class ProfileSetupActivity extends AppCompatActivity {
             profileDoc.put("skill", skill);
         }
 
+        Map<String, Object> queueDoc = new HashMap<>();
+        queueDoc.put("uid", uid);
+        queueDoc.put("displayName", (first + " " + last).trim());
+        queueDoc.put("nicNumber", nic);
+        queueDoc.put("nicFrontUri", nicFrontUriString);
+        queueDoc.put("nicBackUri", nicBackUriString);
+        queueDoc.put("nicParsedDob", nicParsedDob);
+        queueDoc.put("nicParsedGender", nicParsedGender);
+        queueDoc.put("nicMatch", nicMatch);
+        queueDoc.put("nicDobMatch", nicDobMatch);
+        queueDoc.put("nicGenderMatch", nicGenderMatch);
+        queueDoc.put("status", TextUtils.isEmpty(nic) ? "NOT_PROVIDED" : profileDoc.get("nicVerificationStatus"));
+        queueDoc.put("submittedAt", FieldValue.serverTimestamp());
+        queueDoc.put("reviewedAt", null);
+        queueDoc.put("reviewedBy", null);
+        queueDoc.put("reviewReason", null);
+
         db.collection("users").document(uid)
                 .set(userDoc, SetOptions.merge())
                 .continueWithTask(task -> db.collection("profiles").document(uid)
                         .set(profileDoc, SetOptions.merge()))
+                .continueWithTask(task -> {
+                    if (TextUtils.isEmpty(nic)) {
+                        return com.google.android.gms.tasks.Tasks.forResult(null);
+                    }
+                    return db.collection("nic_verification_queue").document(uid)
+                            .set(queueDoc, SetOptions.merge());
+                })
                 .addOnSuccessListener(unused -> {
                     FirebaseDebugLogger.success(
                             "profile_setup_write",
-                            "users/" + uid + ", profiles/" + uid,
+                            "users/" + uid + ", profiles/" + uid + ", nic_verification_queue/" + uid,
                             "location=" + selectedLatitude + "," + selectedLongitude + ", area=" + finalArea + ", province=" + finalProvince
                     );
                     Toast.makeText(ProfileSetupActivity.this,
@@ -487,7 +549,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    FirebaseDebugLogger.failure("profile_setup_write", "users/" + uid + ", profiles/" + uid, e);
+                    FirebaseDebugLogger.failure("profile_setup_write", "users/" + uid + ", profiles/" + uid + ", nic_verification_queue/" + uid, e);
                     Toast.makeText(ProfileSetupActivity.this,
                             "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });

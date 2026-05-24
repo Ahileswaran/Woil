@@ -295,6 +295,22 @@
 
                             </RelativeLayout>
 
+                            <TextView
+                                android:id="@+id/tvNicStatusBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:background="@drawable/pending_pill_bg"
+                                android:paddingStart="12dp"
+                                android:paddingTop="6dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="6dp"
+                                android:text="Auto matched • pending admin review"
+                                android:textColor="#166534"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:visibility="gone" />
+
 
                             <TextView
                                 android:layout_width="wrap_content"
