@@ -3,8 +3,10 @@ package com.example.woil.ui;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -28,6 +30,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
 import java.util.Calendar;
 import java.util.Collections;
@@ -36,6 +43,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ProfileSetupActivity extends AppCompatActivity {
+
+    private static final String TAG = "NIC_UPLOAD";
 
     private EditText etFirstName, etLastName, etAddress, etNic, etDob;
     private TextView tvSelectLocation, tvSkillsLabel, tvLocationWarning, tvNicStatusBadge;
@@ -65,6 +74,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private FirebaseStorage storage;
 
     private final ActivityResultLauncher<Intent> nicVerificationLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -90,6 +100,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                                     etNic.setText(detectedNic);
                                 }
 
+                                Log.d(TAG, "NIC result received. frontUri=" + nicFrontUriString + ", backUri=" + nicBackUriString + ", status=" + nicVerificationStatus + ", match=" + nicMatch);
                                 refreshNicStatusUi();
 
                                 Toast.makeText(
@@ -168,6 +179,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance("gs://woil-f8f1c.firebasestorage.app");
 
         if (getIntent() != null && getIntent().hasExtra("role")) {
             String incomingRole = getIntent().getStringExtra("role");
@@ -429,6 +441,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         writeProfileToFirestore(first, last, address, nic, dob, gender, skill);
     }
 
+
     private void writeProfileToFirestore(String first, String last, String address, String nic,
                                          String dob, String gender, String skill) {
         String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
@@ -437,103 +450,138 @@ public class ProfileSetupActivity extends AppCompatActivity {
             return;
         }
 
+        btnSubmit.setEnabled(false);
+
         Map<String, Object> locationMap = new HashMap<>();
         locationMap.put("lat", selectedLatitude);
         locationMap.put("lng", selectedLongitude);
 
         String finalArea = !TextUtils.isEmpty(selectedArea) ? selectedArea : extractArea(address);
         String finalProvince = !TextUtils.isEmpty(selectedProvince) ? selectedProvince : extractProvince(address);
+        String displayName = (first + " " + last).trim();
 
-        Map<String, Object> userDoc = new HashMap<>();
-        userDoc.put("uid", uid);
-        userDoc.put("role", role);
-        userDoc.put("nicVerified", false);
-        userDoc.put("location", locationMap);
-        userDoc.put("locationText", address);
-        userDoc.put("address", address);
-        userDoc.put("area", finalArea);
-        userDoc.put("province", finalProvince);
-        userDoc.put("lastSeenAt", FieldValue.serverTimestamp());
+        Log.d(TAG, "submitProfile -> starting save for uid=" + uid + ", nicProvided=" + !TextUtils.isEmpty(nic) + ", frontUri=" + nicFrontUriString + ", backUri=" + nicBackUriString);
+        uploadNicImagesAndSave(uid, displayName, first, last, address, nic, dob, gender, skill,
+                finalArea, finalProvince, locationMap);
+    }
 
-        Map<String, Object> nicProcessingConsent = new HashMap<>();
-        nicProcessingConsent.put("given", !TextUtils.isEmpty(nic));
-        nicProcessingConsent.put("version", "v1.0");
-        nicProcessingConsent.put("at", FieldValue.serverTimestamp());
+    private void uploadNicImagesAndSave(String uid,
+                                        String displayName,
+                                        String first,
+                                        String last,
+                                        String address,
+                                        String nic,
+                                        String dob,
+                                        String gender,
+                                        String skill,
+                                        String finalArea,
+                                        String finalProvince,
+                                        Map<String, Object> locationMap) {
 
-        Map<String, Object> consent = new HashMap<>();
-        consent.put("nicProcessing", nicProcessingConsent);
+        Log.d(TAG, "uploadNicImagesAndSave -> uid=" + uid + ", frontUri=" + nicFrontUriString + ", backUri=" + nicBackUriString);
+        Task<String> frontUrlTask = uploadSingleNicImage(uid, nicFrontUriString, "front");
+        Task<String> backUrlTask = uploadSingleNicImage(uid, nicBackUriString, "back");
 
-        Map<String, Object> profileDoc = new HashMap<>();
-        profileDoc.put("uid", uid);
-        profileDoc.put("firstName", first);
-        profileDoc.put("lastName", last);
-        profileDoc.put("displayName", (first + " " + last).trim());
-        profileDoc.put("location", locationMap);
-        profileDoc.put("lat", selectedLatitude);
-        profileDoc.put("lng", selectedLongitude);
-        profileDoc.put("locationText", address);
-        profileDoc.put("address", address);
-        profileDoc.put("area", finalArea);
-        profileDoc.put("province", finalProvince);
-        profileDoc.put("mapSnapshotPath", selectedMapSnapshotPath);
-        profileDoc.put("role", role);
-        profileDoc.put("isWorker", "worker".equalsIgnoreCase(role));
-
-        profileDoc.put("dob", dob);
-        profileDoc.put("gender", gender);
-
-        profileDoc.put("nicNumber", nic);
-        profileDoc.put("nicFrontUri", nicFrontUriString);
-        profileDoc.put("nicBackUri", nicBackUriString);
-        profileDoc.put("nicParsedDob", nicParsedDob);
-        profileDoc.put("nicParsedGender", nicParsedGender);
-        profileDoc.put("nicMatch", nicMatch);
-        profileDoc.put("nicDobMatch", nicDobMatch);
-        profileDoc.put("nicGenderMatch", nicGenderMatch);
-        profileDoc.put("nicVerificationStatus",
-                TextUtils.isEmpty(nic) ? "NOT_PROVIDED" : nicVerificationStatus);
-        profileDoc.put("nicVerified", false);
-        profileDoc.put("nicParsedAt", FieldValue.serverTimestamp());
-
-        profileDoc.put("consent", consent);
-        profileDoc.put("profileCompleted", true);
-        profileDoc.put("createdAt", FieldValue.serverTimestamp());
-        profileDoc.put("memberSince", FieldValue.serverTimestamp());
-
-        if ("worker".equalsIgnoreCase(role)) {
-            profileDoc.put("skills", Collections.singletonList(skill.toLowerCase(Locale.US)));
-            profileDoc.put("skill", skill);
-        }
-
-        Map<String, Object> queueDoc = new HashMap<>();
-        queueDoc.put("uid", uid);
-        queueDoc.put("displayName", (first + " " + last).trim());
-        queueDoc.put("nicNumber", nic);
-        queueDoc.put("nicFrontUri", nicFrontUriString);
-        queueDoc.put("nicBackUri", nicBackUriString);
-        queueDoc.put("nicParsedDob", nicParsedDob);
-        queueDoc.put("nicParsedGender", nicParsedGender);
-        queueDoc.put("nicMatch", nicMatch);
-        queueDoc.put("nicDobMatch", nicDobMatch);
-        queueDoc.put("nicGenderMatch", nicGenderMatch);
-        queueDoc.put("status", TextUtils.isEmpty(nic) ? "NOT_PROVIDED" : profileDoc.get("nicVerificationStatus"));
-        queueDoc.put("submittedAt", FieldValue.serverTimestamp());
-        queueDoc.put("reviewedAt", null);
-        queueDoc.put("reviewedBy", null);
-        queueDoc.put("reviewReason", null);
-
-        db.collection("users").document(uid)
-                .set(userDoc, SetOptions.merge())
-                .continueWithTask(task -> db.collection("profiles").document(uid)
-                        .set(profileDoc, SetOptions.merge()))
+        Tasks.whenAllSuccess(frontUrlTask, backUrlTask)
                 .continueWithTask(task -> {
-                    if (TextUtils.isEmpty(nic)) {
-                        return com.google.android.gms.tasks.Tasks.forResult(null);
+                    String nicFrontDownloadUrl = task.getResult().size() > 0 ? (String) task.getResult().get(0) : null;
+                    String nicBackDownloadUrl = task.getResult().size() > 1 ? (String) task.getResult().get(1) : null;
+                    Log.d(TAG, "Upload finished. frontUrl=" + nicFrontDownloadUrl + ", backUrl=" + nicBackDownloadUrl);
+
+                    Map<String, Object> userDoc = new HashMap<>();
+                    userDoc.put("uid", uid);
+                    userDoc.put("role", role);
+                    userDoc.put("nicVerified", false);
+                    userDoc.put("location", locationMap);
+                    userDoc.put("locationText", address);
+                    userDoc.put("address", address);
+                    userDoc.put("area", finalArea);
+                    userDoc.put("province", finalProvince);
+                    userDoc.put("lastSeenAt", FieldValue.serverTimestamp());
+
+                    Map<String, Object> nicProcessingConsent = new HashMap<>();
+                    nicProcessingConsent.put("given", !TextUtils.isEmpty(nic));
+                    nicProcessingConsent.put("version", "v1.0");
+                    nicProcessingConsent.put("at", FieldValue.serverTimestamp());
+
+                    Map<String, Object> consent = new HashMap<>();
+                    consent.put("nicProcessing", nicProcessingConsent);
+
+                    Map<String, Object> profileDoc = new HashMap<>();
+                    profileDoc.put("uid", uid);
+                    profileDoc.put("firstName", first);
+                    profileDoc.put("lastName", last);
+                    profileDoc.put("displayName", displayName);
+                    profileDoc.put("location", locationMap);
+                    profileDoc.put("lat", selectedLatitude);
+                    profileDoc.put("lng", selectedLongitude);
+                    profileDoc.put("locationText", address);
+                    profileDoc.put("address", address);
+                    profileDoc.put("area", finalArea);
+                    profileDoc.put("province", finalProvince);
+                    profileDoc.put("mapSnapshotPath", selectedMapSnapshotPath);
+                    profileDoc.put("role", role);
+                    profileDoc.put("isWorker", "worker".equalsIgnoreCase(role));
+                    profileDoc.put("dob", dob);
+                    profileDoc.put("gender", gender);
+                    profileDoc.put("nicNumber", nic);
+                    profileDoc.put("nicFrontUri", nicFrontUriString);
+                    profileDoc.put("nicBackUri", nicBackUriString);
+                    profileDoc.put("nicFrontUrl", nicFrontDownloadUrl);
+                    profileDoc.put("nicBackUrl", nicBackDownloadUrl);
+                    profileDoc.put("nicParsedDob", nicParsedDob);
+                    profileDoc.put("nicParsedGender", nicParsedGender);
+                    profileDoc.put("nicMatch", nicMatch);
+                    profileDoc.put("nicDobMatch", nicDobMatch);
+                    profileDoc.put("nicGenderMatch", nicGenderMatch);
+                    profileDoc.put("nicVerificationStatus", TextUtils.isEmpty(nic) ? "NOT_PROVIDED" : nicVerificationStatus);
+                    profileDoc.put("nicVerified", false);
+                    profileDoc.put("nicParsedAt", FieldValue.serverTimestamp());
+                    profileDoc.put("consent", consent);
+                    profileDoc.put("profileCompleted", true);
+                    profileDoc.put("createdAt", FieldValue.serverTimestamp());
+                    profileDoc.put("memberSince", FieldValue.serverTimestamp());
+
+                    if ("worker".equalsIgnoreCase(role)) {
+                        profileDoc.put("skills", Collections.singletonList(skill.toLowerCase(Locale.US)));
+                        profileDoc.put("skill", skill);
                     }
-                    return db.collection("nic_verification_queue").document(uid)
-                            .set(queueDoc, SetOptions.merge());
+
+                    Map<String, Object> queueDoc = new HashMap<>();
+                    queueDoc.put("uid", uid);
+                    queueDoc.put("displayName", displayName);
+                    queueDoc.put("nicNumber", nic);
+                    queueDoc.put("nicFrontUri", nicFrontUriString);
+                    queueDoc.put("nicBackUri", nicBackUriString);
+                    queueDoc.put("nicFrontUrl", nicFrontDownloadUrl);
+                    queueDoc.put("nicBackUrl", nicBackDownloadUrl);
+                    queueDoc.put("nicParsedDob", nicParsedDob);
+                    queueDoc.put("nicParsedGender", nicParsedGender);
+                    queueDoc.put("nicMatch", nicMatch);
+                    queueDoc.put("nicDobMatch", nicDobMatch);
+                    queueDoc.put("nicGenderMatch", nicGenderMatch);
+                    queueDoc.put("status", TextUtils.isEmpty(nic) ? "NOT_PROVIDED" : profileDoc.get("nicVerificationStatus"));
+                    queueDoc.put("submittedAt", FieldValue.serverTimestamp());
+                    queueDoc.put("reviewedAt", null);
+                    queueDoc.put("reviewedBy", null);
+                    queueDoc.put("reviewReason", null);
+
+                    Log.d(TAG, "Writing Firestore docs for uid=" + uid + " with nicFrontUrl=" + nicFrontDownloadUrl + " and nicBackUrl=" + nicBackDownloadUrl);
+                    return db.collection("users").document(uid)
+                            .set(userDoc, SetOptions.merge())
+                            .continueWithTask(t -> db.collection("profiles").document(uid)
+                                    .set(profileDoc, SetOptions.merge()))
+                            .continueWithTask(t -> {
+                                if (TextUtils.isEmpty(nic)) {
+                                    return Tasks.forResult(null);
+                                }
+                                return db.collection("nic_verification_queue").document(uid)
+                                        .set(queueDoc, SetOptions.merge());
+                            });
                 })
                 .addOnSuccessListener(unused -> {
+                    btnSubmit.setEnabled(true);
+                    Log.d(TAG, "Firestore write success for uid=" + uid);
                     FirebaseDebugLogger.success(
                             "profile_setup_write",
                             "users/" + uid + ", profiles/" + uid + ", nic_verification_queue/" + uid,
@@ -549,9 +597,55 @@ public class ProfileSetupActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> {
+                    btnSubmit.setEnabled(true);
+                    Log.e(TAG, "Profile save failed for uid=" + uid, e);
                     FirebaseDebugLogger.failure("profile_setup_write", "users/" + uid + ", profiles/" + uid + ", nic_verification_queue/" + uid, e);
                     Toast.makeText(ProfileSetupActivity.this,
                             "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
+
+    private Task<String> uploadSingleNicImage(String uid, String localUriString, String side) {
+        if (TextUtils.isEmpty(localUriString)) {
+            Log.d(TAG, "uploadSingleNicImage skipped for " + side + " because uri is empty");
+            return Tasks.forResult(null);
+        }
+        try {
+            Uri localUri = Uri.parse(localUriString);
+            String extension = guessExtension(localUriString);
+            Log.d(TAG, "Uploading " + side + " image from uri=" + localUriString);
+            StorageReference ref = storage.getReference()
+                    .child("nic_verifications")
+                    .child(uid)
+                    .child(side + "_" + System.currentTimeMillis() + extension);
+
+            return ref.putFile(localUri)
+                    .continueWithTask(task -> {
+                        if (!task.isSuccessful()) {
+                            Log.e(TAG, "Upload task failed for " + side, task.getException());
+                            throw task.getException() != null ? task.getException() : new RuntimeException("NIC upload failed");
+                        }
+                        return ref.getDownloadUrl();
+                    })
+                    .continueWith(task -> {
+                        String url = task.getResult() != null ? task.getResult().toString() : null;
+                        Log.d(TAG, "Download URL fetched for " + side + ": " + url);
+                        return url;
+                    });
+        } catch (Exception e) {
+            Log.e(TAG, "uploadSingleNicImage exception for " + side + " uri=" + localUriString, e);
+            return Tasks.forException(e);
+        }
+    }
+
+    private String guessExtension(String uriString) {
+        if (TextUtils.isEmpty(uriString)) return ".jpg";
+        String lower = uriString.toLowerCase(Locale.US);
+        if (lower.contains(".png")) return ".png";
+        if (lower.contains(".webp")) return ".webp";
+        if (lower.contains(".jpeg")) return ".jpeg";
+        if (lower.contains(".jpg")) return ".jpg";
+        return ".jpg";
+    }
+
 }
