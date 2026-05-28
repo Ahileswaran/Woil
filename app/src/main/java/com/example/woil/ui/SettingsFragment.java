@@ -79,6 +79,11 @@ public class SettingsFragment extends Fragment {
         ImageView languageChevron = view.findViewById(R.id.ic_language_chevron);
 
         RelativeLayout woilGuardMainRow = view.findViewById(R.id.woil_guard_main_row);
+
+        RelativeLayout cccMainRow = view.findViewById(R.id.ccc_main_row);
+        if (cccMainRow != null) {
+            cccMainRow.setOnClickListener(v -> openCoreControlCenter());
+        }
         LinearLayout woilGuardExpandable = view.findViewById(R.id.woil_guard_expandable);
         ImageView woilGuardChevron = view.findViewById(R.id.ic_guard_chevron);
 
@@ -207,6 +212,15 @@ public class SettingsFragment extends Fragment {
         }, 400);
 
         return view;
+    }
+
+
+    private void openCoreControlCenter() {
+        try {
+            startActivity(new android.content.Intent(requireContext(), CoreControlCenterHubActivity.class));
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Unable to open Core Control Center.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void bindExpandable(@Nullable View mainRow,

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="70dp" android:background="@drawable/bg_orange_gradient">
+        <ImageButton android:id="@+id/btn_back_arrow_settings" android:layout_width="40dp" android:layout_height="40dp" android:layout_alignParentStart="true" android:layout_marginStart="12dp" android:layout_marginTop="16dp" android:background="?attr/selectableItemBackgroundBorderless" android:padding="8dp" android:src="@drawable/ic_arrow_back" app:tint="@android:color/white" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerHorizontal="true" android:layout_marginTop="28dp" android:text="Application details" android:textColor="@android:color/white" android:textSize="22sp" android:textStyle="bold" />
+    </RelativeLayout>
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="70dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+            <ImageView android:id="@+id/iv_worker" android:layout_width="88dp" android:layout_height="88dp" android:layout_gravity="center_horizontal" android:src="@drawable/ic_person" android:contentDescription="worker image" />
+            <TextView android:id="@+id/tv_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center" android:text="Worker name" android:textColor="#222222" android:textSize="22sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tv_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:gravity="center" android:text="Status: PENDING" android:textColor="#FF8A00" android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tv_role" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Worker" android:textColor="#6D6D6D" android:textSize="14sp" android:gravity="center" />
+            <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" app:cardCornerRadius="16dp" app:cardElevation="3dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                    <TextView android:id="@+id/tv_job_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Job title" android:textStyle="bold" android:textSize="16sp" android:textColor="#1E1E1E"/>
+                    <TextView android:id="@+id/tv_category" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Category: cleaning" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tv_rating" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Rating 4.6" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tv_jobs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Completed jobs: 12" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tv_distance" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Distance: 2.4 km" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tv_eta" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Estimated arrival: 14 min" android:textColor="#555555"/>
+                    <TextView android:id="@+id/tv_location" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Colombo, Sri Lanka" android:textColor="#555555"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_message_worker" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="18dp" android:text="Message worker" android:textAllCaps="false" android:textColor="@android:color/white" app:backgroundTint="#1565C0" app:cornerRadius="14dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="horizontal">
+                <com.google.android.material.button.MaterialButton android:id="@+id/btn_reject_detail" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="Reject" android:textAllCaps="false" app:backgroundTint="#E0E0E0" app:cornerRadius="14dp" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btn_accept_detail" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="10dp" android:text="Accept" android:textAllCaps="false" android:textColor="@android:color/white" app:backgroundTint="#FF8A00" app:cornerRadius="14dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

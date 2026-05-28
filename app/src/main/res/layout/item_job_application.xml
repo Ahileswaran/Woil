@@ -6,76 +6,33 @@
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:padding="16dp">
-
-        <TextView
-            android:id="@+id/tv_worker_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/worker_name"
-            android:textColor="#1E1E1E"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_worker_rating"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/rating_4_6"
-            android:textColor="#5F5F5F"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_worker_jobs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/completed_jobs_12"
-            android:textColor="#5F5F5F"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_application_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/status_pending"
-            android:textColor="#FF8A00"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
+        <ImageView
+            android:id="@+id/iv_worker_photo"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_person"
+            android:scaleType="centerCrop"
+            android:contentDescription="worker photo" />
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="end"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_reject"
-                android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:text="@string/reject"
-                android:textAllCaps="false"
-                app:backgroundTint="#E0E0E0"
-                app:cornerRadius="12dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_accept"
-                android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:layout_marginStart="8dp"
-                android:text="@string/accept"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                app:backgroundTint="#FF8A00"
-                app:cornerRadius="12dp" />
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+            <TextView android:id="@+id/tv_worker_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Worker name" android:textColor="#1E1E1E" android:textSize="18sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tv_worker_rating" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Rating 4.6 • 12 jobs" android:textColor="#5F5F5F" android:textSize="14sp" />
+            <TextView android:id="@+id/tv_worker_jobs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Worker • Colombo" android:textColor="#5F5F5F" android:textSize="14sp" />
+            <TextView android:id="@+id/tv_application_meta" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="cleaning • 2.4 km • 14 min • recently" android:textColor="#6D6D6D" android:textSize="13sp" />
+            <TextView android:id="@+id/tv_application_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Status: PENDING" android:textColor="#FF8A00" android:textSize="14sp" android:textStyle="bold" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="end" android:orientation="horizontal">
+                <com.google.android.material.button.MaterialButton android:id="@+id/btn_reject" android:layout_width="wrap_content" android:layout_height="40dp" android:text="Reject" android:textAllCaps="false" app:backgroundTint="#E0E0E0" app:cornerRadius="12dp" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btn_accept" android:layout_width="wrap_content" android:layout_height="40dp" android:layout_marginStart="8dp" android:text="Accept" android:textAllCaps="false" android:textColor="@android:color/white" app:backgroundTint="#FF8A00" app:cornerRadius="12dp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

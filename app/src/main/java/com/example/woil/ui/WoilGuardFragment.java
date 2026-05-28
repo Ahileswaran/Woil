@@ -190,7 +190,7 @@ public class WoilGuardFragment extends Fragment {
             }
         });
 
-        btnConfirmAlert.setOnClickListener(v -> openCccFlow());
+        btnConfirmAlert.setOnClickListener(v -> openPanicAlert());
     }
 
     private void startAutoRefresh() {
@@ -593,14 +593,16 @@ public class WoilGuardFragment extends Fragment {
     // CCC FLOW HOOK
     // ----------------------------------------------------
 
-    private void openCccFlow() {
-        Intent intent = new Intent(requireContext(), CccActivity.class);
+    private void openPanicAlert() {
+        Intent intent = new Intent(requireContext(), PanicAlertStatusActivity.class);
+        intent.putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "wearable");
         intent.putExtra("incidentType", latestIncident);
         intent.putExtra("severity", deriveSeverity(latestIncident, latestSeverity, latestFallProb, latestAudio));
         intent.putExtra("state", latestState);
         intent.putExtra("battery", latestBattery);
         intent.putExtra("motion", latestFallProb);
         intent.putExtra("audio", latestAudio);
+        intent.putExtra("source", "wearable");
         startActivity(intent);
     }
 
@@ -743,3 +745,5 @@ public class WoilGuardFragment extends Fragment {
         cmdCharacteristic = null;
     }
 }
+
+    //private String firstNonEmpty(String a, String fallback) { return (a == null || a.trim().isEmpty()) ? fallback : a; }

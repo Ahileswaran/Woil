@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +50,7 @@ public class ProfileFragment extends Fragment {
 
     private CircleImageView ivProfile;
     private TextView tvUsername, tvSubtitle, tvRatingValue, tvJobsValue, tvMemberSince;
+    private ImageView ivVerifiedBadge;
     private TextView tvFullName, tvPhone, tvLocation;
     private Button btnEditProfile;
     private ImageButton btnBack;
@@ -110,6 +112,7 @@ public class ProfileFragment extends Fragment {
 
         ivProfile = view.findViewById(R.id.profile_image_main);
         tvUsername = view.findViewById(R.id.username);
+        ivVerifiedBadge = view.findViewById(R.id.verified_badge);
         tvSubtitle = view.findViewById(R.id.subtitle);
         tvRatingValue = view.findViewById(R.id.rating_value);
         tvJobsValue = view.findViewById(R.id.jobs_value);
@@ -344,6 +347,7 @@ public class ProfileFragment extends Fragment {
 
     private void setPlaceholders() {
         if (tvUsername != null) tvUsername.setText("—");
+        if (ivVerifiedBadge != null) ivVerifiedBadge.setVisibility(View.GONE);
         if (tvSubtitle != null) tvSubtitle.setText("Worker · —");
         if (tvRatingValue != null) tvRatingValue.setText("★ —");
         if (tvJobsValue != null) tvJobsValue.setText("0");
@@ -414,6 +418,7 @@ public class ProfileFragment extends Fragment {
         if (Boolean.TRUE.equals(userNicVerified) && tvPending != null) {
             tvPending.setText("✔ Verified");
             tvPending.setTextColor(Color.parseColor("#2E7D32"));
+            if (ivVerifiedBadge != null) ivVerifiedBadge.setVisibility(View.VISIBLE);
         }
 
         if (tvSubtitle != null && !TextUtils.isEmpty(role) && tvSubtitle.getText() != null) {
@@ -534,6 +539,7 @@ public class ProfileFragment extends Fragment {
         }
 
         if (Boolean.TRUE.equals(nicVerified)) {
+            if (ivVerifiedBadge != null) ivVerifiedBadge.setVisibility(View.VISIBLE);
             if (tvPending != null) {
                 tvPending.setText("✔ Verified");
                 tvPending.setTextColor(Color.parseColor("#2E7D32"));
@@ -542,6 +548,7 @@ public class ProfileFragment extends Fragment {
                 tvVerificationSubtitle.setText("NIC manually approved");
             }
         } else if ("AUTO_MATCHED_PENDING_ADMIN".equals(nicVerificationStatus)) {
+            if (ivVerifiedBadge != null) ivVerifiedBadge.setVisibility(View.GONE);
             if (tvPending != null) {
                 tvPending.setText("⏱ Pending");
                 tvPending.setTextColor(Color.parseColor("#6B4B00"));
@@ -550,6 +557,7 @@ public class ProfileFragment extends Fragment {
                 tvVerificationSubtitle.setText("Auto-matched. Awaiting admin review");
             }
         } else if ("MISMATCH".equals(nicVerificationStatus)) {
+            if (ivVerifiedBadge != null) ivVerifiedBadge.setVisibility(View.GONE);
             if (tvPending != null) {
                 tvPending.setText("⚠ Mismatch");
                 tvPending.setTextColor(Color.parseColor("#C62828"));
@@ -558,6 +566,7 @@ public class ProfileFragment extends Fragment {
                 tvVerificationSubtitle.setText("Entered details do not match NIC data");
             }
         } else if ("NOT_PROVIDED".equals(nicVerificationStatus) || TextUtils.isEmpty(nicVerificationStatus)) {
+            if (ivVerifiedBadge != null) ivVerifiedBadge.setVisibility(View.GONE);
             if (tvPending != null) {
                 tvPending.setText("— Not provided");
                 tvPending.setTextColor(Color.parseColor("#666666"));
@@ -565,6 +574,13 @@ public class ProfileFragment extends Fragment {
             if (tvVerificationSubtitle != null) {
                 tvVerificationSubtitle.setText("NIC not submitted");
             }
+        }
+
+        if (!Boolean.TRUE.equals(nicVerified)
+                && !"AUTO_MATCHED_PENDING_ADMIN".equals(nicVerificationStatus)
+                && !"MISMATCH".equals(nicVerificationStatus)
+                && !("NOT_PROVIDED".equals(nicVerificationStatus) || TextUtils.isEmpty(nicVerificationStatus))) {
+            if (ivVerifiedBadge != null) ivVerifiedBadge.setVisibility(View.GONE);
         }
 
         String photoUrl = snap.getString("photoUrl");

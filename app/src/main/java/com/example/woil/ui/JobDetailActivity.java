@@ -66,6 +66,7 @@ public class JobDetailActivity extends AppCompatActivity {
     private Double currentWageSuggested;
     private String currentTimeText;
     private String currentLocationText;
+    private String currentCategory;
 
     private final SimpleDateFormat fmt =
             new SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault());
@@ -349,6 +350,7 @@ public class JobDetailActivity extends AppCompatActivity {
         intent.putExtra("wageText", currentWageText);
         intent.putExtra("timeText", currentTimeText);
         intent.putExtra("locationText", currentLocationText);
+        intent.putExtra("category", currentCategory);
 
         if (currentWageSuggested != null) {
             intent.putExtra("wageSuggested", currentWageSuggested);
