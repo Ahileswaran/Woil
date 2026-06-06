@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,12 +27,18 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 public class SkillShowcaseActivity extends AppCompatActivity implements SkillVideoAdapter.OnVideoActionListener {
+
+    private static final String TAG = "SkillShowcaseActivity";
 
     private RecyclerView recyclerSkillVideos;
     private TextView txtEmptyState;
@@ -47,8 +54,16 @@ public class SkillShowcaseActivity extends AppCompatActivity implements SkillVid
 
     private final ActivityResultLauncher<Intent> uploadLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                Log.d(TAG, "Upload activity returned resultCode=" + result.getResultCode());
                 if (result.getResultCode() == RESULT_OK) {
+                    FirebaseDebugLogger.success("skill_video_upload_flow", "UploadSkillVideoActivity", "RESULT_OK");
                     loadVideosFromFirebase();
+                } else {
+                    FirebaseDebugLogger.failure(
+                            "skill_video_upload_flow",
+                            "UploadSkillVideoActivity",
+                            new RuntimeException("Upload activity returned non-OK result: " + result.getResultCode())
+                    );
                 }
             });
 
@@ -74,7 +89,11 @@ public class SkillShowcaseActivity extends AppCompatActivity implements SkillVid
         recyclerSkillVideos.setAdapter(adapter);
 
         btnBack.setOnClickListener(v -> finish());
-        btnAddVideo.setOnClickListener(v -> uploadLauncher.launch(new Intent(this, UploadSkillVideoActivity.class)));
+        btnAddVideo.setOnClickListener(v -> {
+            Log.d(TAG, "Add video clicked. Opening UploadSkillVideoActivity");
+            FirebaseDebugLogger.success("skill_video_add_click", "UploadSkillVideoActivity", "launch");
+            uploadLauncher.launch(new Intent(this, UploadSkillVideoActivity.class));
+        });
 
         updateEmptyState();
         loadVideosFromFirebase();
@@ -89,39 +108,115 @@ public class SkillShowcaseActivity extends AppCompatActivity implements SkillVid
             videosListener = null;
         }
 
-        videosListener = db.collection("profile_showcase_skill_videos")
-                .whereEqualTo("uid", uid)
-                .orderBy("uploadedAt", Query.Direction.DESCENDING)
-                .addSnapshotListener((snap, e) -> {
-                    if (e != null) {
-                        FirebaseDebugLogger.failure("skill_video_listen", "profile_showcase_skill_videos?uid=" + uid, e);
-                        Toast.makeText(this, "Failed to load videos: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        return;
-                    }
+        Log.d(TAG, "Loading showcase videos for uid=" + uid);
+        videosListener = attachSkillVideoListener(uid, true);
+    }
 
-                    skillVideoList.clear();
-                    if (snap != null) {
-                        FirebaseDebugLogger.read("skill_video_listen", "profile_showcase_skill_videos?uid=" + uid, snap.size());
-                        for (DocumentSnapshot doc : snap.getDocuments()) {
-                            String title = doc.getString("title");
-                            String category = doc.getString("category");
-                            String description = doc.getString("description");
-                            String status = doc.getString("status");
-                            String videoUrl = doc.getString("videoUrl");
-                            if (TextUtils.isEmpty(videoUrl)) videoUrl = doc.getString("videoUri");
-                            skillVideoList.add(new SkillVideo(
-                                    doc.getId(),
-                                    TextUtils.isEmpty(title) ? "Skill video" : title,
-                                    TextUtils.isEmpty(category) ? "Other" : category,
-                                    TextUtils.isEmpty(description) ? "" : description,
-                                    TextUtils.isEmpty(status) ? "PENDING" : status,
-                                    videoUrl
-                            ));
-                        }
+    private ListenerRegistration attachSkillVideoListener(String uid, boolean useOrderBy) {
+        Query query = db.collection("profile_showcase_skill_videos")
+                .whereEqualTo("uid", uid);
+
+        if (useOrderBy) {
+            query = query.orderBy("uploadedAt", Query.Direction.DESCENDING);
+        }
+
+        final String queryLabel = useOrderBy
+                ? "profile_showcase_skill_videos?uid=" + uid + "&orderBy=uploadedAt_desc"
+                : "profile_showcase_skill_videos?uid=" + uid + "&fallbackSort=client_side";
+
+        return query.addSnapshotListener((snap, e) -> {
+            if (e != null) {
+                FirebaseDebugLogger.failure("skill_video_listen", queryLabel, e);
+                Log.e(TAG, "Skill videos query failed (" + queryLabel + ")", e);
+
+                if (shouldFallbackToClientSort(e, useOrderBy)) {
+                    Log.w(TAG, "Query requires an index. Falling back to client-side query sorting.");
+                    FirebaseDebugLogger.success("skill_video_listen_fallback", queryLabel, "using unordered query");
+                    if (videosListener != null) {
+                        videosListener.remove();
+                        videosListener = null;
                     }
-                    adapter.notifyDataSetChanged();
-                    updateEmptyState();
+                    videosListener = attachSkillVideoListener(uid, false);
+                    return;
+                }
+
+                Toast.makeText(this,
+                        "Failed to load videos: " + friendlyMessage(e),
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            skillVideoList.clear();
+
+            if (snap == null) {
+                Log.w(TAG, "Skill showcase snapshot is null for uid=" + uid);
+                FirebaseDebugLogger.read("skill_video_listen", queryLabel, 0);
+                adapter.notifyDataSetChanged();
+                updateEmptyState();
+                return;
+            }
+
+            FirebaseDebugLogger.read("skill_video_listen", queryLabel, snap.size());
+            Log.d(TAG, String.format(Locale.getDefault(),
+                    "Loaded %d skill showcase documents for uid=%s", snap.size(), uid));
+
+            List<SkillVideo> temp = new ArrayList<>();
+            for (DocumentSnapshot doc : snap.getDocuments()) {
+                String title = doc.getString("title");
+                String category = doc.getString("category");
+                String description = doc.getString("description");
+                String status = doc.getString("status");
+                String videoUrl = doc.getString("videoUrl");
+                if (TextUtils.isEmpty(videoUrl)) videoUrl = doc.getString("videoUri");
+                temp.add(new SkillVideo(
+                        doc.getId(),
+                        TextUtils.isEmpty(title) ? "Skill video" : title,
+                        TextUtils.isEmpty(category) ? "Other" : category,
+                        TextUtils.isEmpty(description) ? "" : description,
+                        TextUtils.isEmpty(status) ? "PENDING" : status,
+                        videoUrl
+                ));
+            }
+
+            if (!useOrderBy) {
+                Collections.sort(temp, (a, b) -> {
+                    int byTitle = safe(a.getTitle()).compareToIgnoreCase(safe(b.getTitle()));
+                    if (byTitle != 0) return byTitle;
+                    return safe(a.getStatus()).compareToIgnoreCase(safe(b.getStatus()));
                 });
+            }
+
+            skillVideoList.addAll(temp);
+            adapter.notifyDataSetChanged();
+            updateEmptyState();
+        });
+    }
+
+    private boolean shouldFallbackToClientSort(Exception e, boolean usedOrderedQuery) {
+        if (!usedOrderedQuery) return false;
+        if (!(e instanceof FirebaseFirestoreException)) return false;
+
+        String message = e.getMessage() == null ? "" : e.getMessage().toLowerCase(Locale.ROOT);
+        FirebaseFirestoreException fse = (FirebaseFirestoreException) e;
+        return fse.getCode() == FirebaseFirestoreException.Code.FAILED_PRECONDITION
+                || message.contains("requires an index")
+                || message.contains("index");
+    }
+
+    private String friendlyMessage(Exception e) {
+        String message = e.getMessage();
+        if (message == null) return "Unknown error";
+        if (message.contains("requires an index")) {
+            return "Missing Firestore index";
+        }
+        if (message.contains("permission-denied")) {
+            return "Permission denied";
+        }
+        return message;
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value;
     }
 
     private void updateEmptyState() {
@@ -136,19 +231,23 @@ public class SkillShowcaseActivity extends AppCompatActivity implements SkillVid
 
     @Override
     public void onPreview(SkillVideo video) {
+        Log.d(TAG, "Preview requested for skill video id=" + (video != null ? video.getId() : "null"));
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_video_preview);
         VideoView dialogVideoView = dialog.findViewById(R.id.dialog_video_view);
-        Uri videoUri = video.getVideoUri();
+        Uri videoUri = video != null ? video.getVideoUri() : null;
         if (videoUri != null) {
             dialogVideoView.setVideoURI(videoUri);
             dialogVideoView.start();
+        } else {
+            Toast.makeText(this, "No video URL available for preview", Toast.LENGTH_SHORT).show();
         }
         dialog.show();
     }
 
     @Override
     public void onEdit(SkillVideo video, int position) {
+        Log.d(TAG, "Edit requested for skill video id=" + (video != null ? video.getId() : "null") + ", position=" + position);
         Intent intent = new Intent(this, UploadSkillVideoActivity.class);
         intent.putExtra("skill_video", video);
         intent.putExtra("edit_position", position);
@@ -158,7 +257,12 @@ public class SkillShowcaseActivity extends AppCompatActivity implements SkillVid
     @Override
     public void onDelete(SkillVideo video, int position) {
         String uid = FirebaseDebugLogger.requireUid(this, mAuth, "skill_video_delete");
-        if (uid == null || video == null || TextUtils.isEmpty(video.getId())) return;
+        if (uid == null || video == null || TextUtils.isEmpty(video.getId())) {
+            Log.w(TAG, "Delete aborted. uid=" + uid + ", video=" + (video == null ? "null" : video.getId()));
+            return;
+        }
+
+        Log.d(TAG, "Deleting skill showcase video id=" + video.getId() + " at position=" + position);
 
         db.collection("profile_showcase_skill_videos").document(video.getId())
                 .delete()
@@ -166,10 +270,12 @@ public class SkillShowcaseActivity extends AppCompatActivity implements SkillVid
                 .addOnSuccessListener(unused -> {
                     FirebaseDebugLogger.success("skill_video_delete", "profile_showcase_skill_videos", video.getId());
                     Toast.makeText(this, "Video deleted", Toast.LENGTH_SHORT).show();
+                    loadVideosFromFirebase();
                 })
                 .addOnFailureListener(e -> {
                     FirebaseDebugLogger.failure("skill_video_delete", "profile_showcase_skill_videos/" + video.getId(), e);
-                    Toast.makeText(this, "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Delete failed for id=" + video.getId(), e);
+                    Toast.makeText(this, "Delete failed: " + friendlyMessage(e), Toast.LENGTH_LONG).show();
                 });
     }
 
