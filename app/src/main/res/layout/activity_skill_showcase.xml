@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="#F7F8FC">
 
-    <!-- HEADER -->
     <RelativeLayout
         android:id="@+id/header_bg"
         android:layout_width="match_parent"
@@ -39,9 +38,8 @@
             android:textStyle="bold" />
     </RelativeLayout>
 
-    <!-- MAIN CONTENT -->
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll_wage"
+        android:id="@+id/scroll_skill_showcase"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="72dp"
@@ -58,7 +56,6 @@
             android:orientation="vertical"
             android:paddingTop="10dp">
 
-            <!-- INTRO CARD -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -77,7 +74,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/uploaded_skill_videos"
+                        android:text="Your uploaded skill videos"
                         android:textColor="#111827"
                         android:textSize="19sp"
                         android:textStyle="bold" />
@@ -86,13 +83,128 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="@string/show_your_real_work_to_build_trust_safety_and_transpare"
+                        android:text="Show your real work to build trust and safety. Clients can view the videos separately and rate after the job."
                         android:textColor="#6B7280"
                         android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#FFF7ED"
+                            app:strokeColor="#FED7AA"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="14dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Videos"
+                                    android:textColor="#9A3412"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/txt_video_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="0"
+                                    android:textColor="#111827"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            android:layout_marginEnd="6dp"
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#EEF2FF"
+                            app:strokeColor="#C7D2FE"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="14dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Average rating"
+                                    android:textColor="#3730A3"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/txt_avg_rating"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="#111827"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#ECFDF5"
+                            app:strokeColor="#A7F3D0"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="14dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Reviews"
+                                    android:textColor="#047857"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/txt_review_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="0"
+                                    android:textColor="#111827"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- EMPTY STATE -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_empty_state"
                 android:layout_width="match_parent"
@@ -124,7 +236,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
                         android:gravity="center"
-                        android:text="@string/no_videos_uploaded_yet"
+                        android:text="No videos uploaded yet"
                         android:textColor="#111827"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -134,13 +246,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:gravity="center"
-                        android:text="@string/add_your_first_skill_video_to_help_clients_understand_y"
+                        android:text="Upload your first skill video to help clients understand your work quality."
                         android:textColor="#6B7280"
                         android:textSize="13sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- LIST CARD -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_video_list"
                 android:layout_width="match_parent"
@@ -161,7 +272,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/your_showcase"
+                        android:text="Your showcase"
                         android:textColor="#111827"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -170,7 +281,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="@string/manage_uploaded_video_clips_from_here"
+                        android:text="Tap a video to preview it or edit its details."
                         android:textColor="#6B7280"
                         android:textSize="12sp" />
 
@@ -189,7 +300,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- FLOATING BOTTOM ACTION -->
     <LinearLayout
         android:id="@+id/bottom_action_container"
         android:layout_width="match_parent"
@@ -209,7 +319,7 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginBottom="4dp"
-            android:text="@string/add_new_video"
+            android:text="Add new video"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
             android:textSize="16sp"
