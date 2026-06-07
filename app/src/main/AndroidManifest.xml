@@ -92,6 +92,7 @@
         <activity android:name=".ui.ClientWorkerSelectionActivity" />
         <activity android:name=".ui.MatchingResultActivity" />
         <activity android:name=".ui.AssignedJobMapActivity" />
+        <activity android:name=".ui.WorkerJobOffersActivity" />
 
         <activity android:name=".ui.SkillShowcaseActivity" />
         <activity android:name=".ui.UploadSkillVideoActivity" />

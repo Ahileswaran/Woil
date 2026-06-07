@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -22,10 +23,19 @@ import com.example.woil.R;
 import com.example.woil.TimelineAdapter;
 import com.example.woil.TimelineModel;
 
+import android.text.TextUtils;
+import android.widget.TextView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class HomeHighFragment extends Fragment {
+
+    private ListenerRegistration activeMatchListener;
 
     public HomeHighFragment() { }
 
@@ -120,6 +130,13 @@ public class HomeHighFragment extends Fragment {
 
         rootView.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
 
+        View btnJobOffers = view.findViewById(R.id.btn_job_offers);
+        if (btnJobOffers != null) {
+            btnJobOffers.setOnClickListener(v -> startActivity(new Intent(requireContext(), WorkerJobOffersActivity.class)));
+        }
+
+        setupActiveMatchListener(view);
+
         return view;
     }
 
@@ -147,5 +164,72 @@ public class HomeHighFragment extends Fragment {
         ft.replace(R.id.nav_host_fragment, settingsFragment);
         ft.addToBackStack("settings");
         ft.commit();
+    }
+
+    private void setupActiveMatchListener(View view) {
+        String workerUid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (workerUid == null) return;
+
+        activeMatchListener = FirebaseFirestore.getInstance().collection("matches")
+                .whereEqualTo("workerUid", workerUid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null) return;
+
+                    DocumentSnapshot activeMatch = null;
+                    for (DocumentSnapshot d : snap.getDocuments()) {
+                        String s = d.getString("status");
+                        if ("ACCEPTED".equalsIgnoreCase(s) || "TRAVELING".equalsIgnoreCase(s) || "IN_PROGRESS".equalsIgnoreCase(s) || "STARTED".equalsIgnoreCase(s) || "ARRIVED".equalsIgnoreCase(s)) {
+                            activeMatch = d;
+                            break;
+                        }
+                    }
+
+                    View cardArrival = view.findViewById(R.id.card_active_arrival);
+                    if (cardArrival != null) {
+                        if (activeMatch != null) {
+                            cardArrival.setVisibility(View.VISIBLE);
+                            TextView tvTitle = cardArrival.findViewById(R.id.tv_arrival_title);
+                            TextView tvDetails = cardArrival.findViewById(R.id.tv_arrival_details);
+                            com.google.android.material.button.MaterialButton btnTrack = cardArrival.findViewById(R.id.btn_track_map);
+
+                            String status = activeMatch.getString("status");
+                            if ("IN_PROGRESS".equalsIgnoreCase(status) || "STARTED".equalsIgnoreCase(status)) {
+                                tvTitle.setText("Work In Progress");
+                            } else {
+                                tvTitle.setText("Traveling to Client");
+                            }
+
+                            String category = activeMatch.getString("category");
+                            if (TextUtils.isEmpty(category)) category = "Job";
+                            Long eta = activeMatch.getLong("etaMinutes");
+                            Double dist = activeMatch.getDouble("distanceKm");
+                            String etaText = eta != null ? eta + " min" : "calculating...";
+                            String distText = dist != null ? String.format(Locale.getDefault(), "%.1f km", dist) : "calculating...";
+                            tvDetails.setText(category + " • ETA: " + etaText + " • Distance: " + distText);
+
+                            String finalMatchId = activeMatch.getId();
+                            btnTrack.setOnClickListener(v -> {
+                                Context ctx = view.getContext();
+                                if (ctx != null) {
+                                    Intent intent = new Intent(ctx, AssignedJobMapActivity.class);
+                                    intent.putExtra("matchId", finalMatchId);
+                                    intent.putExtra("role", "worker");
+                                    ctx.startActivity(intent);
+                                }
+                            });
+                        } else {
+                            cardArrival.setVisibility(View.GONE);
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (activeMatchListener != null) {
+            activeMatchListener.remove();
+            activeMatchListener = null;
+        }
     }
 }

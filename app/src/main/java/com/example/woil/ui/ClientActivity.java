@@ -35,9 +35,14 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.SetOptions;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -74,6 +79,7 @@ public class ClientActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private ListenerRegistration userListener;
     private ListenerRegistration profileListener;
+    private ListenerRegistration workProgressListener;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -188,6 +194,7 @@ public class ClientActivity extends AppCompatActivity {
         }
 
         attachListeners();
+        setupWorkProgress();
     }
 
     private void setPlaceholders() {
@@ -528,5 +535,110 @@ public class ClientActivity extends AppCompatActivity {
             profileListener.remove();
             profileListener = null;
         }
+        if (workProgressListener != null) {
+            workProgressListener.remove();
+            workProgressListener = null;
+        }
+    }
+
+    private void setupWorkProgress() {
+        String uid = FirebaseDebugLogger.requireUid(this, mAuth, "client_work_progress_listen");
+        if (uid == null) return;
+
+        workProgressListener = db.collection("matches")
+                .whereEqualTo("clientUid", uid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null) {
+                        return;
+                    }
+
+                    List<DocumentSnapshot> activeOrCompleted = new ArrayList<>();
+                    for (DocumentSnapshot doc : snap.getDocuments()) {
+                        String s = doc.getString("status");
+                        if ("COMPLETED".equalsIgnoreCase(s) || "IN_PROGRESS".equalsIgnoreCase(s) || "STARTED".equalsIgnoreCase(s) || "ACCEPTED".equalsIgnoreCase(s) || "TRAVELING".equalsIgnoreCase(s) || "ARRIVED".equalsIgnoreCase(s)) {
+                            activeOrCompleted.add(doc);
+                        }
+                    }
+
+                    Collections.sort(activeOrCompleted, (a, b) -> {
+                        Date da = a.getDate("updatedAt") != null ? a.getDate("updatedAt") : new Date(0);
+                        Date dbVal = b.getDate("updatedAt") != null ? b.getDate("updatedAt") : new Date(0);
+                        return dbVal.compareTo(da); // descending
+                    });
+
+                    View cardWorkProgress = findViewById(R.id.card_work_progress);
+                    if (cardWorkProgress == null) return;
+
+                    if (activeOrCompleted.isEmpty()) {
+                        cardWorkProgress.setVisibility(View.GONE);
+                        return;
+                    }
+
+                    cardWorkProgress.setVisibility(View.VISIBLE);
+
+                    if (activeOrCompleted.size() > 0) {
+                        DocumentSnapshot doc = activeOrCompleted.get(0);
+                        wpTask1Title.setVisibility(View.VISIBLE);
+                        wpTask1Date.setVisibility(View.VISIBLE);
+                        wpTask1Progress.setVisibility(View.VISIBLE);
+
+                        String category = doc.getString("category");
+                        wpTask1Title.setText(TextUtils.isEmpty(category) ? "General Job" : category);
+
+                        Date dateVal = doc.getDate("createdAt");
+                        if (dateVal != null) {
+                            wpTask1Date.setText(new SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault()).format(dateVal));
+                        } else {
+                            wpTask1Date.setText("Just now");
+                        }
+
+                        String status = doc.getString("status");
+                        int progress = 0;
+                        if ("COMPLETED".equalsIgnoreCase(status)) {
+                            progress = 100;
+                        } else if ("IN_PROGRESS".equalsIgnoreCase(status) || "STARTED".equalsIgnoreCase(status)) {
+                            progress = 60;
+                        } else {
+                            progress = 20;
+                        }
+                        wpTask1Progress.setProgress(progress);
+                    } else {
+                        wpTask1Title.setVisibility(View.GONE);
+                        wpTask1Date.setVisibility(View.GONE);
+                        wpTask1Progress.setVisibility(View.GONE);
+                    }
+
+                    if (activeOrCompleted.size() > 1) {
+                        DocumentSnapshot doc = activeOrCompleted.get(1);
+                        wpTask2Title.setVisibility(View.VISIBLE);
+                        wpTask2Date.setVisibility(View.VISIBLE);
+                        wpTask2Progress.setVisibility(View.VISIBLE);
+
+                        String category = doc.getString("category");
+                        wpTask2Title.setText(TextUtils.isEmpty(category) ? "General Job" : category);
+
+                        Date dateVal = doc.getDate("createdAt");
+                        if (dateVal != null) {
+                            wpTask2Date.setText(new SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault()).format(dateVal));
+                        } else {
+                            wpTask2Date.setText("Just now");
+                        }
+
+                        String status = doc.getString("status");
+                        int progress = 0;
+                        if ("COMPLETED".equalsIgnoreCase(status)) {
+                            progress = 100;
+                        } else if ("IN_PROGRESS".equalsIgnoreCase(status) || "STARTED".equalsIgnoreCase(status)) {
+                            progress = 60;
+                        } else {
+                            progress = 20;
+                        }
+                        wpTask2Progress.setProgress(progress);
+                    } else {
+                        wpTask2Title.setVisibility(View.GONE);
+                        wpTask2Date.setVisibility(View.GONE);
+                        wpTask2Progress.setVisibility(View.GONE);
+                    }
+                });
     }
 }
