@@ -66,6 +66,7 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/tv_confirm_title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/confirm_job_application"
@@ -120,6 +121,25 @@
                         android:textSize="14sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tv_showcase_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Worker Showcase Videos"
+                android:textColor="#1E1E1E"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_skill_videos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:layout_width="match_parent"

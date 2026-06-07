@@ -30,11 +30,17 @@ public class SkillVideoAdapter extends RecyclerView.Adapter<SkillVideoAdapter.Vi
     private final Context context;
     private final ArrayList<SkillVideo> videoList;
     private final OnVideoActionListener listener;
+    private final boolean isClientView;
 
     public SkillVideoAdapter(Context context, ArrayList<SkillVideo> videoList, OnVideoActionListener listener) {
+        this(context, videoList, listener, false);
+    }
+
+    public SkillVideoAdapter(Context context, ArrayList<SkillVideo> videoList, OnVideoActionListener listener, boolean isClientView) {
         this.context = context;
         this.videoList = videoList;
         this.listener = listener;
+        this.isClientView = isClientView;
     }
 
     @NonNull
@@ -56,16 +62,26 @@ public class SkillVideoAdapter extends RecyclerView.Adapter<SkillVideoAdapter.Vi
         setThumbnail(holder.imgThumbnail, video.getVideoUri());
 
         holder.btnPreview.setOnClickListener(v -> listener.onPreview(video));
-        holder.btnEdit.setOnClickListener(v -> listener.onEdit(video, holder.getAdapterPosition()));
-        holder.btnDelete.setOnClickListener(v -> {
-            new AlertDialog.Builder(context)
-                    .setTitle("Delete video")
-                    .setMessage("Are you sure you want to delete this video?")
-                    .setPositiveButton("Delete", (dialog, which) ->
-                            listener.onDelete(video, holder.getAdapterPosition()))
-                    .setNegativeButton("Cancel", null)
-                    .show();
-        });
+
+        if (isClientView) {
+            holder.btnEdit.setVisibility(View.GONE);
+            holder.btnDelete.setVisibility(View.GONE);
+            holder.txtStatus.setVisibility(View.GONE);
+        } else {
+            holder.btnEdit.setVisibility(View.VISIBLE);
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.txtStatus.setVisibility(View.VISIBLE);
+            holder.btnEdit.setOnClickListener(v -> listener.onEdit(video, holder.getAdapterPosition()));
+            holder.btnDelete.setOnClickListener(v -> {
+                new AlertDialog.Builder(context)
+                        .setTitle("Delete video")
+                        .setMessage("Are you sure you want to delete this video?")
+                        .setPositiveButton("Delete", (dialog, which) ->
+                                listener.onDelete(video, holder.getAdapterPosition()))
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
+        }
     }
 
     @Override

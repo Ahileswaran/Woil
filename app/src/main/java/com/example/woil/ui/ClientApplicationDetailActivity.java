@@ -1,23 +1,33 @@
 package com.example.woil.ui;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.woil.R;
+import com.example.woil.adapters.SkillVideoAdapter;
+import com.example.woil.models.SkillVideo;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -32,6 +42,11 @@ public class ClientApplicationDetailActivity extends AppCompatActivity {
     private String matchId, jobId, workerUid, workerName, workerRole, workerPhoto, workerLocation, status, category, clientUid, jobTitle;
     private double workerRating, distanceKm;
     private long completedJobs, etaMin;
+
+    private RecyclerView recyclerSkillVideos;
+    private TextView tvShowcaseTitle;
+    private final ArrayList<SkillVideo> skillVideoList = new ArrayList<>();
+    private SkillVideoAdapter videoAdapter;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +77,10 @@ public class ClientApplicationDetailActivity extends AppCompatActivity {
         ImageView image = findViewById(R.id.iv_worker);
         if (!TextUtils.isEmpty(workerPhoto)) Glide.with(this).load(workerPhoto).placeholder(R.drawable.ic_person).error(R.drawable.ic_person).circleCrop().into(image);
         else image.setImageResource(R.drawable.ic_person);
+
+        recyclerSkillVideos = findViewById(R.id.recycler_skill_videos);
+        tvShowcaseTitle = findViewById(R.id.tv_showcase_title);
+        setupShowcaseVideos();
 
         findViewById(R.id.btn_back_arrow_settings).setOnClickListener(v -> finish());
         MaterialButton btnAccept=findViewById(R.id.btn_accept_detail), btnReject=findViewById(R.id.btn_reject_detail), btnMessage=findViewById(R.id.btn_message_worker);
@@ -95,5 +114,76 @@ public class ClientApplicationDetailActivity extends AppCompatActivity {
                     Toast.makeText(this, "Application " + newStatus.toLowerCase(Locale.ROOT), Toast.LENGTH_SHORT).show();
                 }).addOnFailureListener(e -> Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
+    private void setupShowcaseVideos() {
+        videoAdapter = new SkillVideoAdapter(this, skillVideoList, new SkillVideoAdapter.OnVideoActionListener() {
+            @Override
+            public void onPreview(SkillVideo video) {
+                playVideo(video);
+            }
+
+            @Override
+            public void onEdit(SkillVideo video, int position) {}
+
+            @Override
+            public void onDelete(SkillVideo video, int position) {}
+        }, true);
+
+        recyclerSkillVideos.setLayoutManager(new LinearLayoutManager(this));
+        recyclerSkillVideos.setAdapter(videoAdapter);
+
+        if (!TextUtils.isEmpty(workerUid)) {
+            db.collection("profile_showcase_skill_videos")
+                    .whereEqualTo("uid", workerUid)
+                    .get()
+                    .addOnSuccessListener(snap -> {
+                        skillVideoList.clear();
+                        if (snap != null && !snap.isEmpty()) {
+                            for (DocumentSnapshot doc : snap.getDocuments()) {
+                                String title = doc.getString("title");
+                                String category = doc.getString("category");
+                                String description = doc.getString("description");
+                                String status = doc.getString("status");
+                                String videoUrl = doc.getString("videoUrl");
+                                if (TextUtils.isEmpty(videoUrl)) videoUrl = doc.getString("videoUri");
+                                skillVideoList.add(new SkillVideo(
+                                        doc.getId(),
+                                        TextUtils.isEmpty(title) ? "Skill video" : title,
+                                        TextUtils.isEmpty(category) ? "Other" : category,
+                                        TextUtils.isEmpty(description) ? "" : description,
+                                        TextUtils.isEmpty(status) ? "PENDING" : status,
+                                        videoUrl
+                                ));
+                            }
+                        }
+                        if (!skillVideoList.isEmpty()) {
+                            tvShowcaseTitle.setVisibility(View.VISIBLE);
+                            recyclerSkillVideos.setVisibility(View.VISIBLE);
+                        } else {
+                            tvShowcaseTitle.setVisibility(View.GONE);
+                            recyclerSkillVideos.setVisibility(View.GONE);
+                        }
+                        videoAdapter.notifyDataSetChanged();
+                    })
+                    .addOnFailureListener(e -> {
+                        tvShowcaseTitle.setVisibility(View.GONE);
+                        recyclerSkillVideos.setVisibility(View.GONE);
+                    });
+        }
+    }
+
+    private void playVideo(SkillVideo video) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_video_preview);
+        VideoView dialogVideoView = dialog.findViewById(R.id.dialog_video_view);
+        Uri videoUri = video != null ? video.getVideoUri() : null;
+        if (videoUri != null) {
+            dialogVideoView.setVideoURI(videoUri);
+            dialogVideoView.start();
+        } else {
+            Toast.makeText(this, "No video URL available for preview", Toast.LENGTH_SHORT).show();
+        }
+        dialog.show();
+    }
+
     private static String first(String a, String b){ return TextUtils.isEmpty(a)?b:a; }
 }
