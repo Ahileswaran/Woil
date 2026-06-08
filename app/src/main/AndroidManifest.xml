@@ -86,6 +86,7 @@
         <activity android:name=".ui.PaymentActivity" />
         <activity android:name=".ui.PaymentSuccessActivity" />
         <activity android:name=".ui.FeedbackActivity" />
+        <activity android:name=".ui.FeedbackRatingActivity" android:exported="false" />
 
 
         <activity android:name=".ui.ClientJobMatchingActivity" />

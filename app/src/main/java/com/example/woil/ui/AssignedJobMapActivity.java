@@ -272,6 +272,13 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
                 } else {
                     tvWorkTimer.setText("Total Work Time: completed");
                 }
+
+                String workerId = snap.getString("workerUid");
+                android.content.Intent intent = new android.content.Intent(this, FeedbackRatingActivity.class);
+                intent.putExtra("matchId", matchId);
+                intent.putExtra("workerUid", workerId);
+                startActivity(intent);
+                finish();
             }
         } else {
             btnStartWork.setVisibility(View.GONE);
