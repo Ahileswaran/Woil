@@ -34,6 +34,22 @@ import com.example.woil.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
+
+import android.Manifest;
+import android.app.ActivityManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final String PREFS_NAME = "woil_prefs";
@@ -42,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_SHOW_WOIL_GUARD_NAV = "show_woil_guard_nav";
 
     private BottomNavigationView bottomNav;
+    private ListenerRegistration incomingCallListener;
 
     private String currentTag = "home";
     private int currentMenuItemId = R.id.navigation_home;
@@ -187,6 +204,41 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        createNotificationChannel();
+        requestNotificationPermission();
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "incoming_call_channel",
+                    "Incoming Calls",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Channel for incoming voice and video call notifications");
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+
+            android.media.AudioAttributes audioAttributes = new android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+            channel.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE), audioAttributes);
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1010);
+            }
+        }
     }
 
     @Override
@@ -673,5 +725,100 @@ public class MainActivity extends AppCompatActivity {
                 "bottomNavVisible",
                 bottomNav != null && bottomNav.getVisibility() == View.VISIBLE
         );
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        startIncomingCallListener();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (incomingCallListener != null) {
+            incomingCallListener.remove();
+            incomingCallListener = null;
+        }
+    }
+
+    private void startIncomingCallListener() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+        String currentUid = currentUser.getUid();
+
+        incomingCallListener = FirebaseFirestore.getInstance().collection("calls")
+                .whereEqualTo("receiverUid", currentUid)
+                .whereEqualTo("status", "INITIATED")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Incoming call listener failed.", e);
+                        return;
+                    }
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                            if (dc.getType() == DocumentChange.Type.ADDED) {
+                                DocumentSnapshot doc = dc.getDocument();
+                                String callId = doc.getString("callId");
+                                String callerUid = doc.getString("callerUid");
+                                String callerName = doc.getString("callerName");
+                                String callType = doc.getString("type");
+
+                                if (isAppInForeground()) {
+                                    Intent intent = new Intent(MainActivity.this, CallActivity.class);
+                                    intent.putExtra("callId", callId);
+                                    intent.putExtra("contactUid", callerUid);
+                                    intent.putExtra("contactName", callerName);
+                                    intent.putExtra("callType", callType);
+                                    startActivity(intent);
+                                } else {
+                                    triggerIncomingCallNotification(callId, callerUid, callerName, callType);
+                                }
+                            }
+                        }
+                    }
+                });
+    }
+
+    private boolean isAppInForeground() {
+        try {
+            ActivityManager.RunningAppProcessInfo appProcessInfo = new ActivityManager.RunningAppProcessInfo();
+            ActivityManager.getMyMemoryState(appProcessInfo);
+            return (appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND ||
+                    appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private void triggerIncomingCallNotification(String callId, String callerUid, String callerName, String callType) {
+        Intent intent = new Intent(this, CallActivity.class);
+        intent.putExtra("callId", callId);
+        intent.putExtra("contactUid", callerUid);
+        intent.putExtra("contactName", callerName);
+        intent.putExtra("callType", callType);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                callId.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "incoming_call_channel")
+                .setSmallIcon(R.drawable.ic_call)
+                .setContentTitle("Incoming " + (("audio".equalsIgnoreCase(callType)) ? "Voice" : "Video") + " Call")
+                .setContentText(callerName != null ? callerName : "Someone is calling you")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_CALL)
+                .setFullScreenIntent(pendingIntent, true)
+                .setAutoCancel(true)
+                .setOngoing(true);
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.notify(1002, builder.build());
+        }
     }
 }

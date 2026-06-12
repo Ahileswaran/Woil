@@ -6,8 +6,12 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- BLE -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
@@ -87,6 +91,7 @@
         <activity android:name=".ui.PaymentSuccessActivity" />
         <activity android:name=".ui.FeedbackActivity" />
         <activity android:name=".ui.FeedbackRatingActivity" android:exported="false" />
+        <activity android:name=".ui.CallActivity" android:screenOrientation="portrait" android:exported="false" />
 
 
         <activity android:name=".ui.ClientJobMatchingActivity" />

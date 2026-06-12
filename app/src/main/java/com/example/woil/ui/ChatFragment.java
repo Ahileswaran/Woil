@@ -232,8 +232,28 @@ public class ChatFragment extends Fragment {
     private void setupClickListeners() {
         btnSend.setOnClickListener(v -> sendMessage());
         btnBack.setOnClickListener(v -> requireActivity().finish());
-        btnCall.setOnClickListener(v -> Toast.makeText(requireContext(), "Call integration can be added after permission flow", Toast.LENGTH_SHORT).show());
-        btnVideo.setOnClickListener(v -> Toast.makeText(requireContext(), "Video call can be added later", Toast.LENGTH_SHORT).show());
+        btnCall.setOnClickListener(v -> {
+            if (TextUtils.isEmpty(contactUid)) {
+                Toast.makeText(requireContext(), "Cannot start call: invalid contact Uid", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(requireContext(), CallActivity.class);
+            intent.putExtra("contactUid", contactUid);
+            intent.putExtra("contactName", contactNameArg);
+            intent.putExtra("callType", "audio");
+            startActivity(intent);
+        });
+        btnVideo.setOnClickListener(v -> {
+            if (TextUtils.isEmpty(contactUid)) {
+                Toast.makeText(requireContext(), "Cannot start call: invalid contact Uid", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(requireContext(), CallActivity.class);
+            intent.putExtra("contactUid", contactUid);
+            intent.putExtra("contactName", contactNameArg);
+            intent.putExtra("callType", "video");
+            startActivity(intent);
+        });
         btnMore.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), DisputeReportActivity.class);
             intent.putExtra(DisputeReportActivity.EXTRA_JOB_ID, jobId);
