@@ -33,11 +33,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void goNext() {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            startActivity(new Intent(this, SignUpActivity.class));
-        } else {
-            startActivity(new Intent(this, MainActivity.class));
-        }
+        startActivity(new Intent(this, PermissionGateActivity.class));
         finish();
     }
 }

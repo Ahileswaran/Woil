@@ -24,4 +24,6 @@
     <color name="pill_gradient_start">#F45AA0</color>
     <color name="pill_gradient_end">#A93CF3</color>
     <color name="text_dark">#222222</color>
+    <color name="gray">#888888</color>
+    <color name="dark_gray">#444444</color>
 </resources>

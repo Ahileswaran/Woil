@@ -40,6 +40,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.example.woil.services.CallNotificationService;
 
 import android.Manifest;
 import android.app.ActivityManager;
@@ -58,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_SHOW_WOIL_GUARD_NAV = "show_woil_guard_nav";
 
     private BottomNavigationView bottomNav;
-    private ListenerRegistration incomingCallListener;
 
     private String currentTag = "home";
     private int currentMenuItemId = R.id.navigation_home;
@@ -73,6 +73,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        // Start persistent background call monitoring service
+        Intent serviceIntent = new Intent(this, CallNotificationService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
@@ -727,98 +735,4 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        startIncomingCallListener();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (incomingCallListener != null) {
-            incomingCallListener.remove();
-            incomingCallListener = null;
-        }
-    }
-
-    private void startIncomingCallListener() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) return;
-        String currentUid = currentUser.getUid();
-
-        incomingCallListener = FirebaseFirestore.getInstance().collection("calls")
-                .whereEqualTo("receiverUid", currentUid)
-                .whereEqualTo("status", "INITIATED")
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.e(TAG, "Incoming call listener failed.", e);
-                        return;
-                    }
-                    if (snapshots != null && !snapshots.isEmpty()) {
-                        for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                            if (dc.getType() == DocumentChange.Type.ADDED) {
-                                DocumentSnapshot doc = dc.getDocument();
-                                String callId = doc.getString("callId");
-                                String callerUid = doc.getString("callerUid");
-                                String callerName = doc.getString("callerName");
-                                String callType = doc.getString("type");
-
-                                if (isAppInForeground()) {
-                                    Intent intent = new Intent(MainActivity.this, CallActivity.class);
-                                    intent.putExtra("callId", callId);
-                                    intent.putExtra("contactUid", callerUid);
-                                    intent.putExtra("contactName", callerName);
-                                    intent.putExtra("callType", callType);
-                                    startActivity(intent);
-                                } else {
-                                    triggerIncomingCallNotification(callId, callerUid, callerName, callType);
-                                }
-                            }
-                        }
-                    }
-                });
-    }
-
-    private boolean isAppInForeground() {
-        try {
-            ActivityManager.RunningAppProcessInfo appProcessInfo = new ActivityManager.RunningAppProcessInfo();
-            ActivityManager.getMyMemoryState(appProcessInfo);
-            return (appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND ||
-                    appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE);
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
-
-    private void triggerIncomingCallNotification(String callId, String callerUid, String callerName, String callType) {
-        Intent intent = new Intent(this, CallActivity.class);
-        intent.putExtra("callId", callId);
-        intent.putExtra("contactUid", callerUid);
-        intent.putExtra("contactName", callerName);
-        intent.putExtra("callType", callType);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                callId.hashCode(),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "incoming_call_channel")
-                .setSmallIcon(R.drawable.ic_call)
-                .setContentTitle("Incoming " + (("audio".equalsIgnoreCase(callType)) ? "Voice" : "Video") + " Call")
-                .setContentText(callerName != null ? callerName : "Someone is calling you")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-                .setFullScreenIntent(pendingIntent, true)
-                .setAutoCancel(true)
-                .setOngoing(true);
-
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager != null) {
-            manager.notify(1002, builder.build());
-        }
-    }
 }
