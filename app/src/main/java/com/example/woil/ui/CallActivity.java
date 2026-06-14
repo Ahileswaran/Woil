@@ -121,7 +121,6 @@ public class CallActivity extends AppCompatActivity {
     private boolean isVideoPaused = false;
     private boolean isSpeakerphoneOn = false;
     private android.media.Ringtone ringtone;
-    private java.io.FileOutputStream audioRecordOutputStream;
     private com.google.firebase.firestore.DocumentSnapshot latestCallSnapshot = null;
 
     private final List<IceCandidate> queuedRemoteCandidates = new ArrayList<>();
@@ -346,7 +345,6 @@ public class CallActivity extends AppCompatActivity {
             return;
         }
 
-        startAudioRecording();
         activateAudioForCall();
 
         eglBase = EglBase.create();
@@ -404,12 +402,6 @@ public class CallActivity extends AppCompatActivity {
                     @Override
                     public void onWebRtcAudioTrackError(String errorMessage) {
                         Log.e(TAG, "Audio track runtime error: " + errorMessage);
-                    }
-                })
-                .setSamplesReadyCallback(new JavaAudioDeviceModule.SamplesReadyCallback() {
-                    @Override
-                    public void onWebRtcAudioRecordSamplesReady(JavaAudioDeviceModule.AudioSamples samples) {
-                        writeAudioSamples(samples.getData());
                     }
                 })
                 .createAudioDeviceModule();
@@ -538,12 +530,9 @@ public class CallActivity extends AppCompatActivity {
                     if (iceConnectionState == PeerConnection.IceConnectionState.CONNECTED) {
                         tvStatus.setText("Connected");
                         layoutCallingInfo.setVisibility(View.GONE);
-                        // Gather stats to confirm RTP audio packets are flowing
-                        logRtpStats();
                     } else if (iceConnectionState == PeerConnection.IceConnectionState.DISCONNECTED ||
                             iceConnectionState == PeerConnection.IceConnectionState.FAILED) {
                         tvStatus.setText("Disconnected");
-                        Toast.makeText(CallActivity.this, "Connection lost — ICE " + iceConnectionState, Toast.LENGTH_SHORT).show();
                         endCall();
                     }
                 });
@@ -647,17 +636,13 @@ public class CallActivity extends AppCompatActivity {
 
             db.collection("calls").document(callId).set(call)
                     .addOnSuccessListener(unused -> startCallerHandshake())
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to create call document in Firestore", e);
-                        runOnUiThread(() -> Toast.makeText(this, "Firestore Error (Create Call): " + e.getMessage(), Toast.LENGTH_LONG).show());
-                    });
+                    .addOnFailureListener(e -> Log.e(TAG, "Failed to create call document", e));
         }
 
         callListener = db.collection("calls").document(callId)
                 .addSnapshotListener((snapshot, e) -> {
                     if (e != null) {
                         Log.e(TAG, "Firestore snapshot listener error", e);
-                        runOnUiThread(() -> Toast.makeText(this, "Firestore Listener Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
                         return;
                     }
                     if (snapshot == null) return;
@@ -759,35 +744,6 @@ public class CallActivity extends AppCompatActivity {
         }
     }
 
-    private void logRtpStats() {
-        if (peerConnection == null) return;
-        peerConnection.getStats(report -> {
-            // RTCStatsReport is a map keyed by stat ID
-            StringBuilder sb = new StringBuilder();
-            for (org.webrtc.RTCStats stat : report.getStatsMap().values()) {
-                String type = stat.getType(); // "outbound-rtp" or "inbound-rtp"
-                if ("outbound-rtp".equals(type) || "inbound-rtp".equals(type)) {
-                    java.util.Map<String, Object> members = stat.getMembers();
-                    Object bytesSent     = members.get("bytesSent");
-                    Object bytesReceived = members.get("bytesReceived");
-                    Object kind          = members.get("kind"); // "audio" or "video"
-                    Log.d(TAG, "RTP [" + type + "] kind=" + kind
-                            + " bytesSent=" + bytesSent
-                            + " bytesReceived=" + bytesReceived);
-                    if ("audio".equals(kind)) {
-                        sb.append(type.replace("-rtp", ""))
-                          .append(": sent=").append(bytesSent)
-                          .append(" recv=").append(bytesReceived)
-                          .append("\n");
-                    }
-                }
-            }
-            if (sb.length() > 0) {
-                final String msg = sb.toString().trim();
-                runOnUiThread(() -> Toast.makeText(CallActivity.this, "Audio RTP\n" + msg, Toast.LENGTH_LONG).show());
-            }
-        });
-    }
 
     private void drainRemoteCandidates() {
         if (peerConnection == null || peerConnection.getRemoteDescription() == null) return;
@@ -816,10 +772,7 @@ public class CallActivity extends AppCompatActivity {
 
                         db.collection("calls").document(callId)
                                 .update("sdpOffer", sdpOffer)
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Failed to upload SDP offer to Firestore", e);
-                                    runOnUiThread(() -> Toast.makeText(CallActivity.this, "Firestore Error (SDP Offer): " + e.getMessage(), Toast.LENGTH_LONG).show());
-                                });
+                                .addOnFailureListener(e -> Log.e(TAG, "Failed to upload SDP offer", e));
                     }
                 }, sessionDescription);
             }
@@ -848,10 +801,7 @@ public class CallActivity extends AppCompatActivity {
 
                         db.collection("calls").document(callId)
                                 .set(updates, SetOptions.merge())
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Failed to upload SDP answer to Firestore", e);
-                                    runOnUiThread(() -> Toast.makeText(CallActivity.this, "Firestore Error (SDP Answer): " + e.getMessage(), Toast.LENGTH_LONG).show());
-                                });
+                                .addOnFailureListener(e -> Log.e(TAG, "Failed to upload SDP answer", e));
                     }
                 }, sessionDescription);
             }
@@ -866,7 +816,6 @@ public class CallActivity extends AppCompatActivity {
         btnToggleAudio.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                 ContextCompat.getColor(this, isMuted ? R.color.dark_gray : R.color.orange_header_main)
         ));
-        Toast.makeText(this, isMuted ? "Microphone Muted" : "Microphone Active", Toast.LENGTH_SHORT).show();
     }
 
     private void toggleVideo() {
@@ -891,7 +840,6 @@ public class CallActivity extends AppCompatActivity {
             btnToggleSpeaker.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                     ContextCompat.getColor(this, isSpeakerphoneOn ? R.color.orange_header_main : R.color.dark_gray)
             ));
-            Toast.makeText(this, "Speakerphone: " + (isSpeakerphoneOn ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -914,7 +862,6 @@ public class CallActivity extends AppCompatActivity {
     }
 
     private void cleanupAndFinish() {
-        stopAudioRecording();
 
         if (videoCapturer != null) {
             try {
@@ -1128,44 +1075,6 @@ public class CallActivity extends AppCompatActivity {
         @Override
         public void onSetFailure(String s) {
             Log.e(TAG, "SDP Set Failure: " + s);
-        }
-    }
-
-        private void startAudioRecording() {
-        try {
-            java.io.File file = new java.io.File(getExternalCacheDir(), "webrtc_mic_capture.pcm");
-            audioRecordOutputStream = new java.io.FileOutputStream(file);
-            Log.d(TAG, "Audio recording started: " + file.getAbsolutePath());
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to start audio recording", e);
-        }
-    }
-
-    private void writeAudioSamples(byte[] data) {
-        if (audioRecordOutputStream != null) {
-            try {
-                audioRecordOutputStream.write(data);
-            } catch (Exception e) {
-                Log.e(TAG, "Error writing audio samples", e);
-            }
-        }
-    }
-
-    private void stopAudioRecording() {
-        if (audioRecordOutputStream != null) {
-            try {
-                audioRecordOutputStream.flush();
-                audioRecordOutputStream.close();
-                java.io.File file = new java.io.File(getExternalCacheDir(), "webrtc_mic_capture.pcm");
-                String path = file.getAbsolutePath();
-                Log.d(TAG, "Audio recording stopped. File size: " + file.length());
-                runOnUiThread(() -> {
-                    Toast.makeText(CallActivity.this, "Audio saved to: " + path, Toast.LENGTH_LONG).show();
-                });
-            } catch (Exception e) {
-                Log.e(TAG, "Error closing audio output stream", e);
-            }
-            audioRecordOutputStream = null;
         }
     }
 }
