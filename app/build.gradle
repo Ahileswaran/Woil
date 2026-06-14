@@ -15,11 +15,17 @@ if (localPropertiesFile.exists()) {
 }
 
 def androidMapsKey = localProperties.getProperty("MAPS_API_KEY", "")
-def staticMapsKey = localProperties.getProperty("STATIC_MAPS_API_KEY", "")
+def staticMapsKey  = localProperties.getProperty("STATIC_MAPS_API_KEY", "")
+def turnUsername   = localProperties.getProperty("TURN_USERNAME", "")
+def turnPassword   = localProperties.getProperty("TURN_PASSWORD", "")
 
 android {
     namespace 'com.example.woil'
     compileSdk 36
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId "com.example.woil"
@@ -32,6 +38,8 @@ android {
 
         manifestPlaceholders = [MAPS_API_KEY: androidMapsKey]
         resValue "string", "static_maps_api_key", staticMapsKey
+        buildConfigField "String", "TURN_USERNAME", "\"${turnUsername}\""
+        buildConfigField "String", "TURN_PASSWORD", "\"${turnPassword}\""
     }
 
     buildTypes {

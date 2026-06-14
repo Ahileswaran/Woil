@@ -106,6 +106,16 @@
             app:tint="@android:color/white"
             app:srcCompat="@drawable/ic_switch_camera" />
 
+        <!-- Toggle Speaker -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btn_toggle_speaker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            app:backgroundTint="#424242"
+            app:tint="@android:color/white"
+            app:srcCompat="@drawable/ic_speaker" />
+
         <!-- Accept Call (Green, visible only for incoming calls before connection) -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btn_accept_call"
