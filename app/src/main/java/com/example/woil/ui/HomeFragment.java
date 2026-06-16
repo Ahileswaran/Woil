@@ -36,6 +36,8 @@ import java.util.Locale;
 public class HomeFragment extends Fragment {
 
     private ListenerRegistration activeMatchListener;
+    private ListenerRegistration pendingPaymentListener;
+    private String lastSeenPaymentId = null;  // prevent duplicate popups
 
     public HomeFragment() { }
 
@@ -93,6 +95,7 @@ public class HomeFragment extends Fragment {
         }
 
         setupActiveMatchListener(view);
+        listenForPendingPayments();
 
         // ---- Gesture detector for right-edge -> left swipe ----
         final View rootView = view; // fragment root
@@ -228,12 +231,56 @@ public class HomeFragment extends Fragment {
                 });
     }
 
+    /**
+     * Listens for any PENDING_CASH payment addressed to this worker and
+     * launches WorkerPaymentConfirmActivity as an auto-popup.
+     */
+    private void listenForPendingPayments() {
+        String workerUid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (workerUid == null) return;
+
+        pendingPaymentListener = FirebaseFirestore.getInstance()
+                .collection("payments")
+                .whereEqualTo("workerUid", workerUid)
+                .whereEqualTo("status", "PENDING_CASH")
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null || snap == null || snap.isEmpty()) return;
+                    if (!isAdded() || getActivity() == null) return;
+
+                    // Take the first pending payment
+                    com.google.firebase.firestore.DocumentSnapshot doc = snap.getDocuments().get(0);
+                    String paymentId = doc.getId();
+
+                    // Only show once per payment ID
+                    if (paymentId.equals(lastSeenPaymentId)) return;
+                    lastSeenPaymentId = paymentId;
+
+                    double total     = doc.getDouble("totalAmount") != null ? doc.getDouble("totalAmount") : 0.0;
+                    double tip       = doc.getDouble("tip")         != null ? doc.getDouble("tip")         : 0.0;
+                    String matchId   = doc.getString("matchId");
+                    String clientName= doc.getString("clientName");  // populated if available
+
+                    Intent intent = new Intent(requireContext(), WorkerPaymentConfirmActivity.class);
+                    intent.putExtra(WorkerPaymentConfirmActivity.EXTRA_PAYMENT_ID,   paymentId);
+                    intent.putExtra(WorkerPaymentConfirmActivity.EXTRA_MATCH_ID,     matchId);
+                    intent.putExtra(WorkerPaymentConfirmActivity.EXTRA_TOTAL_AMOUNT, total);
+                    intent.putExtra(WorkerPaymentConfirmActivity.EXTRA_TIP,          tip);
+                    intent.putExtra(WorkerPaymentConfirmActivity.EXTRA_CLIENT_NAME,  clientName);
+                    startActivity(intent);
+                });
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         if (activeMatchListener != null) {
             activeMatchListener.remove();
             activeMatchListener = null;
+        }
+        if (pendingPaymentListener != null) {
+            pendingPaymentListener.remove();
+            pendingPaymentListener = null;
         }
     }
 }

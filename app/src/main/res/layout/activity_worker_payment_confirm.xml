@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F8F8">
+
+    <!-- Orange Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="@drawable/bg_orange_gradient"
+        android:elevation="4dp">
+
+        <ImageButton
+            android:id="@+id/btn_back_confirm"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@android:color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Payment Received?"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="70dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Cash Icon -->
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:text="💵"
+            android:textSize="60sp" />
+
+        <!-- Amount -->
+        <TextView
+            android:id="@+id/tv_confirm_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Rs. 0"
+            android:textColor="#FF8A00"
+            android:textSize="42sp"
+            android:textStyle="bold" />
+
+        <!-- From Client -->
+        <TextView
+            android:id="@+id/tv_confirm_from"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="From: Client"
+            android:textColor="#555555"
+            android:textSize="16sp" />
+
+        <!-- Job Title -->
+        <TextView
+            android:id="@+id/tv_confirm_job"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Job"
+            android:textColor="#888888"
+            android:textSize="14sp" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:background="#EEEEEE" />
+
+        <!-- Question -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Did you receive the cash\nfrom the client?"
+            android:textColor="#333333"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="Tap to confirm once you physically have the money."
+            android:textColor="#999999"
+            android:textSize="13sp" />
+
+        <!-- Confirm Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_confirm_received"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="28dp"
+            android:text="✅  Yes, I Received the Cash"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="#FF8A00"
+            app:cornerRadius="16dp" />
+
+        <!-- Dismiss Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_not_yet"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="12dp"
+            android:text="Not Yet"
+            android:textAllCaps="false"
+            android:textColor="#FF8A00"
+            android:textSize="15sp"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="16dp"
+            app:strokeColor="#FF8A00"
+            app:strokeWidth="1.5dp" />
+
+        <!-- Footer note -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="Payment will be marked confirmed once you tap above."
+            android:textColor="#BBBBBB"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</FrameLayout>

@@ -1,5 +1,6 @@
 package com.example.woil.ui;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -249,8 +250,19 @@ public class FeedbackRatingActivity extends AppCompatActivity {
                     db.collection("matches").document(matchId).set(matchUpdates, SetOptions.merge())
                             .continueWithTask(task -> db.collection("matching_requests").document(matchId).set(matchUpdates, SetOptions.merge()))
                             .addOnSuccessListener(unused -> {
-                                Toast.makeText(FeedbackRatingActivity.this, "Feedback submitted successfully!", Toast.LENGTH_SHORT).show();
-                                finish();
+                                    Toast.makeText(FeedbackRatingActivity.this, "Feedback submitted!", Toast.LENGTH_SHORT).show();
+
+                                    // ── Launch payment screen ────────────────────────────────────────
+                                    Intent payIntent = new Intent(FeedbackRatingActivity.this, PaymentActivity.class);
+                                    payIntent.putExtra(PaymentActivity.EXTRA_JOB_ID,     "");        // jobId not passed here; add if available
+                                    payIntent.putExtra(PaymentActivity.EXTRA_MATCH_ID,   matchId);
+                                    payIntent.putExtra(PaymentActivity.EXTRA_WORKER_UID, workerUid);
+                                    payIntent.putExtra(PaymentActivity.EXTRA_WORKER_NAME,
+                                            tvWorkerName.getText().toString());
+                                    // Use wageAgreed + tip already included in currentWageAgreed if tip was added
+                                    payIntent.putExtra(PaymentActivity.EXTRA_AMOUNT,     currentWageAgreed);
+                                    startActivity(payIntent);
+                                    finish();
                             })
                             .addOnFailureListener(e -> {
                                 btnSubmitFeedback.setEnabled(true);
