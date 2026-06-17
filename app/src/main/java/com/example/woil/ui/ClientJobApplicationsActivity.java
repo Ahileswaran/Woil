@@ -65,6 +65,8 @@ public class ClientJobApplicationsActivity extends AppCompatActivity implements 
             final int[] remaining = {snap.size()};
             for (DocumentSnapshot doc : snap.getDocuments()) {
                 markViewedIfNeeded(doc);
+                String docJobId = doc.getString("jobId");
+                if (TextUtils.isEmpty(docJobId)) { remaining[0]--; continue; }
                 String workerUid = doc.getString("workerUid");
                 if (TextUtils.isEmpty(workerUid)) { remaining[0]--; continue; }
                 db.collection("profiles").document(workerUid).get().addOnSuccessListener(profile -> {

@@ -1,6 +1,7 @@
 package com.example.woil.ui;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -233,6 +234,9 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
                 .addOnSuccessListener(unused -> {
                     FirebaseDebugLogger.success("matching_request_create", "matches+matching_requests", matchRef.getId());
                     Toast.makeText(this, "Match request sent", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, ClientActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {

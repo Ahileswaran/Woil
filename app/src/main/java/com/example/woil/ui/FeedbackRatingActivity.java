@@ -45,7 +45,9 @@ public class FeedbackRatingActivity extends AppCompatActivity {
 
     private String matchId;
     private String workerUid;
+    private String jobId;          // for wage fallback
     private double currentWageAgreed = 0.0;
+    private double feedbackTip = 0.0;  // tip entered in this screen (separate from PaymentActivity tip)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,36 +91,88 @@ public class FeedbackRatingActivity extends AppCompatActivity {
             return;
         }
 
-        // Fetch match to get worker UID if not supplied, and current wage
         db.collection("matches").document(matchId).get()
                 .addOnSuccessListener(matchDoc -> {
-                    if (matchDoc.exists()) {
-                        if (TextUtils.isEmpty(workerUid)) {
-                            workerUid = matchDoc.getString("workerUid");
-                        }
-                        Double wage = matchDoc.getDouble("wageAgreed");
-                        if (wage != null) {
-                            currentWageAgreed = wage;
-                        }
-                        
-                        // Load worker profile details
-                        if (!TextUtils.isEmpty(workerUid)) {
-                            fetchWorkerProfile(workerUid);
-                        } else {
-                            String workerName = matchDoc.getString("workerName");
-                            String category = matchDoc.getString("category");
-                            tvWorkerName.setText(TextUtils.isEmpty(workerName) ? "Worker" : workerName);
-                            tvWorkerSkill.setText(TextUtils.isEmpty(category) ? "Cleaning" : category);
-                        }
-                    } else {
-                        Toast.makeText(this, "Match details not found", Toast.LENGTH_SHORT).show();
+                    if (!matchDoc.exists()) {
+                        Toast.makeText(this, "Match not found", Toast.LENGTH_SHORT).show();
                         finish();
+                        return;
+                    }
+
+                    // Always grab these fields first
+                    if (TextUtils.isEmpty(workerUid)) {
+                        workerUid = matchDoc.getString("workerUid");
+                    }
+                    jobId = matchDoc.getString("jobId");   // stored by ApplyJobActivity
+
+                    // --- Step 1: try wageAgreed on the match doc ---
+                    Double wage = matchDoc.getDouble("wageAgreed");
+                    if (wage != null && wage > 0) {
+                        currentWageAgreed = wage;
+                        // Wage known — go straight to worker profile
+                        proceedToWorkerProfile(matchDoc);
+                    } else if (!TextUtils.isEmpty(jobId)) {
+                        // --- Step 2: always fetch from jobs collection (authoritative source) ---
+                        // jobs.wageSuggested is the field set by PostJobActivity
+                        fetchWageFromJobDoc(jobId, matchDoc);
+                    } else {
+                        // No jobId available — proceed without wage (shows 0)
+                        proceedToWorkerProfile(matchDoc);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to load match: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     finish();
                 });
+    }
+
+    /**
+     * Fetches wageSuggested from the jobs collection — this is the authoritative
+     * value set by PostJobActivity (stored as jobs/{jobId}.wageSuggested).
+     */
+    private void fetchWageFromJobDoc(String jId,
+            com.google.firebase.firestore.DocumentSnapshot matchDoc) {
+        db.collection("jobs").document(jId).get()
+                .addOnSuccessListener(jobDoc -> {
+                    if (jobDoc.exists()) {
+                        // Primary: wageSuggested (numeric — e.g. 2000.0)
+                        Double jobWage = jobDoc.getDouble("wageSuggested");
+                        if (jobWage != null && jobWage > 0) {
+                            currentWageAgreed = jobWage;
+                        }
+                        // Fallback inside jobs doc: try wageSuggestedText → parse
+                        if (currentWageAgreed <= 0) {
+                            String wageText = jobDoc.getString("wageSuggestedText");
+                            if (!TextUtils.isEmpty(wageText)) {
+                                try {
+                                    // Strip "Rs. " prefix and commas, e.g. "Rs. 2,000" → 2000
+                                    String cleaned = wageText.replaceAll("[^0-9.]", "");
+                                    if (!cleaned.isEmpty()) {
+                                        currentWageAgreed = Double.parseDouble(cleaned);
+                                    }
+                                } catch (NumberFormatException ignored) {}
+                            }
+                        }
+                    }
+                    proceedToWorkerProfile(matchDoc);
+                })
+                .addOnFailureListener(e -> {
+                    // Jobs fetch failed — continue without wage
+                    proceedToWorkerProfile(matchDoc);
+                });
+    }
+
+    /** Loads worker profile after wage is resolved */
+    private void proceedToWorkerProfile(
+            com.google.firebase.firestore.DocumentSnapshot matchDoc) {
+        if (!TextUtils.isEmpty(workerUid)) {
+            fetchWorkerProfile(workerUid);
+        } else {
+            String workerName = matchDoc.getString("workerName");
+            String category   = matchDoc.getString("category");
+            tvWorkerName.setText(TextUtils.isEmpty(workerName) ? "Worker" : workerName);
+            tvWorkerSkill.setText(TextUtils.isEmpty(category) ? "Cleaning" : category);
+        }
     }
 
     private void fetchWorkerProfile(String uid) {
@@ -252,15 +306,18 @@ public class FeedbackRatingActivity extends AppCompatActivity {
                             .addOnSuccessListener(unused -> {
                                     Toast.makeText(FeedbackRatingActivity.this, "Feedback submitted!", Toast.LENGTH_SHORT).show();
 
-                                    // ── Launch payment screen ────────────────────────────────────────
+                                    // ── FIX Bug 1: launch PaymentActivity with correct base wage ──
+                                    // currentWageAgreed = base wage (before tip)
+                                    // tip in PaymentActivity's own field lets client add/adjust on payment screen
                                     Intent payIntent = new Intent(FeedbackRatingActivity.this, PaymentActivity.class);
-                                    payIntent.putExtra(PaymentActivity.EXTRA_JOB_ID,     "");        // jobId not passed here; add if available
+                                    payIntent.putExtra(PaymentActivity.EXTRA_JOB_ID,     TextUtils.isEmpty(jobId) ? "" : jobId);
                                     payIntent.putExtra(PaymentActivity.EXTRA_MATCH_ID,   matchId);
                                     payIntent.putExtra(PaymentActivity.EXTRA_WORKER_UID, workerUid);
                                     payIntent.putExtra(PaymentActivity.EXTRA_WORKER_NAME,
                                             tvWorkerName.getText().toString());
-                                    // Use wageAgreed + tip already included in currentWageAgreed if tip was added
-                                    payIntent.putExtra(PaymentActivity.EXTRA_AMOUNT,     currentWageAgreed);
+                                    // Pass BASE wage — tip in PaymentActivity is entered fresh
+                                    double baseWage = currentWageAgreed > 0 ? currentWageAgreed : 0.0;
+                                    payIntent.putExtra(PaymentActivity.EXTRA_AMOUNT, baseWage);
                                     startActivity(payIntent);
                                     finish();
                             })

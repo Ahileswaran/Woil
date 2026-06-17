@@ -1,6 +1,7 @@
 package com.example.woil.ui;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,6 +42,10 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
     private LatLng clientLatLng;
     private LatLng workerLatLng;
     private String workerName;
+    // Cached from Firestore for passing to WorkerJobCompleteActivity
+    private double cachedWageAgreed = 0.0;
+    private String cachedJobTitle = "";
+    private boolean workerCompletedHandled = false; // one-shot guard
 
     private TextView tvWorkTimer;
     private MaterialButton btnStartWork;
@@ -210,15 +215,20 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
         btnArrived.setVisibility(View.GONE);
         btnCancelJob.setVisibility(View.GONE);
 
-        if ("CANCELLED".equalsIgnoreCase(status)) {
-            tvStatusDisplay.setText("Job has been cancelled");
+        if ("CANCELLED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
+            tvStatusDisplay.setText("Job has been " + status.toLowerCase());
             btnStartWork.setVisibility(View.GONE);
             btnEndWork.setVisibility(View.GONE);
+            btnCancelJob.setVisibility(View.GONE);
             tvWorkTimer.setVisibility(View.GONE);
             stopTimer();
+            
+            String title = "REJECTED".equalsIgnoreCase(status) ? "Request Rejected" : "Job Cancelled";
+            String msg = "REJECTED".equalsIgnoreCase(status) ? "The worker has declined this matching request." : "This matching request has been cancelled.";
+            
             new AlertDialog.Builder(this)
-                    .setTitle("Job Cancelled")
-                    .setMessage("This matching request has been cancelled.")
+                    .setTitle(title)
+                    .setMessage(msg)
                     .setCancelable(false)
                     .setPositiveButton("OK", (dialog, which) -> finish())
                     .show();
@@ -226,7 +236,14 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
         }
 
         if ("client".equalsIgnoreCase(role)) {
-            if ("ACCEPTED".equalsIgnoreCase(status) || "TRAVELING".equalsIgnoreCase(status)) {
+            if ("PENDING".equalsIgnoreCase(status)) {
+                tvStatusDisplay.setText("Waiting for worker to accept...");
+                btnStartWork.setVisibility(View.GONE);
+                btnEndWork.setVisibility(View.GONE);
+                tvWorkTimer.setVisibility(View.GONE);
+                btnCancelJob.setVisibility(View.VISIBLE);
+                stopTimer();
+            } else if ("ACCEPTED".equalsIgnoreCase(status) || "TRAVELING".equalsIgnoreCase(status)) {
                 tvStatusDisplay.setText("Worker is on the way");
                 btnStartWork.setVisibility(View.VISIBLE);
                 btnStartWork.setEnabled(true);
@@ -311,13 +328,17 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
                     startTimer();
                 }
             } else if ("COMPLETED".equalsIgnoreCase(status)) {
+                // ── FIX Bug 2: close tracker and navigate to waiting screen ──
+                if (workerCompletedHandled) return;
+                workerCompletedHandled = true;
+
                 tvStatusDisplay.setText("Job completed successfully");
                 tvWorkTimer.setVisibility(View.VISIBLE);
                 btnArrived.setVisibility(View.GONE);
                 btnCancelJob.setVisibility(View.GONE);
 
                 Long startTime = snap.getLong("startTime");
-                Long endTime = snap.getLong("endTime");
+                Long endTime   = snap.getLong("endTime");
                 stopTimer();
                 if (startTime != null && endTime != null) {
                     long seconds = (endTime - startTime) / 1000;
@@ -327,6 +348,23 @@ public class AssignedJobMapActivity extends AppCompatActivity implements OnMapRe
                 } else {
                     tvWorkTimer.setText("Total Work Time: completed");
                 }
+
+                // Cache wage from snapshot
+                Double wage = snap.getDouble("wageAgreed");
+                if (wage != null && wage > 0) cachedWageAgreed = wage;
+                String jt = snap.getString("jobTitle");
+                if (!TextUtils.isEmpty(jt)) cachedJobTitle = jt;
+
+                // Navigate to WorkerJobCompleteActivity after short delay
+                new Handler().postDelayed(() -> {
+                    Intent intent = new Intent(this, WorkerJobCompleteActivity.class);
+                    intent.putExtra(WorkerJobCompleteActivity.EXTRA_MATCH_ID,    matchId);
+                    intent.putExtra(WorkerJobCompleteActivity.EXTRA_WORKER_UID,  snap.getString("workerUid"));
+                    intent.putExtra(WorkerJobCompleteActivity.EXTRA_JOB_TITLE,   cachedJobTitle);
+                    intent.putExtra(WorkerJobCompleteActivity.EXTRA_WAGE_AMOUNT, cachedWageAgreed);
+                    startActivity(intent);
+                    finish();
+                }, 1500);
             }
         }
     }
