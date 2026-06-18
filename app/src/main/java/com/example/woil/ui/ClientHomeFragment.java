@@ -43,6 +43,15 @@ public class ClientHomeFragment extends Fragment {
         tvMatchingSummary = view.findViewById(R.id.tvMatchingSummary);
         rvClientPostedJobs.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvClientMatching.setLayoutManager(new LinearLayoutManager(requireContext()));
+        
+        java.util.List<com.example.woil.JobModel> postedJobs = new java.util.ArrayList<>();
+        com.example.woil.JobAdapter postedJobsAdapter = new com.example.woil.JobAdapter(postedJobs, requireContext(), job -> {
+            Intent i = new Intent(requireContext(), JobDetailActivity.class);
+            i.putExtra("jobId", job.id);
+            startActivity(i);
+        });
+        rvClientPostedJobs.setAdapter(postedJobsAdapter);
+
         btnAddJobClientHome.setOnClickListener(v -> {
             try { startActivity(new Intent(requireContext(), PostJobActivity.class)); }
             catch (Exception e) { Toast.makeText(requireContext(), "Can't open Post Job screen", Toast.LENGTH_SHORT).show(); }
@@ -50,9 +59,28 @@ public class ClientHomeFragment extends Fragment {
         btnViewApplications.setOnClickListener(v -> startActivity(new Intent(requireContext(), ClientJobApplicationsActivity.class)));
         String uid = FirebaseAuth.getInstance().getCurrentUser()!=null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         if (uid != null) {
+            FirebaseFirestore.getInstance().collection("jobs").whereEqualTo("clientUid", uid).addSnapshotListener((snap, e) -> {
+                if (e != null || snap == null) return;
+                postedJobs.clear();
+                for (DocumentSnapshot doc : snap.getDocuments()) {
+                    com.example.woil.JobModel job = doc.toObject(com.example.woil.JobModel.class);
+                    if (job != null) {
+                        job.id = doc.getId();
+                        postedJobs.add(job);
+                    }
+                }
+                java.util.Collections.sort(postedJobs, (j1, j2) -> {
+                    if (j1.createdAt == null && j2.createdAt == null) return 0;
+                    if (j1.createdAt == null) return 1;
+                    if (j2.createdAt == null) return -1;
+                    return j2.createdAt.compareTo(j1.createdAt);
+                });
+                postedJobsAdapter.notifyDataSetChanged();
+            });
+
             FirebaseFirestore.getInstance().collection("matches").whereEqualTo("clientUid", uid).get().addOnSuccessListener(snap -> {
                 int total = snap.size(); int pending = 0;
-                for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+                for (DocumentSnapshot d : snap.getDocuments()) {
                     String s = d.getString("status");
                     if (s == null || "PENDING".equalsIgnoreCase(s) || "VIEWED".equalsIgnoreCase(s)) pending++;
                 }
