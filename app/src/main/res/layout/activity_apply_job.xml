@@ -119,6 +119,69 @@
                         android:text="@string/your_application_will_be_sent_to_the_client_for_review"
                         android:textColor="#757575"
                         android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:id="@+id/layout_wage_calculation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="20dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:text="Estimated Hours"
+                                android:textColor="#424242"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <EditText
+                                android:id="@+id/et_human_hours"
+                                android:layout_width="100dp"
+                                android:layout_height="48dp"
+                                android:inputType="numberDecimal"
+                                android:text="1.0"
+                                android:background="@drawable/bg_field"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                android:textAlignment="center" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:text="Total Wage (Rs.)"
+                                android:textColor="#424242"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <EditText
+                                android:id="@+id/et_total_wage"
+                                android:layout_width="120dp"
+                                android:layout_height="48dp"
+                                android:inputType="numberDecimal"
+                                android:background="@drawable/bg_field"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                android:textAlignment="center" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -34,9 +34,9 @@ import java.util.Map;
 
 public class ClientApplicationDetailActivity extends AppCompatActivity {
     public static final String EXTRA_MATCH_ID="matchId", EXTRA_JOB_ID="jobId", EXTRA_WORKER_UID="workerUid", EXTRA_WORKER_NAME="workerName",
-    EXTRA_WORKER_ROLE="workerRole", EXTRA_WORKER_PHOTO="workerPhoto", EXTRA_WORKER_LOCATION="workerLocation", EXTRA_WORKER_RATING="workerRating",
-    EXTRA_COMPLETED_JOBS="completedJobs", EXTRA_STATUS="status", EXTRA_DISTANCE_KM="distanceKm", EXTRA_ETA_MIN="etaMin", EXTRA_CATEGORY="category",
-    EXTRA_CLIENT_UID="clientUid", EXTRA_JOB_TITLE="jobTitle";
+            EXTRA_WORKER_ROLE="workerRole", EXTRA_WORKER_PHOTO="workerPhoto", EXTRA_WORKER_LOCATION="workerLocation", EXTRA_WORKER_RATING="workerRating",
+            EXTRA_COMPLETED_JOBS="completedJobs", EXTRA_STATUS="status", EXTRA_DISTANCE_KM="distanceKm", EXTRA_ETA_MIN="etaMin", EXTRA_CATEGORY="category",
+            EXTRA_CLIENT_UID="clientUid", EXTRA_JOB_TITLE="jobTitle";
 
     private FirebaseFirestore db;
     private String matchId, jobId, workerUid, workerName, workerRole, workerPhoto, workerLocation, status, category, clientUid, jobTitle;

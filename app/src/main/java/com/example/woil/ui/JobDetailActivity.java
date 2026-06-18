@@ -67,6 +67,8 @@ public class JobDetailActivity extends AppCompatActivity {
     private String currentTimeText;
     private String currentLocationText;
     private String currentCategory;
+    private Double currentLat;
+    private Double currentLng;
 
     private final SimpleDateFormat fmt =
             new SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault());
@@ -208,6 +210,8 @@ public class JobDetailActivity extends AppCompatActivity {
     }
 
     private void displayJob(JobModel job, Double lat, Double lng) {
+        currentLat = lat;
+        currentLng = lng;
         currentTitle = safe(job.title, "Untitled Job");
         currentLocationText = safe(job.locationText, "Location not available");
 
@@ -351,6 +355,9 @@ public class JobDetailActivity extends AppCompatActivity {
         intent.putExtra("timeText", currentTimeText);
         intent.putExtra("locationText", currentLocationText);
         intent.putExtra("category", currentCategory);
+
+        if (currentLat != null) intent.putExtra("jobLat", currentLat);
+        if (currentLng != null) intent.putExtra("jobLng", currentLng);
 
         if (currentWageSuggested != null) {
             intent.putExtra("wageSuggested", currentWageSuggested);

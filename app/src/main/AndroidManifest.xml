@@ -91,6 +91,7 @@
         <activity android:name=".ui.ApplyJobActivity" />
 
         <activity android:name=".ui.ClientJobApplicationsActivity" />
+        <activity android:name=".ui.ClientApplicationDetailActivity" />
         <activity android:name=".ui.NotificationsActivity" />
         <activity android:name=".ui.DisputeReportActivity" />
         <activity android:name=".ui.CccCaseQueueActivity" />

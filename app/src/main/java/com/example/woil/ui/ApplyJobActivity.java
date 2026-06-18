@@ -95,6 +95,42 @@ public class ApplyJobActivity extends AppCompatActivity {
             return;
         }
 
+        btnConfirmApply.setEnabled(false);
+
+        double jobLat = getIntent().getDoubleExtra("jobLat", 0.0);
+        double jobLng = getIntent().getDoubleExtra("jobLng", 0.0);
+
+        if (jobLat != 0.0 && jobLng != 0.0) {
+            db.collection("profiles").document(workerUid).get().addOnSuccessListener(profileSnap -> {
+                double distanceKm = 0.0;
+                long etaMinutes = 0L;
+                if (profileSnap.exists()) {
+                    Object locObj = profileSnap.get("location");
+                    if (locObj instanceof Map) {
+                        Map<?,?> loc = (Map<?,?>) locObj;
+                        Object wLat = loc.get("lat");
+                        Object wLng = loc.get("lng");
+                        if (wLat instanceof Number && wLng instanceof Number) {
+                            float[] results = new float[1];
+                            android.location.Location.distanceBetween(
+                                ((Number)wLat).doubleValue(), ((Number)wLng).doubleValue(),
+                                jobLat, jobLng, results
+                            );
+                            distanceKm = results[0] / 1000.0;
+                            etaMinutes = Math.max(1, Math.round(distanceKm * 4.0));
+                        }
+                    }
+                }
+                saveMatch(workerUid, distanceKm, etaMinutes, jobLat, jobLng);
+            }).addOnFailureListener(e -> {
+                saveMatch(workerUid, 0.0, 0L, jobLat, jobLng);
+            });
+        } else {
+            saveMatch(workerUid, 0.0, 0L, jobLat, jobLng);
+        }
+    }
+
+    private void saveMatch(String workerUid, double distanceKm, long etaMinutes, double jobLat, double jobLng) {
         Map<String, Object> match = new HashMap<>();
         match.put("jobId", jobId);
         match.put("workerUid", workerUid);
@@ -107,10 +143,15 @@ public class ApplyJobActivity extends AppCompatActivity {
         match.put("jobTitle", safe(title, "Untitled Job"));
         match.put("locationText", safe(locationText, ""));
         match.put("category", getIntent().getStringExtra("category"));
-        match.put("distanceKm", getIntent().getDoubleExtra("distanceKm", 0.0));
-        match.put("etaMinutes", getIntent().getLongExtra("etaMinutes", 0L));
+        match.put("distanceKm", distanceKm);
+        match.put("etaMinutes", etaMinutes);
 
-        btnConfirmApply.setEnabled(false);
+        if (jobLat != 0.0 && jobLng != 0.0) {
+            Map<String, Object> clientLocation = new HashMap<>();
+            clientLocation.put("lat", jobLat);
+            clientLocation.put("lng", jobLng);
+            match.put("clientLocation", clientLocation);
+        }
 
         db.collection("matches")
                 .add(match)

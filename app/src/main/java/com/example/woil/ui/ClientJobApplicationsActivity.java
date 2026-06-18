@@ -65,8 +65,6 @@ public class ClientJobApplicationsActivity extends AppCompatActivity implements 
             final int[] remaining = {snap.size()};
             for (DocumentSnapshot doc : snap.getDocuments()) {
                 markViewedIfNeeded(doc);
-                String docJobId = doc.getString("jobId");
-                if (TextUtils.isEmpty(docJobId)) { remaining[0]--; continue; }
                 String workerUid = doc.getString("workerUid");
                 if (TextUtils.isEmpty(workerUid)) { remaining[0]--; continue; }
                 db.collection("profiles").document(workerUid).get().addOnSuccessListener(profile -> {
@@ -126,9 +124,9 @@ public class ClientJobApplicationsActivity extends AppCompatActivity implements 
         db.collection("matches").document(item.getMatchId()).set(updates, SetOptions.merge())
                 .continueWithTask(task -> db.collection("matching_requests").document(item.getMatchId()).set(updates, SetOptions.merge()))
                 .addOnSuccessListener(unused -> { if ("ACCEPTED".equals(status) && !TextUtils.isEmpty(item.getJobId())) {
-                        HashMap<String,Object> job=new HashMap<>(); job.put("assignedUid", item.getWorkerUid()); job.put("status", "MATCHED"); job.put("updatedAt", FieldValue.serverTimestamp());
-                        db.collection("jobs").document(item.getJobId()).set(job, SetOptions.merge());
-                    } Toast.makeText(this, "Application " + status.toLowerCase(Locale.ROOT), Toast.LENGTH_SHORT).show();})
+                    HashMap<String,Object> job=new HashMap<>(); job.put("assignedUid", item.getWorkerUid()); job.put("status", "MATCHED"); job.put("updatedAt", FieldValue.serverTimestamp());
+                    db.collection("jobs").document(item.getJobId()).set(job, SetOptions.merge());
+                } Toast.makeText(this, "Application " + status.toLowerCase(Locale.ROOT), Toast.LENGTH_SHORT).show();})
                 .addOnFailureListener(e -> Toast.makeText(this, "Status update failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
     private static String first(String... vals){ if(vals==null) return ""; for(String v:vals) if(!TextUtils.isEmpty(v)) return v; return ""; }

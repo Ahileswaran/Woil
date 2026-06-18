@@ -11,6 +11,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
+import android.widget.EditText;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -61,6 +64,9 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
     private SkillVideoAdapter videoAdapter;
     private MaterialButton btnConfirmApply;
 
+    private EditText etHumanHours;
+    private EditText etTotalWage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +104,8 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
         TextView tvApplyTime = findViewById(R.id.tv_apply_time);
         TextView tvApplyLocation = findViewById(R.id.tv_apply_location);
         TextView tvApplyNote = findViewById(R.id.tv_apply_note);
+        etHumanHours = findViewById(R.id.et_human_hours);
+        etTotalWage = findViewById(R.id.et_total_wage);
         btnConfirmApply = findViewById(R.id.btn_confirm_apply);
         MaterialButton btnCancelApply = findViewById(R.id.btn_cancel_apply);
         recyclerSkillVideos = findViewById(R.id.recycler_skill_videos);
@@ -113,12 +121,55 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
         tvApplyLocation.setText("Location: " + (TextUtils.isEmpty(workerLocationText) ? "Not specified" : workerLocationText));
         tvApplyNote.setText("Review the worker's showcase videos and skills below before confirming the matching request.");
 
+        View layoutWageCalculation = findViewById(R.id.layout_wage_calculation);
+        if (layoutWageCalculation != null) {
+            layoutWageCalculation.setVisibility(View.VISIBLE);
+        }
+
+        if (etHumanHours != null) {
+            etHumanHours.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    recalculateWage();
+                }
+            });
+        }
+        recalculateWage();
+
         btnConfirmApply.setText("Confirm Match");
         btnConfirmApply.setOnClickListener(v -> createPendingMatchRequest());
         btnCancelApply.setOnClickListener(v -> finish());
         btnBack.setOnClickListener(v -> finish());
 
         setupShowcaseVideos();
+    }
+
+    private void recalculateWage() {
+        if (etHumanHours == null || etTotalWage == null) return;
+        
+        double hours = 1.0;
+        try {
+            String hoursStr = etHumanHours.getText().toString().trim();
+            if (!hoursStr.isEmpty()) {
+                hours = Double.parseDouble(hoursStr);
+            }
+        } catch (NumberFormatException e) {
+            hours = 0.0;
+        }
+
+        WageCalculator.Input input = new WageCalculator.Input();
+        input.category = selectedCategory;
+        input.distanceKm = workerDistanceKm;
+        input.humanHours = hours;
+
+        WageCalculator.Result result = WageCalculator.calculate(input);
+        etTotalWage.setText(String.format(Locale.getDefault(), "%.2f", result.totalAmount));
     }
 
     private void setupShowcaseVideos() {
@@ -220,6 +271,17 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
         request.put("matchLevel", matchLevel);
         request.put("status", "PENDING");
         request.put("createdAt", FieldValue.serverTimestamp());
+
+        double finalWage = 0.0;
+        if (etTotalWage != null) {
+            try {
+                String wageStr = etTotalWage.getText().toString().trim();
+                if (!wageStr.isEmpty()) {
+                    finalWage = Double.parseDouble(wageStr);
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        request.put("wageAgreed", finalWage);
 
         Map<String, Object> clientLocation = new HashMap<>();
         clientLocation.put("lat", clientLat);
