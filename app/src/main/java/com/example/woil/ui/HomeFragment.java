@@ -77,15 +77,45 @@ public class HomeFragment extends Fragment {
         });
         rvCategories.setAdapter(catAdapter);
 
-        // timeline
-        List<TimelineModel> timelineList = new ArrayList<>();
-        timelineList.add(new TimelineModel("Fix sink leak", "Pending", "Today 2PM"));
-        timelineList.add(new TimelineModel("Install ceiling fan", "Completed", "Yesterday"));
-        timelineList.add(new TimelineModel("Paint living room", "Ongoing", "Tomorrow"));
-
         rvTimeline.setLayoutManager(new LinearLayoutManager(getContext()));
+        List<TimelineModel> timelineList = new ArrayList<>();
         TimelineAdapter tAdapter = new TimelineAdapter(timelineList);
         rvTimeline.setAdapter(tAdapter);
+
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uid != null) {
+            FirebaseFirestore.getInstance().collection("matches")
+                    .whereEqualTo("workerUid", uid)
+                    .addSnapshotListener((snap, e) -> {
+                        if (e != null || snap == null) return;
+                        timelineList.clear();
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault());
+                        for (DocumentSnapshot doc : snap.getDocuments()) {
+                            String status = doc.getString("status");
+                            if ("PENDING".equalsIgnoreCase(status) || "VIEWED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) continue;
+                            
+                            TimelineModel tm = new TimelineModel(
+                                    doc.getString("jobTitle") != null ? doc.getString("jobTitle") : "Job",
+                                    status != null ? status : "UNKNOWN",
+                                    ""
+                            );
+                            tm.location = doc.getString("locationText") != null ? doc.getString("locationText") : "Location unavailable";
+                            tm.description = "Status: " + (status != null ? status : "UNKNOWN");
+                            
+                            Object updatedAt = doc.get("updatedAt");
+                            if (updatedAt instanceof com.google.firebase.Timestamp) {
+                                tm.time = sdf.format(((com.google.firebase.Timestamp) updatedAt).toDate());
+                            } else {
+                                tm.time = "Recently";
+                            }
+                            
+                            timelineList.add(tm);
+                        }
+                        // Sort so most recently updated are at top
+                        java.util.Collections.sort(timelineList, (t1, t2) -> t2.time.compareTo(t1.time));
+                        tAdapter.notifyDataSetChanged();
+                    });
+        }
 
         View btnJobOffers = view.findViewById(R.id.btn_job_offers);
         if (btnJobOffers != null) {
