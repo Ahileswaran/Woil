@@ -95,19 +95,11 @@ public class SkillVideoAdapter extends RecyclerView.Adapter<SkillVideoAdapter.Vi
             return;
         }
 
-        try {
-            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-            retriever.setDataSource(context, uri);
-            Bitmap bitmap = retriever.getFrameAtTime(1000000);
-            if (bitmap != null) {
-                imageView.setImageBitmap(bitmap);
-            } else {
-                imageView.setImageResource(R.drawable.photo_placeholder);
-            }
-            retriever.release();
-        } catch (Exception e) {
-            imageView.setImageResource(R.drawable.photo_placeholder);
-        }
+        com.bumptech.glide.Glide.with(context)
+                .load(uri)
+                .placeholder(R.drawable.photo_placeholder)
+                .error(R.drawable.photo_placeholder)
+                .into(imageView);
     }
 
     public static class VideoViewHolder extends RecyclerView.ViewHolder {

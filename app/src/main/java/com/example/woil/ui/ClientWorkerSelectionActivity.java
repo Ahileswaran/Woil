@@ -230,17 +230,25 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
     }
 
     private void playVideo(SkillVideo video) {
-        Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.dialog_video_preview);
-        VideoView dialogVideoView = dialog.findViewById(R.id.dialog_video_view);
-        Uri videoUri = video != null ? video.getVideoUri() : null;
-        if (videoUri != null) {
-            dialogVideoView.setVideoURI(videoUri);
-            dialogVideoView.start();
-        } else {
+        if (video == null || video.getVideoUri() == null) {
             Toast.makeText(this, "No video URL available for preview", Toast.LENGTH_SHORT).show();
+            return;
         }
-        dialog.show();
+        java.util.ArrayList<String> videoUrls = new java.util.ArrayList<>();
+        int startIndex = 0;
+        for (int i = 0; i < skillVideoList.size(); i++) {
+            SkillVideo v = skillVideoList.get(i);
+            if (v.getVideoUri() != null) {
+                videoUrls.add(v.getVideoUri().toString());
+                if (v.getId().equals(video.getId())) {
+                    startIndex = videoUrls.size() - 1;
+                }
+            }
+        }
+        Intent intent = new Intent(this, VideoPlayerActivity.class);
+        intent.putStringArrayListExtra("video_urls", videoUrls);
+        intent.putExtra("start_index", startIndex);
+        startActivity(intent);
     }
 
     private void createPendingMatchRequest() {

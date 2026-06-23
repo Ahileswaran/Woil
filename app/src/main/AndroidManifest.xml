@@ -117,6 +117,8 @@
 
         <activity android:name=".ui.SkillShowcaseActivity" />
         <activity android:name=".ui.UploadSkillVideoActivity" />
+        <activity android:name=".ui.VideoPlayerActivity" 
+                  android:configChanges="orientation|keyboardHidden|screenSize|screenLayout" />
 
         <activity android:name=".ui.NicVerificationActivity" />
 
