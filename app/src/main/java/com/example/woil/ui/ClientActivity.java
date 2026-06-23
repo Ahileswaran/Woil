@@ -33,6 +33,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -444,9 +446,28 @@ public class ClientActivity extends AppCompatActivity {
         updates.put("isWorker", false);
 
         if (selectedImageUri != null) {
-            updates.put("photoUrl", selectedImageUri.toString());
-        }
+            StorageReference storageRef = FirebaseStorage.getInstance("gs://woil-f8f1c.firebasestorage.app")
+                    .getReference()
+                    .child("profile_images/" + uid + ".jpg");
 
+            storageRef.putFile(selectedImageUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            updates.put("photoUrl", uri.toString());
+                            saveClientProfileUpdatesToFirestore(uid, updates, updatedName, updatedLocation);
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        // Proceed with updating other fields even if image upload fails
+                        saveClientProfileUpdatesToFirestore(uid, updates, updatedName, updatedLocation);
+                    });
+        } else {
+            saveClientProfileUpdatesToFirestore(uid, updates, updatedName, updatedLocation);
+        }
+    }
+
+    private void saveClientProfileUpdatesToFirestore(String uid, Map<String, Object> updates, String updatedName, String updatedLocation) {
         db.collection("profiles").document(uid)
                 .set(updates, SetOptions.merge())
                 .addOnSuccessListener(unused -> {
