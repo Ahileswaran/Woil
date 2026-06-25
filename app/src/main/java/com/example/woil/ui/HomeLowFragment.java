@@ -216,7 +216,11 @@ public class HomeLowFragment extends Fragment {
         ImageButton btnVideo = view.findViewById(R.id.btn_video);
 
         if (panicButton != null) {
-            panicButton.setOnClickListener(v -> openPanicAlert());
+            panicButton.setOnClickListener(v -> {
+                android.widget.Toast.makeText(requireContext(), "Panic button clicked (Low)", android.widget.Toast.LENGTH_SHORT).show();
+                android.util.Log.d("PanicButton", "Panic button clicked in HomeLowFragment");
+                openPanicAlert();
+            });
         }
 
         if (callAlert1 != null) {
@@ -277,7 +281,8 @@ public class HomeLowFragment extends Fragment {
                     .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
                     .putExtra("state", "OPEN"));
         } catch (Exception e) {
-            Toast.makeText(requireContext(), "Unable to start emergency alert.", Toast.LENGTH_SHORT).show();
+            android.util.Log.e("PanicButton", "Error starting PanicAlertStatusActivity in Low", e);
+            Toast.makeText(requireContext(), "Unable to start emergency alert: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

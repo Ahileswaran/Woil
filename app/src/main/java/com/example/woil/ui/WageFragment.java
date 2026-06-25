@@ -90,6 +90,7 @@ public class WageFragment extends Fragment {
     private ListenerRegistration profileListener;
 
     private String activeRole = "worker";
+    private Map<String, Double> currentMarketRates = new HashMap<>();
 
     @Nullable
     @Override
@@ -114,6 +115,22 @@ public class WageFragment extends Fragment {
         loadStaticDemoData();
         attachProfileListeners();
         applyRoleUi();
+        fetchMarketRates();
+    }
+
+    private void fetchMarketRates() {
+        db.collection("system_config").document("market_wages").get()
+            .addOnSuccessListener(snap -> {
+                if (snap.exists()) {
+                    currentMarketRates.put("cleaning", snap.getDouble("cleaning"));
+                    currentMarketRates.put("gardening", snap.getDouble("gardening"));
+                    currentMarketRates.put("plumbing", snap.getDouble("plumbing"));
+                    currentMarketRates.put("housekeeping", snap.getDouble("housekeeping"));
+                    currentMarketRates.put("laundry", snap.getDouble("laundry"));
+                    currentMarketRates.put("caregiving", snap.getDouble("caregiving"));
+                    currentMarketRates.put("other", snap.getDouble("other"));
+                }
+            });
     }
 
     private void bindViews(View view) {
@@ -410,6 +427,7 @@ public class WageFragment extends Fragment {
         input.breakMinutes = (int) parseDouble(etBreakMinutes.getText().toString());
         input.tips = parseDouble(etTips.getText().toString());
         input.materials = parseDouble(etMaterials.getText().toString());
+        input.marketRates = currentMarketRates;
 
         WageCalculator.Result result = WageCalculator.calculate(input);
         bindResult(result);

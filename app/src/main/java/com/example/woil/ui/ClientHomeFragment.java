@@ -88,6 +88,8 @@ public class ClientHomeFragment extends Fragment {
             });
             setupActiveMatchListener(view, uid);
         }
+
+
     }
 
     private void setupActiveMatchListener(View view, String clientUid) {

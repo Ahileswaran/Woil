@@ -28,12 +28,13 @@ public class WageCalculator {
         public int breakMinutes;
         public double tips;
         public double materials;
+        public java.util.Map<String, Double> marketRates;
     }
 
     public static Result calculate(Input input) {
         Result result = new Result();
 
-        double baseRatePerHour = getBaseRate(input.category);
+        double baseRatePerHour = getBaseRate(input.category, input.marketRates);
         double perKmRate = 15.0;
 
         double breakHours = input.breakMinutes / 60.0;
@@ -82,10 +83,15 @@ public class WageCalculator {
         return result;
     }
 
-    private static double getBaseRate(String category) {
-        if (category == null) return 600.0;
+    private static double getBaseRate(String category, java.util.Map<String, Double> marketRates) {
+        if (category == null) category = "other";
+        category = category.toLowerCase();
 
-        switch (category.toLowerCase()) {
+        if (marketRates != null && marketRates.containsKey(category) && marketRates.get(category) != null) {
+            return marketRates.get(category);
+        }
+
+        switch (category) {
             case "cleaning":
                 return 600.0;
             case "gardening":

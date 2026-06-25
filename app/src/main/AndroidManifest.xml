@@ -98,6 +98,7 @@
         <activity android:name=".ui.CccActivity" />
 
         <activity android:name=".ui.CoreControlCenterHubActivity" />
+        <activity android:name=".ui.UpdateWagesActivity" />
         <activity android:name=".ui.EmergencyContactsActivity" />
         <activity android:name=".ui.PanicAlertStatusActivity" />
         <activity android:name=".ui.PaymentActivity" />
@@ -110,6 +111,8 @@
 
 
         <activity android:name=".ui.ClientJobMatchingActivity" />
+        <activity android:name=".ui.OtherProvinceMatchingActivity" />
+        <activity android:name=".ui.ScheduleWorkerActivity" />
         <activity android:name=".ui.ClientWorkerSelectionActivity" />
         <activity android:name=".ui.MatchingResultActivity" />
         <activity android:name=".ui.AssignedJobMapActivity" />

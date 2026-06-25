@@ -169,6 +169,25 @@ public class HomeFragment extends Fragment {
             // returning false allows children (RecyclerView) to keep receiving touch events
         });
 
+        View btnPanic = view.findViewById(R.id.btn_panic);
+        if (btnPanic != null) {
+            btnPanic.bringToFront();
+            btnPanic.setOnClickListener(v -> {
+                android.widget.Toast.makeText(requireContext(), "Panic button clicked", android.widget.Toast.LENGTH_SHORT).show();
+                android.util.Log.d("PanicButton", "Panic button clicked in HomeFragment");
+                try {
+                    startActivity(new Intent(requireContext(), PanicAlertStatusActivity.class)
+                            .putExtra("incidentType", "APP_PANIC")
+                            .putExtra("severity", "CRITICAL")
+                            .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
+                            .putExtra("state", "OPEN"));
+                } catch (Exception e) {
+                    android.util.Log.e("PanicButton", "Error starting PanicAlertStatusActivity", e);
+                    android.widget.Toast.makeText(requireContext(), "Error: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
         return view;
     }
 

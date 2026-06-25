@@ -65,6 +65,7 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
     private RecyclerView rvMatchingWorkers;
     private RecyclerView rvScheduleWorkers;
     private TextView tvScheduleTitle;
+    private MaterialButton btnFindOtherPlace;
     private MaterialButton btnMatchNow;
 
     private FirebaseFirestore db;
@@ -104,6 +105,7 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
         rvMatchingWorkers = findViewById(R.id.rv_matching_workers);
         rvScheduleWorkers = findViewById(R.id.rv_schedule_workers);
         tvScheduleTitle = findViewById(R.id.tv_schedule_title);
+        btnFindOtherPlace = findViewById(R.id.btn_find_other_place);
         btnMatchNow = findViewById(R.id.btn_match_now);
 
         workerAdapter = new MatchingWorkerAdapter(this::openWorkerSelection);
@@ -131,6 +133,11 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
         btnBack.setOnClickListener(v -> finish());
         btnPickLocation.setOnClickListener(v -> openMapPicker());
         tvSelectedLocation.setOnClickListener(v -> openMapPicker());
+        btnFindOtherPlace.setOnClickListener(v -> {
+            Intent intent = new Intent(this, OtherProvinceMatchingActivity.class);
+            intent.putExtra("selectedCategory", getEffectiveCategory());
+            startActivity(intent);
+        });
         btnMatchNow.setOnClickListener(v -> runMatching());
 
         loadClientDefaultLocation();
@@ -346,6 +353,12 @@ public class ClientJobMatchingActivity extends AppCompatActivity implements OnMa
                     tvScheduleTitle.setVisibility(scheduleWorkers.isEmpty() ? View.GONE : View.VISIBLE);
                     rvScheduleWorkers.setVisibility(scheduleWorkers.isEmpty() ? View.GONE : View.VISIBLE);
                     scheduleAdapter.submitList(scheduleWorkers);
+
+                    if (nearbyWorkers.isEmpty() && scheduleWorkers.isEmpty()) {
+                        btnFindOtherPlace.setVisibility(View.VISIBLE);
+                    } else {
+                        btnFindOtherPlace.setVisibility(View.GONE);
+                    }
 
                     FirebaseDebugLogger.read(
                             "worker_matching_query",

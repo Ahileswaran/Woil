@@ -32,32 +32,40 @@
             app:cardCornerRadius="20dp"
             app:cardElevation="4dp">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/tvClientWelcome"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/welcome_nneed_a_worker_today"
-                    android:textColor="#616161"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:orientation="vertical">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_add_job_client_home"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="14dp"
-                    android:text="@string/post_job"
-                    android:textAllCaps="false"
-                    android:textColor="@android:color/white"
-                    app:backgroundTint="#FF8A00"
-                    app:cornerRadius="14dp" />
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/tvClientWelcome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/welcome_nneed_a_worker_today"
+                        android:textColor="#616161"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_add_job_client_home"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/post_job"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        app:backgroundTint="#FF8A00"
+                        app:cornerRadius="14dp" />
+                </LinearLayout>
+
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Active match tracking card -->

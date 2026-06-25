@@ -28,6 +28,7 @@ public class CoreControlCenterHubActivity extends AppCompatActivity {
         MaterialButton btnCaseHistory = findViewById(R.id.btn_ccc_case_history);
         MaterialButton btnReportIssue = findViewById(R.id.btn_ccc_report_issue);
         MaterialButton btnNotifications = findViewById(R.id.btn_ccc_notifications);
+        MaterialButton btnUpdateWages = findViewById(R.id.btn_ccc_update_wages);
 
         btnBack.setOnClickListener(v -> finish());
         btnEmergencyContacts.setOnClickListener(v ->
@@ -38,5 +39,7 @@ public class CoreControlCenterHubActivity extends AppCompatActivity {
                 startActivity(new Intent(this, DisputeReportActivity.class)));
         btnNotifications.setOnClickListener(v ->
                 startActivity(new Intent(this, NotificationsActivity.class)));
+        btnUpdateWages.setOnClickListener(v ->
+                startActivity(new Intent(this, UpdateWagesActivity.class)));
     }
 }

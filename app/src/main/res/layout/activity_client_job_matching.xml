@@ -133,6 +133,20 @@
             android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_find_other_place"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:text="Find in other place"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:backgroundTint="#8B8B8B"
+            app:cornerRadius="24dp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_match_now"
             android:layout_width="match_parent"
             android:layout_height="56dp"
