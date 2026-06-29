@@ -315,7 +315,12 @@ public class ClientActivity extends AppCompatActivity {
         }
         if (tvUsername != null) tvUsername.setText(handle);
 
-        String subtitle = "Client" + (!TextUtils.isEmpty(locationText) ? " · " + locationText : " · —");
+        String shortLocation = locationText;
+        if (!TextUtils.isEmpty(locationText) && locationText.contains(",")) {
+            shortLocation = locationText.split(",")[0].trim();
+        }
+        
+        String subtitle = "Client" + (!TextUtils.isEmpty(shortLocation) ? " · " + shortLocation : " · —");
         if (tvSubtitle != null) tvSubtitle.setText(subtitle);
 
         if (!isEditMode && tvLocation != null) {

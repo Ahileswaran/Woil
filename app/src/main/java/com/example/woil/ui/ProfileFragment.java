@@ -460,8 +460,14 @@ public class ProfileFragment extends Fragment {
         if (tvUsername != null) tvUsername.setText(handle);
 
         String role = snap.getString("role");
+        
+        String shortLocation = locationText;
+        if (!TextUtils.isEmpty(locationText) && locationText.contains(",")) {
+            shortLocation = locationText.split(",")[0].trim();
+        }
+        
         String subtitle = (TextUtils.isEmpty(role) ? "Worker" : capitalize(role))
-                + (!TextUtils.isEmpty(locationText) ? " · " + locationText : " · —");
+                + (!TextUtils.isEmpty(shortLocation) ? " · " + shortLocation : " · —");
         if (tvSubtitle != null) tvSubtitle.setText(subtitle);
 
         if (!isEditMode && tvLocation != null) {
