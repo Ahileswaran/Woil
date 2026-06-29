@@ -165,6 +165,25 @@ public class HomeHighFragment extends Fragment {
             btnJobOffers.setOnClickListener(v -> startActivity(new Intent(requireContext(), WorkerJobOffersActivity.class)));
         }
 
+        View btnPanic = view.findViewById(R.id.btn_panic);
+        if (btnPanic != null) {
+            btnPanic.bringToFront();
+            btnPanic.setOnClickListener(v -> {
+                android.widget.Toast.makeText(requireContext(), "Panic button clicked", android.widget.Toast.LENGTH_SHORT).show();
+                android.util.Log.d("PanicButton", "Panic button clicked in HomeHighFragment");
+                try {
+                    startActivity(new Intent(requireContext(), PanicAlertStatusActivity.class)
+                            .putExtra("incidentType", "APP_PANIC")
+                            .putExtra("severity", "CRITICAL")
+                            .putExtra(PanicAlertStatusActivity.EXTRA_SOURCE, "app")
+                            .putExtra("state", "OPEN"));
+                } catch (Exception e) {
+                    android.util.Log.e("PanicButton", "Error starting PanicAlertStatusActivity", e);
+                    android.widget.Toast.makeText(requireContext(), "Error: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
         setupActiveMatchListener(view);
 
         return view;

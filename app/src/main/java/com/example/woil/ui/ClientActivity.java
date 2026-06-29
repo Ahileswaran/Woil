@@ -362,7 +362,6 @@ public class ClientActivity extends AppCompatActivity {
         String photoUrl = snap.getString("photoUrl");
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("photo");
         if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
-        if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("nicFrontUri");
 
         if (!isEditMode) {
             if (!TextUtils.isEmpty(photoUrl)) {
