@@ -78,6 +78,8 @@ public class WoilGuardFragment extends Fragment {
 
     private final Handler liveRefreshHandler = new Handler(Looper.getMainLooper());
     private boolean autoRefreshEnabled = false;
+    
+    private boolean hasFiredPanicAlert = false;
 
     private final Runnable liveRefreshRunnable = new Runnable() {
         @Override
@@ -535,10 +537,23 @@ public class WoilGuardFragment extends Fragment {
         if ("MOTION_TINYML".equalsIgnoreCase(latestIncident)
                 || "MOTION_SUSPICIOUS".equalsIgnoreCase(latestIncident)
                 || "PANIC_BUTTON".equalsIgnoreCase(latestIncident)
+                || "CRITICAL_FALL".equalsIgnoreCase(latestIncident)
+                || "FALL_SUSPECTED".equalsIgnoreCase(latestIncident)
                 || "HIGH".equalsIgnoreCase(latestSeverity)
                 || "CRITICAL".equalsIgnoreCase(latestSeverity)) {
 
             tvConnectionStatus.setText("ALERT: " + latestIncident + " / " + latestSeverity);
+        }
+        
+        if ("PANIC_BUTTON".equalsIgnoreCase(latestIncident)
+                || "PANIC_TEST".equalsIgnoreCase(latestIncident)
+                || "CRITICAL_FALL".equalsIgnoreCase(latestIncident)) {
+            if (!hasFiredPanicAlert) {
+                hasFiredPanicAlert = true;
+                openPanicAlert();
+            }
+        } else if ("STATUS".equalsIgnoreCase(latestIncident) || "NONE".equalsIgnoreCase(latestIncident) || "IDLE".equalsIgnoreCase(latestState)) {
+            hasFiredPanicAlert = false;
         }
     }
 

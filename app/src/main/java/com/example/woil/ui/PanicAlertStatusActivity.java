@@ -99,8 +99,17 @@ public class PanicAlertStatusActivity extends AppCompatActivity {
         alert.put("signalType", incident);
         alert.put("severity", severity);
         alert.put("status", "OPEN");
-        alert.put("message", source.equalsIgnoreCase("app") ? "In-app panic button pressed" : "Guard panic alert");
-        alert.put("detectedByModel", !"APP_PANIC".equalsIgnoreCase(incident) && !"PANIC_BUTTON".equalsIgnoreCase(incident));
+        String alertMessage;
+        if ("CRITICAL_FALL".equalsIgnoreCase(incident)) {
+            alertMessage = "Fall detected by WoilGuard device";
+        } else if (source.equalsIgnoreCase("app")) {
+            alertMessage = "In-app panic button pressed";
+        } else {
+            alertMessage = "Guard panic alert";
+        }
+        alert.put("message", alertMessage);
+        alert.put("detectedByModel", "CRITICAL_FALL".equalsIgnoreCase(incident)
+                || (!"APP_PANIC".equalsIgnoreCase(incident) && !"PANIC_BUTTON".equalsIgnoreCase(incident)));
         alert.put("modelConfidence", motionValue);
         alert.put("createdAt", FieldValue.serverTimestamp());
 
