@@ -183,6 +183,7 @@ public class HomeLowFragment extends Fragment {
                     .load(photoUrl)
                     .placeholder(R.drawable.low_profile_pic)
                     .error(R.drawable.low_profile_pic)
+                    .circleCrop()
                     .into(profileImage);
         } else if (profileImage != null) {
             profileImage.setImageResource(R.drawable.low_profile_pic);

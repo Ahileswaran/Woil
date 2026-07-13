@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="96dp" android:height="96dp" android:viewportWidth="96" android:viewportHeight="96">
-    <!-- outer circle (use white ring drawable for card) -->
-    <path android:fillColor="#FFFFFF" android:pathData="M48,4 a44,44 0 1,0 0.0001,0 z" />
+    android:width="110dp"
+    android:height="110dp"
+    android:viewportWidth="110"
+    android:viewportHeight="110">
+    <!-- background circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,0A55,55 0 1,0 55,110A55,55 0 1,0 55,0z"/>
     <!-- head -->
-    <path android:fillColor="#FF8A50" android:pathData="M48,28 a12,12 0 1,0 0.0001,0 z" />
-    <!-- body -->
-    <path android:fillColor="#FF8A50" android:pathData="M24,68 c8,-12 28,-18 24,-18 s16,6 24,18 c0,0 -56,0 -56,0 z" />
+    <path
+        android:fillColor="#FF8A50"
+        android:pathData="M55,28a16,16 0 1,0 0.001,0z"/>
+    <!-- shoulders/body -->
+    <path
+        android:fillColor="#FF8A50"
+        android:pathData="M24,86c0,-16 12,-28 31,-28s31,12 31,28v6H24v-6z"/>
 </vector>

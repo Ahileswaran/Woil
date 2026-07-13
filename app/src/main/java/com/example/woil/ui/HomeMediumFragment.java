@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.example.woil.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,6 +31,7 @@ public class HomeMediumFragment extends Fragment {
     private TextView tvRoleMedium;
     private TextView tvPhoneMedium;
     private TextView tvAreaMedium;
+    private ImageView ivAvatar;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -54,6 +56,7 @@ public class HomeMediumFragment extends Fragment {
         tvRoleMedium = view.findViewById(R.id.tv_role_medium);
         tvPhoneMedium = view.findViewById(R.id.tv_phone_medium);
         tvAreaMedium = view.findViewById(R.id.tv_area_medium);
+        ivAvatar = view.findViewById(R.id.iv_avatar);
 
         setPlaceholders();
 
@@ -70,6 +73,7 @@ public class HomeMediumFragment extends Fragment {
         if (tvRoleMedium != null) tvRoleMedium.setText("Worker");
         if (tvPhoneMedium != null) tvPhoneMedium.setText("Phone: —");
         if (tvAreaMedium != null) tvAreaMedium.setText("Area: —");
+        if (ivAvatar != null) ivAvatar.setImageResource(R.drawable.medium_profile_icon);
     }
 
     private void attachProfileListeners() {
@@ -129,6 +133,21 @@ public class HomeMediumFragment extends Fragment {
                     String role = snap.getString("role");
                     if (tvRoleMedium != null && !TextUtils.isEmpty(role)) {
                         tvRoleMedium.setText(capitalize(role));
+                    }
+
+                    String photoUrl = snap.getString("photoUrl");
+                    if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("photo");
+                    if (TextUtils.isEmpty(photoUrl)) photoUrl = snap.getString("avatar");
+
+                    if (!TextUtils.isEmpty(photoUrl) && ivAvatar != null) {
+                        Glide.with(HomeMediumFragment.this)
+                                .load(photoUrl)
+                                .placeholder(R.drawable.medium_profile_icon)
+                                .error(R.drawable.medium_profile_icon)
+                                .circleCrop()
+                                .into(ivAvatar);
+                    } else if (ivAvatar != null) {
+                        ivAvatar.setImageResource(R.drawable.medium_profile_icon);
                     }
                 });
     }
