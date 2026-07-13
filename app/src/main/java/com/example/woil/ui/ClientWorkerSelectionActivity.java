@@ -66,6 +66,7 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
 
     private EditText etHumanHours;
     private EditText etTotalWage;
+    private Map<String, Double> currentMarketRates = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,6 +143,21 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
         }
         recalculateWage();
 
+        // Fetch dynamic market rates from Firestore so clients get live suggested wages
+        db.collection("system_config").document("market_wages").get()
+                .addOnSuccessListener(snap -> {
+                    if (snap != null && snap.exists()) {
+                        currentMarketRates.put("cleaning", snap.getDouble("cleaning"));
+                        currentMarketRates.put("gardening", snap.getDouble("gardening"));
+                        currentMarketRates.put("plumbing", snap.getDouble("plumbing"));
+                        currentMarketRates.put("housekeeping", snap.getDouble("housekeeping"));
+                        currentMarketRates.put("laundry", snap.getDouble("laundry"));
+                        currentMarketRates.put("caregiving", snap.getDouble("caregiving"));
+                        currentMarketRates.put("other", snap.getDouble("other"));
+                        recalculateWage(); // Recalculate once live rates are fetched
+                    }
+                });
+
         btnConfirmApply.setText("Confirm Match");
         btnConfirmApply.setOnClickListener(v -> createPendingMatchRequest());
         btnCancelApply.setOnClickListener(v -> finish());
@@ -167,6 +183,7 @@ public class ClientWorkerSelectionActivity extends AppCompatActivity {
         input.category = selectedCategory;
         input.distanceKm = workerDistanceKm;
         input.humanHours = hours;
+        input.marketRates = currentMarketRates;
 
         WageCalculator.Result result = WageCalculator.calculate(input);
         etTotalWage.setText(String.format(Locale.getDefault(), "%.2f", result.totalAmount));

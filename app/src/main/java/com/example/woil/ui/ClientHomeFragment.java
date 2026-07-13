@@ -12,6 +12,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.content.res.Resources;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -89,7 +93,66 @@ public class ClientHomeFragment extends Fragment {
             setupActiveMatchListener(view, uid);
         }
 
+        final View rootView = view;
+        final GestureDetector gestureDetector = new GestureDetector(
+                requireContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    private static final int SWIPE_THRESHOLD = 100;
+                    private static final int SWIPE_VELOCITY_THRESHOLD = 100;
 
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                        if (e1 == null || e2 == null) return false;
+
+                        float diffX = e2.getX() - e1.getX();
+                        float diffY = e2.getY() - e1.getY();
+
+                        if (Math.abs(diffX) > Math.abs(diffY)) {
+                            int width = rootView.getWidth();
+                            boolean startedNearRight = (width == 0) || (e1.getX() > width * 0.6f);
+
+                            if (startedNearRight
+                                    && diffX < -SWIPE_THRESHOLD
+                                    && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                                openSettingsFragmentWithAnimation();
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                }
+        );
+
+        rootView.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
+    }
+
+    private void openSettingsFragmentWithAnimation() {
+        SettingsFragment settingsFragment = new SettingsFragment();
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).navigateToFragment(settingsFragment, true, "settings");
+            return;
+        }
+
+        FragmentTransaction ft = requireActivity().getSupportFragmentManager().beginTransaction();
+
+        try {
+            ft.setCustomAnimations(
+                    R.anim.enter_from_right,
+                    R.anim.exit_to_left,
+                    R.anim.enter_from_left,
+                    R.anim.exit_to_right
+            );
+        } catch (Resources.NotFoundException ignored) { }
+
+        ft.replace(R.id.nav_host_fragment, settingsFragment);
+        ft.addToBackStack("settings");
+        ft.commit();
     }
 
     private void setupActiveMatchListener(View view, String clientUid) {
