@@ -1,56 +1,233 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:background="@color/white">
 
-    <LinearLayout
+    <!-- Orange gradient header -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="70dp"
+        android:background="@drawable/bg_orange_gradient">
+
+        <ImageButton
+            android:id="@+id/btn_back_arrow_settings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@android:color/white"
+            android:contentDescription="Back" />
 
         <TextView
-            android:id="@+id/tvCaseSummary"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CCC case summary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:text="CCC Case"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="28dp" />
+    </RelativeLayout>
 
-        <Button
-            android:id="@+id/btnAck"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Acknowledge"
-            android:layout_marginTop="16dp" />
+    <!-- Content below header -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="70dp"
+        android:fillViewport="true">
 
-        <Button
-            android:id="@+id/btnEscalate"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Escalate"
-            android:layout_marginTop="8dp" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <Button
-            android:id="@+id/btnClose"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Close"
-            android:layout_marginTop="8dp" />
+            <!-- Case Summary Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#FFF7ED"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#FDBA74"
+                app:strokeWidth="1dp">
 
-        <Button
-            android:id="@+id/btnMessageContact"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Notify contact"
-            android:layout_marginTop="8dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-        <Button
-            android:id="@+id/btnRaiseComplaint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Raise dispute / complaint"
-            android:layout_marginTop="8dp" />
-    </LinearLayout>
-</ScrollView>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@drawable/ic_clipboard"
+                            app:tint="#C2410C" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Case Summary"
+                            android:textColor="#C2410C"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvCaseSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="CCC case summary"
+                        android:textColor="#1F2937"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="4dp"
+                        android:fontFamily="sans-serif" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Section label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginStart="4dp"
+                android:text="Actions"
+                android:textColor="#6B7280"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+
+            <!-- Acknowledge Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAck"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="Acknowledge"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                app:backgroundTint="#FF8A00"
+                app:cornerRadius="14dp"
+                app:icon="@drawable/ic_check_circle"
+                app:iconTint="@android:color/white"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+            <!-- Escalate Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEscalate"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:text="Escalate"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                app:backgroundTint="#DC2626"
+                app:cornerRadius="14dp"
+                app:icon="@drawable/ic_escalate"
+                app:iconTint="@android:color/white"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+            <!-- Close Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClose"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:text="Close Case"
+                android:textAllCaps="false"
+                android:textColor="#374151"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                app:cornerRadius="14dp"
+                app:strokeColor="#D1D5DB"
+                app:strokeWidth="1dp"
+                app:icon="@drawable/ic_lock"
+                app:iconTint="#374151"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="#E5E7EB" />
+
+            <!-- Section label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Communication"
+                android:textColor="#6B7280"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+
+            <!-- Notify Contact Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMessageContact"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:text="Notify Contact"
+                android:textAllCaps="false"
+                android:textColor="#1D4ED8"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                app:cornerRadius="14dp"
+                app:strokeColor="#93C5FD"
+                app:strokeWidth="1dp"
+                app:icon="@drawable/ic_message"
+                app:iconTint="#1D4ED8"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+            <!-- Raise Complaint Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRaiseComplaint"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                android:text="Raise Dispute / Complaint"
+                android:textAllCaps="false"
+                android:textColor="#7C3AED"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
+                app:cornerRadius="14dp"
+                app:strokeColor="#C4B5FD"
+                app:strokeWidth="1dp"
+                app:icon="@drawable/ic_warning"
+                app:iconTint="#7C3AED"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

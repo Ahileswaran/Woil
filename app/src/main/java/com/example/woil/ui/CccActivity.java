@@ -10,6 +10,9 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import android.graphics.Color;
+import android.view.View;
 
 import com.example.woil.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,10 +41,18 @@ public class CccActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
         setContentView(R.layout.activity_ccc);
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+
+        View btnBack = findViewById(R.id.btn_back_arrow_settings);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
         tvCaseSummary = findViewById(R.id.tvCaseSummary);
         btnAck = findViewById(R.id.btnAck);
