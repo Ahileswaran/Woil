@@ -2,6 +2,8 @@ package com.example.woil.ui;
 
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -47,6 +49,12 @@ public class HomeLowFragment extends Fragment {
     private EditText etMaterials;
     private TextView tvCalculatedWage;
 
+    private TextView tvGuardState;
+    private TextView tvGuardBattery;
+    private TextView tvGuardIncident;
+    private final Handler guardRefreshHandler = new Handler(Looper.getMainLooper());
+    private final Runnable guardRefreshRunnable = () -> refreshGuardData();
+
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
@@ -68,10 +76,12 @@ public class HomeLowFragment extends Fragment {
 
         bindProfileViews(view);
         bindWageCalcViews(view);
+        bindGuardViews(view);
         setPlaceholders();
         bindActions(view);
         setupSwipeToSettings(view);
         attachProfileListeners();
+        startGuardRefresh();
 
         return view;
     }
@@ -399,6 +409,47 @@ public class HomeLowFragment extends Fragment {
             profileListener.remove();
             profileListener = null;
         }
+        guardRefreshHandler.removeCallbacks(guardRefreshRunnable);
+    }
+
+    private void bindGuardViews(@NonNull View view) {
+        tvGuardState = view.findViewById(R.id.tv_guard_state);
+        tvGuardBattery = view.findViewById(R.id.tv_guard_battery);
+        tvGuardIncident = view.findViewById(R.id.tv_guard_incident);
+    }
+
+    private void startGuardRefresh() {
+        guardRefreshHandler.removeCallbacks(guardRefreshRunnable);
+        guardRefreshHandler.post(guardRefreshRunnable);
+    }
+
+    private void refreshGuardData() {
+        if (!isAdded()) return;
+
+        if (WoilGuardData.connected) {
+            if (tvGuardState != null) {
+                String stateText = "IDLE".equalsIgnoreCase(WoilGuardData.state)
+                        ? "Status: Safe" : "Status: " + WoilGuardData.state;
+                tvGuardState.setText(stateText);
+                tvGuardState.setTextColor("IDLE".equalsIgnoreCase(WoilGuardData.state)
+                        ? 0xFF15803D : 0xFFDC2626);
+            }
+            if (tvGuardBattery != null) {
+                tvGuardBattery.setText("Battery: " + WoilGuardData.battery + "%");
+            }
+            if (tvGuardIncident != null) {
+                tvGuardIncident.setText("Incident: " + WoilGuardData.incident);
+            }
+        } else {
+            if (tvGuardState != null) {
+                tvGuardState.setText("Not connected");
+                tvGuardState.setTextColor(0xFF6B7280);
+            }
+            if (tvGuardBattery != null) tvGuardBattery.setText("Battery: --");
+            if (tvGuardIncident != null) tvGuardIncident.setText("Incident: --");
+        }
+
+        guardRefreshHandler.postDelayed(guardRefreshRunnable, 2000);
     }
 
     private void calculateWageInline() {

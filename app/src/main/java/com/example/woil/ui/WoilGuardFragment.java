@@ -299,6 +299,7 @@ public class WoilGuardFragment extends Fragment {
             requireActivity().runOnUiThread(() -> {
                 if (newState == BluetoothGatt.STATE_CONNECTED) {
                     tvConnectionStatus.setText("BLE connected");
+                    WoilGuardData.connected = true;
 
                     try {
                         if (!hasBluetoothConnectPermission()) {
@@ -312,6 +313,7 @@ public class WoilGuardFragment extends Fragment {
 
                 } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                     tvConnectionStatus.setText("BLE disconnected");
+                    WoilGuardData.connected = false;
                     stopAutoRefresh();
                     statusCharacteristic = null;
                     cmdCharacteristic = null;
@@ -533,6 +535,12 @@ public class WoilGuardFragment extends Fragment {
         tvAudioScore.setText("Audio: " + latestAudio + " | Model: " + latestModel);
 
         addIncidentLog(buildIncidentLogLine());
+
+        // Publish to shared data holder for dashboard fragments
+        WoilGuardData.state = latestState;
+        WoilGuardData.battery = latestBattery;
+        WoilGuardData.incident = latestIncident;
+        WoilGuardData.severity = latestSeverity;
 
         if ("MOTION_TINYML".equalsIgnoreCase(latestIncident)
                 || "MOTION_SUSPICIOUS".equalsIgnoreCase(latestIncident)
