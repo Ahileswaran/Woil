@@ -383,15 +383,30 @@
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-black" />
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:layout_marginTop="6dp"
-                        android:text="@string/balance_rs_2600"
-                        android:textColor="#C2410C"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium" />
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tv_calculated_wage"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="@string/balance_rs_2600"
+                            android:textColor="#C2410C"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium" />
+                        <ImageButton
+                            android:id="@+id/btn_reset_wage"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_refresh_circle"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Reset Calculator" />
+                    </LinearLayout>
 
                     <Spinner
                         android:id="@+id/spinner_jobtype"
@@ -400,31 +415,125 @@
                         android:layout_marginTop="8dp"
                         android:background="@drawable/low_rounded_input" />
 
-                    <EditText
-                        android:id="@+id/et_hours"
+                    <!-- Row 1: Duration & Human Hours -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="36dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:background="@drawable/low_rounded_input"
-                        android:hint="@string/hint_hours"
-                        android:inputType="number"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif" />
+                        android:orientation="horizontal">
 
-                    <EditText
-                        android:id="@+id/et_distance"
+                        <EditText
+                            android:id="@+id/et_duration_hours"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/low_rounded_input"
+                            android:hint="Duration (h)"
+                            android:inputType="numberDecimal"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif" />
+
+                        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+                        <EditText
+                            android:id="@+id/et_human_hours"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/low_rounded_input"
+                            android:hint="Workers (count)"
+                            android:inputType="numberDecimal"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif" />
+                    </LinearLayout>
+
+                    <!-- Row 2: Break & Distance -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="36dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:background="@drawable/low_rounded_input"
-                        android:hint="@string/hint_distance"
-                        android:inputType="numberDecimal"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif" />
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/et_break_minutes"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/low_rounded_input"
+                            android:hint="Break (min)"
+                            android:inputType="number"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif" />
+
+                        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+                        <EditText
+                            android:id="@+id/et_distance"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/low_rounded_input"
+                            android:hint="Distance (km)"
+                            android:inputType="numberDecimal"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif" />
+                    </LinearLayout>
+
+                    <!-- Row 3: Tips & Materials -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/et_tips"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/low_rounded_input"
+                            android:hint="Tips (Rs)"
+                            android:inputType="numberDecimal"
+                            android:singleLine="true"
+                            android:imeOptions="actionNext"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif" />
+
+                        <View android:layout_width="8dp" android:layout_height="1dp" />
+
+                        <EditText
+                            android:id="@+id/et_materials"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/low_rounded_input"
+                            android:hint="Materials (Rs)"
+                            android:inputType="numberDecimal"
+                            android:singleLine="true"
+                            android:imeOptions="actionDone"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:textSize="13sp"
+                            android:fontFamily="sans-serif" />
+                    </LinearLayout>
 
                     <Button
                         android:id="@+id/btn_calculate"

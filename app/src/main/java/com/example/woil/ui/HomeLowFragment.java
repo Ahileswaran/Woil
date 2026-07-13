@@ -38,6 +38,15 @@ public class HomeLowFragment extends Fragment {
     private TextView boxNext;
     private TextView boxFind;
 
+    private Spinner spCategory;
+    private EditText etDurationHours;
+    private EditText etHumanHours;
+    private EditText etBreakMinutes;
+    private EditText etDistance;
+    private EditText etTips;
+    private EditText etMaterials;
+    private TextView tvCalculatedWage;
+
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
@@ -58,6 +67,7 @@ public class HomeLowFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
 
         bindProfileViews(view);
+        bindWageCalcViews(view);
         setPlaceholders();
         bindActions(view);
         setupSwipeToSettings(view);
@@ -74,6 +84,33 @@ public class HomeLowFragment extends Fragment {
         boxJobDone = view.findViewById(R.id.box_job_done);
         boxNext = view.findViewById(R.id.box_next);
         boxFind = view.findViewById(R.id.box_find);
+    }
+
+    private void bindWageCalcViews(@NonNull View view) {
+        spCategory = view.findViewById(R.id.spinner_jobtype);
+        etDurationHours = view.findViewById(R.id.et_duration_hours);
+        etHumanHours = view.findViewById(R.id.et_human_hours);
+        etBreakMinutes = view.findViewById(R.id.et_break_minutes);
+        etDistance = view.findViewById(R.id.et_distance);
+        etTips = view.findViewById(R.id.et_tips);
+        etMaterials = view.findViewById(R.id.et_materials);
+        tvCalculatedWage = view.findViewById(R.id.tv_calculated_wage);
+        
+        ImageButton btnResetWage = view.findViewById(R.id.btn_reset_wage);
+        if (btnResetWage != null) {
+            btnResetWage.setOnClickListener(v -> resetCalculator());
+        }
+        
+        if (spCategory != null) {
+            String[] categories = {"Cleaning", "Gardening", "Plumbing", "Housekeeping", "Laundry", "Caregiving", "Other"};
+            android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                    requireContext(),
+                    android.R.layout.simple_spinner_item,
+                    categories
+            );
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spCategory.setAdapter(adapter);
+        }
     }
 
     private void setPlaceholders() {
@@ -243,12 +280,7 @@ public class HomeLowFragment extends Fragment {
         }
 
         if (calculateButton != null) {
-            calculateButton.setOnClickListener(v -> {
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) requireActivity())
-                            .navigateToFragment(new WageFragment(), true, "wage");
-                }
-            });
+            calculateButton.setOnClickListener(v -> calculateWageInline());
         }
 
         if (btnPhone != null) {
@@ -369,5 +401,42 @@ public class HomeLowFragment extends Fragment {
         }
     }
 
+    private void calculateWageInline() {
+        if (spCategory == null) return;
+        
+        WageCalculator.Input input = new WageCalculator.Input();
+        input.category = spCategory.getSelectedItem() != null ? spCategory.getSelectedItem().toString() : "Other";
+        input.distanceKm = parseDouble(etDistance);
+        input.durationHours = parseDouble(etDurationHours);
+        input.humanHours = parseDouble(etHumanHours);
+        input.breakMinutes = (int) parseDouble(etBreakMinutes);
+        input.tips = parseDouble(etTips);
+        input.materials = parseDouble(etMaterials);
+        input.marketRates = null; // Uses defaults
+        
+        WageCalculator.Result result = WageCalculator.calculate(input);
+        if (tvCalculatedWage != null) {
+            tvCalculatedWage.setText(String.format(java.util.Locale.getDefault(), "Rs. %.0f", result.totalAmount));
+        }
+    }
 
+    private void resetCalculator() {
+        if (spCategory != null && spCategory.getAdapter() != null && spCategory.getAdapter().getCount() > 0) {
+            spCategory.setSelection(0);
+        }
+        if (etDurationHours != null) etDurationHours.setText("");
+        if (etHumanHours != null) etHumanHours.setText("");
+        if (etBreakMinutes != null) etBreakMinutes.setText("");
+        if (etDistance != null) etDistance.setText("");
+        if (etTips != null) etTips.setText("");
+        if (etMaterials != null) etMaterials.setText("");
+        if (tvCalculatedWage != null) tvCalculatedWage.setText("Rs. 0");
+    }
+
+    private double parseDouble(EditText et) {
+        if (et == null || et.getText() == null) return 0;
+        String val = et.getText().toString().trim();
+        if (val.isEmpty()) return 0;
+        try { return Double.parseDouble(val); } catch (Exception e) { return 0; }
+    }
 }
